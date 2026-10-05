@@ -12,13 +12,15 @@
 :root{
   --bg:#f4f2ed; --surface:#ffffff; --surface-2:#f8f6f1; --ink:#1b1d24; --muted:#62645e; --line:#e0dccf;
   --gold:#94730c; --gold-soft:rgb(201 162 39 / .14); --up:#25804a; --down:#b4432f; --warn:#a86b00;
+  --tank:#3d6fb4; --heal:#2f8a5a; --aede:#8a5cc2; --dps:#c0573a;
   --display:"Marcellus","Palatino Linotype",Georgia,serif;
   --body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
   color-scheme:light;
 }
 @media (prefers-color-scheme:dark){:root{
   --bg:#0e1015; --surface:#161920; --surface-2:#1b1f27; --ink:#ebe8e1; --muted:#a19f97; --line:#292d37;
-  --gold:#e3c35a; --gold-soft:rgb(227 195 90 / .12); --up:#6fcf97; --down:#ff8a7a; --warn:#f0b54a; color-scheme:dark}}
+  --gold:#e3c35a; --gold-soft:rgb(227 195 90 / .12); --up:#6fcf97; --down:#ff8a7a; --warn:#f0b54a;
+  --tank:#7aa7e8; --heal:#6fcf97; --aede:#b99af0; --dps:#f08a6a; color-scheme:dark}}
 *{box-sizing:border-box}
 html,body{margin:0}
 body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--body);padding:0 20px}
@@ -63,22 +65,26 @@ tr.top .rank{color:var(--gold);font-weight:800}
 .role{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:4px;margin-left:6px;vertical-align:2px;white-space:nowrap}
 .role.chef{background:var(--gold);color:var(--bg)}
 .role.officier{border:1px solid var(--gold);color:var(--gold)}
-.compo{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:24px}
+.compo{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-bottom:24px}
 .compo-h{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:10px}
 .compo-h .k{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700}
 .compo-h .s{font-size:13px;color:var(--muted)}
-.roles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-@media (max-width:760px){.roles{grid-template-columns:repeat(2,minmax(0,1fr))}.compo-h .s{display:none}}
-.rl{min-width:0;border-top:2px solid var(--line);padding-top:8px}
-.rl .t{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.rl .n{font-weight:700;font-size:14px}
-.rl .c{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums}
-.rl ul{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:2px}
-.rl li button{all:unset;cursor:pointer;display:flex;justify-content:space-between;gap:8px;width:100%;font-size:13px;color:var(--muted);padding:2px 0;border-radius:4px}
-.rl li button:hover,.rl li button[aria-pressed="true"]{color:var(--gold)}
-.rl li button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
-.rl li b{color:var(--ink);font-variant-numeric:tabular-nums}
-.rl li button.zero b{color:var(--down)}
+.mix{display:flex;height:8px;border-radius:999px;overflow:hidden;background:var(--line);margin-bottom:14px;gap:2px}
+.mix span{display:block;height:100%}
+.roles{display:grid;gap:8px}
+.rl{display:grid;grid-template-columns:110px 36px minmax(0,1fr);align-items:center;gap:10px}
+.rl .n{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px}
+.rl .dot{width:10px;height:10px;border-radius:50%;flex:none}
+.rl .c{font-size:18px;font-weight:800;font-variant-numeric:tabular-nums;text-align:right}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:inherit;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:7px;padding:4px 6px 4px 11px;border-radius:999px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);cursor:pointer}
+.chip b{min-width:22px;text-align:center;padding:0 6px;border-radius:999px;background:var(--line);font-variant-numeric:tabular-nums;font-size:12px}
+.chip:hover{border-color:var(--gold)}
+.chip[aria-pressed="true"]{background:var(--gold-soft);border-color:var(--gold);color:var(--gold)}
+.chip[aria-pressed="true"] b{background:var(--gold);color:var(--bg)}
+.chip.zero{color:var(--muted)} .chip.zero b{background:none;color:var(--down)}
+.chip:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+@media (max-width:640px){.rl{grid-template-columns:1fr auto}.rl .chips{grid-column:1/-1}.compo-h .s{display:none}}
 .pill{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;border:1px solid currentColor;color:var(--warn);white-space:nowrap}
 .empty{padding:40px 20px;text-align:center;color:var(--muted)}
 .empty strong{color:var(--ink);display:block;font-size:17px;margin-bottom:6px}
@@ -110,7 +116,8 @@ footer{margin-top:24px;font-size:13px;color:var(--muted);max-width:75ch}
   </section>
 
   <section class="compo" aria-label="Composition de la guilde">
-    <div class="compo-h"><span class="k">Composition</span><span class="s">Clique sur une classe pour filtrer le classement</span></div>
+    <div class="compo-h"><span class="k">Composition <span id="compoN"></span></span><span class="s">Clique sur une classe pour filtrer le classement</span></div>
+    <div class="mix" id="mix" aria-hidden="true"></div>
     <div class="roles" id="roles"></div>
   </section>
 
@@ -176,20 +183,23 @@ function delta(d) {
 const CLASS_FR = { Gladiator: "Gladiateur", Templar: "Templier", Cleric: "Clerc", Chanter: "Aède",
   Assassin: "Assassin", Ranger: "Ranger", Sorcerer: "Sorcier", Spiritmaster: "Spiritualiste" };
 const ROLES = [
-  { name: "Tank", classes: ["Gladiateur", "Templier"] },
-  { name: "Heal", classes: ["Clerc"] },
-  { name: "Aède", classes: ["Aède"] },
-  { name: "DPS", classes: ["Assassin", "Ranger", "Sorcier", "Spiritualiste"] },
+  { name: "Tank", color: "var(--tank)", classes: ["Gladiateur", "Templier"] },
+  { name: "Heal", color: "var(--heal)", classes: ["Clerc"] },
+  { name: "Aède", color: "var(--aede)", classes: ["Aède"] },
+  { name: "DPS", color: "var(--dps)", classes: ["Assassin", "Ranger", "Sorcier", "Spiritualiste"] },
 ];
 
 function composition() {
   const count = {};
   DATA.forEach(m => { if (m.classFr) count[m.classFr] = (count[m.classFr] || 0) + 1; });
   const q = $("q").value.trim().toLowerCase();
-  $("roles").innerHTML = ROLES.map(r => {
-    const total = r.classes.reduce((t, c) => t + (count[c] || 0), 0);
-    const items = r.classes.map(c => `<li><button type="button" data-class="${esc(c)}" aria-pressed="${q === c.toLowerCase()}" class="${count[c] ? "" : "zero"}"><span>${esc(c)}</span><b>${count[c] || 0}</b></button></li>`).join("");
-    return `<div class="rl"><div class="t"><span class="n">${r.name}</span><span class="c">${total}</span></div><ul>${items}</ul></div>`;
+  const totals = ROLES.map(r => r.classes.reduce((t, c) => t + (count[c] || 0), 0));
+  const all = totals.reduce((a, b) => a + b, 0);
+  $("compoN").textContent = all ? `· ${all} persos` : "";
+  $("mix").innerHTML = ROLES.map((r, i) => totals[i] ? `<span style="flex:${totals[i]};background:${r.color}" title="${r.name} : ${totals[i]}"></span>` : "").join("");
+  $("roles").innerHTML = ROLES.map((r, i) => {
+    const chips = r.classes.map(c => `<button type="button" class="chip ${count[c] ? "" : "zero"}" data-class="${esc(c)}" aria-pressed="${q === c.toLowerCase()}">${esc(c)}<b>${count[c] || 0}</b></button>`).join("");
+    return `<div class="rl"><span class="n"><span class="dot" style="background:${r.color}"></span>${r.name}</span><span class="c">${totals[i]}</span><div class="chips">${chips}</div></div>`;
   }).join("");
 }
 $("roles").addEventListener("click", e => {

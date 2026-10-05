@@ -9,11 +9,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Figtree:wght@400;600;700;800&display=swap">
 <style>
-/* Admin : connexion GitHub, puis tableau éditable des membres et barre d'enregistrement collante */
+/* Admin : barre de session, ajout rapide, onglets Suivis / En attente avec recherche, liste en lignes, barre d'enregistrement collante */
 :root{
   --bg:#f4f2ed; --surface:#ffffff; --surface-2:#f8f6f1; --ink:#1b1d24; --muted:#62645e; --line:#e0dccf;
   --gold:#94730c; --gold-strong:#c9a227; --on-gold:#14161c; --gold-soft:rgb(201 162 39 / .14);
-  --up:#25804a; --down:#b4432f; --warn:#a86b00;
+  --up:#25804a; --down:#b4432f; --down-soft:rgb(180 67 47 / .1); --warn:#a86b00;
   --display:"Marcellus","Palatino Linotype",Georgia,serif;
   --body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
   --mono:ui-monospace,"Cascadia Mono",Consolas,monospace;
@@ -22,53 +22,99 @@
 @media (prefers-color-scheme:dark){:root{
   --bg:#0e1015; --surface:#161920; --surface-2:#1b1f27; --ink:#ebe8e1; --muted:#a19f97; --line:#292d37;
   --gold:#e3c35a; --gold-strong:#c9a227; --on-gold:#14161c; --gold-soft:rgb(227 195 90 / .12);
-  --up:#6fcf97; --down:#ff8a7a; --warn:#f0b54a; color-scheme:dark}}
+  --up:#6fcf97; --down:#ff8a7a; --down-soft:rgb(255 138 122 / .12); --warn:#f0b54a; color-scheme:dark}}
 *{box-sizing:border-box}
 html,body{margin:0}
 body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--body);padding:0 20px}
-.wrap{max-width:900px;margin:0 auto;padding-block:40px 120px}
-header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:12px 32px;margin-bottom:24px}
+.wrap{max-width:880px;margin:0 auto;padding-block:36px 140px}
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:12px 32px;margin-bottom:22px}
 .eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);font-weight:700;margin:0 0 6px}
-h1{font-family:var(--display);font-weight:400;font-size:clamp(32px,5vw,44px);line-height:1.05;margin:0}
-h2{font-size:17px;margin:0 0 8px}
+h1{font-family:var(--display);font-weight:400;font-size:clamp(30px,5vw,42px);line-height:1.05;margin:0}
+h2{font-size:16px;margin:0}
 a{color:var(--gold)}
 .back{font-size:14px;font-weight:600;text-decoration:none}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin-bottom:20px}
-.card p{margin:0 0 10px;max-width:70ch}
-.card ol{margin:0 0 12px;padding-left:20px;max-width:70ch}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-bottom:16px}
+.card p{margin:0 0 10px;max-width:68ch}
+.card ol{margin:0 0 14px;padding-left:20px;max-width:68ch}
 .card li{margin-bottom:4px}
 .muted{color:var(--muted);font-size:14px}
 code{font:13px var(--mono);background:var(--surface-2);border:1px solid var(--line);border-radius:4px;padding:1px 5px}
-input,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:7px 10px;min-width:0}
+input,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-width:0}
+input::placeholder{color:var(--muted)}
 input:focus-visible,select:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
-.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-.row input[type=password]{flex:1 1 280px;font-family:var(--mono)}
-label.chk{display:inline-flex;gap:6px;align-items:center;font-size:14px;color:var(--muted)}
-button{font:inherit;font-weight:700;font-size:14px;border-radius:7px;padding:8px 14px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+button{font:inherit;font-weight:700;font-size:14px;border-radius:8px;padding:8px 14px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink);white-space:nowrap}
+button:hover{border-color:var(--gold)}
 button.primary{background:var(--gold-strong);border-color:var(--gold-strong);color:var(--on-gold)}
-button.ghost{background:none;border-color:transparent;color:var(--muted);padding:6px 8px}
-button.ghost:hover{color:var(--down)}
+button.quiet{background:none;border-color:transparent;color:var(--muted);font-weight:600}
+button.quiet:hover{color:var(--ink);border-color:transparent}
+button.icon{padding:6px;line-height:0;background:none;border-color:transparent;color:var(--muted)}
+button.icon:hover{color:var(--down);background:var(--down-soft)}
+button.danger{background:var(--down);border-color:var(--down);color:#fff}
 button:disabled{opacity:.5;cursor:default}
-.msg{margin-top:10px;font-size:14px}
+button svg{width:16px;height:16px;vertical-align:-3px}
+.msg{margin:10px 0 0;font-size:14px}
 .msg.err{color:var(--down)} .msg.ok{color:var(--up)}
-.tbl{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px}
-table{width:100%;border-collapse:collapse;min-width:620px}
-th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
-th{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;background:var(--surface-2);white-space:nowrap}
-tbody tr:last-child td{border-bottom:0}
-tr.off td{opacity:.55}
-tr.changed{background:var(--gold-soft)}
-td.num{text-align:right;font-variant-numeric:tabular-nums}
-td input.name{width:100%;max-width:200px}
-td input.srv{width:110px}
-.sub{font-size:12px;color:var(--muted)}
-.pill{display:inline-block;font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;border:1px solid currentColor;color:var(--warn);white-space:nowrap}
-.sect{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:24px 0 8px}
-.sect h2{margin:0}
-.bar{position:fixed;left:0;right:0;bottom:0;padding:12px 20px calc(12px + env(safe-area-inset-bottom,0px));background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -6px 20px rgb(0 0 0 / .12)}
-.bar .in{max-width:900px;margin:0 auto;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
-.bar .s{font-size:14px;color:var(--muted)}
+
+/* Connexion */
+.tokrow{display:flex;flex-wrap:wrap;gap:10px}
+.tokrow input{flex:1 1 280px;font-family:var(--mono)}
+label.chk{display:inline-flex;gap:8px;align-items:center;font-size:14px;color:var(--muted);margin-top:10px}
+
+/* Session */
+.session{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;padding:12px 16px}
+.session .who{font-size:14px;color:var(--muted)}
+.session .who strong{color:var(--ink)}
+.session .acts{display:flex;gap:6px;flex-wrap:wrap}
+
+/* Ajout */
+.add h2{margin-bottom:12px}
+.addrow{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) minmax(0,.9fr) auto;gap:10px}
+@media (max-width:640px){.addrow{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.addrow input#nName{grid-column:1/-1}.addrow button{grid-column:1/-1}}
+
+/* Onglets + recherche */
+.listhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin:26px 0 10px}
+.tabs{display:inline-flex;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:3px;gap:3px}
+.tabs button{border:0;background:none;color:var(--muted);padding:7px 14px;border-radius:7px}
+.tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgb(0 0 0 / .15)}
+.tabs .n{display:inline-block;min-width:22px;margin-left:6px;padding:0 6px;border-radius:999px;background:var(--line);color:var(--ink);font-size:12px;font-variant-numeric:tabular-nums}
+.tabs button[aria-selected="true"] .n{background:var(--gold-soft);color:var(--gold)}
+input[type=search]{width:240px;max-width:100%}
+.hint{font-size:13px;color:var(--muted);margin:0 0 10px}
+
+/* Liste */
+.list{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.item{display:grid;align-items:center;gap:10px 14px;padding:10px 16px;border-bottom:1px solid var(--line);position:relative}
+.item:last-child{border-bottom:0}
+.item.changed::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:3px;border-radius:0 3px 3px 0;background:var(--gold-strong)}
+.list.on .item{grid-template-columns:minmax(0,1fr) 90px 130px auto}
+.list.off .item{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) 130px auto}
+.nm{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sub{font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gs{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+.gs small{display:block;font-weight:400;font-size:12px;color:var(--muted)}
+.item select{padding:6px 8px;width:100%}
+.item input{padding:6px 9px;width:100%}
+.acts{display:flex;gap:4px;justify-content:flex-end;align-items:center}
+.tag{display:inline-block;font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;margin-left:6px;vertical-align:1px}
+.tag.new{background:var(--gold-soft);color:var(--gold)}
+.tag.warn{border:1px solid currentColor;color:var(--warn)}
+.ext{font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap}
+.empty{padding:28px 16px;text-align:center;color:var(--muted)}
+@media (max-width:640px){
+  .list.on .item{grid-template-columns:auto minmax(0,1fr) auto}
+  .list.off .item{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .list .item .c1{grid-column:1/-1}
+  .list.on .item .gs{text-align:left}
+  .list.off .item .acts{grid-column:1/-1;justify-content:flex-start}
+  .session .acts{width:100%;justify-content:space-between}
+}
+
+/* Barre d'enregistrement */
+.bar{position:fixed;left:0;right:0;bottom:0;padding:12px 20px calc(12px + env(safe-area-inset-bottom,0px));background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -6px 24px rgb(0 0 0 / .18)}
+.bar .in{max-width:880px;margin:0 auto;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.bar .s{font-size:14px;color:var(--muted);min-width:0}
 .bar .s strong{color:var(--ink)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:84px;background:var(--ink);color:var(--bg);font-size:14px;font-weight:600;padding:9px 14px;border-radius:8px;box-shadow:0 6px 20px rgb(0 0 0 / .25);max-width:calc(100vw - 32px)}
 [hidden]{display:none!important}
 </style>
 </head>
@@ -84,57 +130,66 @@ td input.srv{width:110px}
 
   <!-- Connexion -->
   <section class="card" id="login">
-    <h2>Connexion GitHub</h2>
-    <p>Cette page modifie directement la liste des membres sur GitHub. Il te faut une <strong>clé d'accès personnelle</strong> (token), à créer une seule fois :</p>
+    <h2 style="margin-bottom:10px">Connexion GitHub</h2>
+    <p>Cette page modifie la liste des membres directement sur GitHub. Il te faut une <strong>clé d'accès personnelle</strong> (token), à créer une seule fois :</p>
     <ol>
-      <li>Ouvre <a id="tokLink" href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com → nouveau token</a>.</li>
-      <li>Nom : <code>Admin Ivalys</code>. Expiration : au choix (90 jours, par exemple).</li>
-      <li><strong>Repository access</strong> : « Only select repositories », puis choisis <code id="repoName">aion2-guilde</code>.</li>
-      <li><strong>Permissions → Repository permissions</strong> : <code>Contents</code> sur « Read and write », et <code>Actions</code> sur « Read and write » (pour le bouton « Relancer la mise à jour »).</li>
-      <li>Clique sur « Generate token », copie la clé et colle-la ici.</li>
+      <li>Ouvre <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">GitHub → nouveau token</a> (« Fine-grained »).</li>
+      <li><strong>Repository access</strong> : « Only select repositories » → <code id="repoName">aion2-guilde</code>.</li>
+      <li><strong>Repository permissions</strong> : <code>Contents</code> → <strong>Read and write</strong>, et <code>Actions</code> → <strong>Read and write</strong>.</li>
+      <li>« Generate token », puis colle la clé ci-dessous.</li>
     </ol>
-    <div class="row">
-      <input type="password" id="token" placeholder="github_pat_…" autocomplete="off" spellcheck="false" aria-label="Token GitHub">
+    <div class="tokrow">
+      <input type="password" id="token" placeholder="github_pat_…" autocomplete="off" spellcheck="false" aria-label="Clé GitHub">
       <button class="primary" id="connect" type="button">Se connecter</button>
     </div>
-    <div class="row" style="margin-top:8px">
-      <label class="chk"><input type="checkbox" id="remember" checked> Se souvenir de moi sur cet appareil</label>
-    </div>
+    <label class="chk"><input type="checkbox" id="remember" checked> Rester connecté sur cet appareil</label>
     <p class="msg" id="loginMsg" role="status"></p>
-    <p class="muted" style="margin-top:8px">La clé reste dans ton navigateur et n'est envoyée qu'à GitHub. Chaque officier qui doit gérer les membres crée la sienne, après avoir été ajouté comme collaborateur du dépôt.</p>
   </section>
 
   <!-- Éditeur -->
-  <section id="editor" hidden>
-    <div class="card row" style="justify-content:space-between">
-      <span class="muted">Connecté en tant que <strong id="who" style="color:var(--ink)"></strong></span>
-      <span class="row">
-        <button type="button" id="rerun" title="Relance la récupération des GS/CP sans rien modifier">Relancer la mise à jour</button>
-        <button type="button" class="ghost" id="logout">Se déconnecter</button>
+  <div id="editor" hidden>
+    <div class="card session">
+      <span class="who">Connecté : <strong id="who"></strong></span>
+      <span class="acts">
+        <button type="button" id="rerun" title="Relance la récupération des GS et CP sans rien modifier">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>
+          Relancer la mise à jour</button>
+        <button type="button" class="quiet" id="logout">Se déconnecter</button>
       </span>
     </div>
-    <p class="msg" id="runMsg" role="status"></p>
+    <p class="msg" id="runMsg" role="status" hidden></p>
 
-    <div class="sect"><h2>Membres suivis <span class="muted" id="cntOn"></span></h2><button type="button" id="add">+ Ajouter un membre</button></div>
-    <div class="tbl"><table>
-      <thead><tr><th>Pseudo</th><th>Serveur</th><th>Statut</th><th class="num">GS</th><th>Suivi</th><th></th></tr></thead>
-      <tbody id="on"></tbody>
-    </table></div>
+    <form class="card add" id="addForm" autocomplete="off">
+      <h2>Ajouter un perso</h2>
+      <div class="addrow">
+        <input id="nName" placeholder="Pseudo exact (accents compris)" aria-label="Pseudo" required>
+        <input id="nServer" list="servers" aria-label="Serveur" required>
+        <select id="nRole" aria-label="Statut"><option>Membre</option><option>Officier</option><option>Chef</option></select>
+        <button class="primary" type="submit">Ajouter</button>
+      </div>
+    </form>
 
-    <div class="sect"><h2>En attente <span class="muted" id="cntOff"></span></h2></div>
-    <p class="muted" style="margin:0 0 8px">Persos non suivis : introuvables, en vérification ou partis. Coche « Suivi » pour les réactiver.</p>
-    <div class="tbl"><table>
-      <thead><tr><th>Pseudo</th><th>Serveur</th><th>Statut</th><th class="num">GS</th><th>Suivi</th><th></th></tr></thead>
-      <tbody id="off"></tbody>
-    </table></div>
-  </section>
+    <div class="listhead">
+      <div class="tabs" role="tablist">
+        <button type="button" role="tab" id="tabOn" aria-selected="true">Suivis<span class="n" id="cntOn">0</span></button>
+        <button type="button" role="tab" id="tabOff" aria-selected="false">En attente<span class="n" id="cntOff">0</span></button>
+      </div>
+      <input type="search" id="q" placeholder="Rechercher un pseudo…" aria-label="Rechercher">
+    </div>
+    <p class="hint" id="hint"></p>
+    <div class="list on" id="list"></div>
+  </div>
 </div>
+
+<datalist id="servers"></datalist>
+
+<div class="toast" id="toast" role="status" hidden></div>
 
 <div class="bar" id="bar" hidden>
   <div class="in">
     <span class="s" id="barText"></span>
-    <span class="row">
-      <button type="button" id="discard">Annuler les changements</button>
+    <span class="acts" style="display:flex;gap:8px">
+      <button type="button" id="discard">Tout annuler</button>
       <button type="button" class="primary" id="save">Enregistrer</button>
     </span>
   </div>
@@ -146,17 +201,28 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;
 const fmt = n => n == null ? "–" : Number(n).toLocaleString("fr-FR");
 const norm = s => String(s || "").trim().replace(/\s+/g, " ").toLowerCase();
 const ROLES = ["Chef", "Officier", "Membre"];
-const STATUS = { not_found: "Introuvable", unknown_server: "Serveur inconnu", error: "Échec" };
+const SERVERS = ["Triniel","Ariel","Azphel","Beritra","Ereshkigal","Fregion","Hithanya","Israphel","Kaisinel","Lumiel","Marchutan","Meslamtaeda","Nemon","Nezekan","Siel","Vaizel","Yustiel","Zikel"];
+// Identifiants des serveurs EU sur le site officiel (pour le lien « Vérifier »)
+const SERVER_ID = { Siel:1301, Nezekan:1302, Vaizel:1303, Kaisinel:1304, Yustiel:1305, Ariel:1306, Fregion:1307, Meslamtaeda:1308, Hithanya:1309,
+  Israphel:2301, Zikel:2302, Triniel:2303, Lumiel:2304, Marchutan:2305, Azphel:2306, Ereshkigal:2307, Beritra:2308, Nemon:2309 };
+const CLASS_FR = { Gladiator:"Gladiateur", Templar:"Templier", Cleric:"Clerc", Chanter:"Aède", Assassin:"Assassin", Ranger:"Ranger", Sorcerer:"Sorcier", Spiritmaster:"Spiritualiste" };
+const STATUS = { not_found:"Introuvable", unknown_server:"Serveur inconnu", error:"Échec de mise à jour" };
 const KEY = "aion2-guilde-token";
+const ICON = {
+  pause: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6v12M15 6v12"/></svg>',
+  play: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 5l12 7-12 7z"/></svg>',
+  trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>',
+  undo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg>',
+};
+$("servers").innerHTML = SERVERS.map(s => `<option value="${s}">`).join("");
 
-// Dépôt déduit de l'adresse (utilisateur.github.io/depot)
 const host = location.hostname.match(/^([^.]+)\.github\.io$/);
 const OWNER = host ? host[1] : "Axel-Dls";
 const REPO = (host && location.pathname.split("/").filter(Boolean)[0]) || "aion2-guilde";
 const API = `https://api.github.com/repos/${OWNER}/${REPO}`;
 $("repoName").textContent = REPO;
 
-let TOKEN = "", SHA = "", HEAD = [], ORIG = "", ROWS = [], LIVE = {}, DEFAULT_SERVER = "Triniel";
+let TOKEN = "", SHA = "", HEAD = [], ROWS = [], REMOVED = [], LIVE = {}, DEFAULT_SERVER = "Triniel", TAB = "on", CONFIRM = null;
 
 // ---------- GitHub ----------
 async function gh(path, opts = {}) {
@@ -187,127 +253,187 @@ function parseCsv(text) {
     const off = line.startsWith("#");
     const body = off ? line.replace(/^#+\s*/, "") : line;
     const parts = body.split(",").map(x => x.trim());
-    // Une ligne de commentaire sans virgule (ou phrase) n'est pas un membre
-    if (parts.length < 2 || !parts[0] || /\s/.test(parts[0]) && parts[0].split(" ").length > 2) continue;
-    if (/^pseudo$/i.test(parts[0])) continue;
+    if (parts.length < 2 || !parts[0] || parts[0].split(" ").length > 2 || /^pseudo$/i.test(parts[0])) continue;
     rows.push({ name: parts[0], server: parts[1] || DEFAULT_SERVER, role: ROLES.includes(parts[2]) ? parts[2] : "Membre", on: !off });
   }
   if (!head.length) head.push("# Membres suivis : une ligne par perso, au format « pseudo,serveur,statut » (statut : Chef, Officier ou Membre).");
   return { head, rows };
 }
 function buildCsv() {
-  const clean = ROWS.filter(r => r.name.trim());
-  const on = clean.filter(r => r.on), off = clean.filter(r => !r.on);
   const line = r => `${r.name.trim()},${(r.server || DEFAULT_SERVER).trim()},${r.role}`;
+  const on = ROWS.filter(r => r.on && r.name.trim()), off = ROWS.filter(r => !r.on && r.name.trim());
   let out = HEAD.join("\n") + "\npseudo,serveur,statut\n" + on.map(line).join("\n") + "\n";
   if (off.length) out += "\n# En attente (non suivis) : retire le « # » pour réactiver\n" + off.map(r => "# " + line(r)).join("\n") + "\n";
   return out;
 }
 
+// ---------- État ----------
+const isChanged = r => r.isNew || r.name !== r.o.name || r.server !== r.o.server || r.role !== r.o.role || r.on !== r.o.on;
+function changeList() {
+  const out = [];
+  ROWS.forEach(r => {
+    if (r.isNew) return out.push(`ajout de ${r.name}`);
+    if (r.name !== r.o.name || r.server !== r.o.server) out.push(`${r.o.name} → ${r.name}${r.server !== r.o.server ? " (" + r.server + ")" : ""}`);
+    if (r.role !== r.o.role) out.push(`${r.name} : ${r.role}`);
+    if (r.on !== r.o.on) out.push(`${r.name} ${r.on ? "réactivé" : "mis en attente"}`);
+  });
+  REMOVED.forEach(r => out.push(`suppression de ${r.name}`));
+  return out;
+}
+function toast(t) {
+  const el = $("toast"); el.textContent = t; el.hidden = false;
+  clearTimeout(toast.t); toast.t = setTimeout(() => el.hidden = true, 2600);
+}
+
 // ---------- Rendu ----------
-function rowHtml(r, i) {
+function searchUrl(r) {
+  const q = new URLSearchParams({ keyword: r.name, region: "eu" });
+  if (SERVER_ID[r.server]) q.set("serverId", SERVER_ID[r.server]);
+  return `https://aion2.plaync.com/en-us/characters/index?${q}`;
+}
+function itemOn(r, i) {
   const live = LIVE[norm(r.name)];
-  const st = live && live.status && live.status !== "ok" && r.on ? ` <span class="pill">${STATUS[live.status] || live.status}</span>` : "";
-  const cls = live && live.classFr ? `<div class="sub">${esc(live.classFr)}${live.level ? " · niv. " + live.level : ""}</div>` : (r.isNew ? `<div class="sub">Nouveau : vérifié à la prochaine mise à jour</div>` : "");
-  const changed = r.isNew || r.name !== r.o.name || r.server !== r.o.server || r.role !== r.o.role || r.on !== r.o.on;
-  return `<tr data-i="${i}" class="${r.on ? "" : "off"} ${changed ? "changed" : ""}">
-    <td>${r.isNew ? `<input class="name" data-f="name" value="${esc(r.name)}" placeholder="Pseudo exact" aria-label="Pseudo">` : `<strong>${esc(r.name)}</strong>`}${st}${cls}</td>
-    <td>${r.isNew ? `<input class="srv" data-f="server" value="${esc(r.server)}" aria-label="Serveur">` : esc(r.server)}</td>
-    <td><select data-f="role" aria-label="Statut de ${esc(r.name)}">${ROLES.map(x => `<option${x === r.role ? " selected" : ""}>${x}</option>`).join("")}</select></td>
-    <td class="num">${fmt(live && live.itemLevel)}</td>
-    <td><label class="chk"><input type="checkbox" data-f="on"${r.on ? " checked" : ""}> Suivi</label></td>
-    <td><button type="button" class="ghost" data-act="del" title="Supprimer de la liste" aria-label="Supprimer ${esc(r.name)}">Supprimer</button></td>
-  </tr>`;
+  const cls = live ? [CLASS_FR[live.className] || live.className, live.level ? "niv. " + live.level : ""].filter(Boolean).join(" · ") : "";
+  const warn = live && live.status && live.status !== "ok" ? `<span class="tag warn">${STATUS[live.status] || live.status}</span>` : "";
+  const sub = r.isNew ? "Vérifié à la prochaine mise à jour" : (cls ? esc(cls) + " · " : "") + esc(r.server);
+  return `<div class="item ${isChanged(r) ? "changed" : ""}" data-i="${i}">
+    <div class="c1"><div class="nm">${esc(r.name)}${r.isNew ? '<span class="tag new">Nouveau</span>' : ""}${warn}</div><div class="sub">${sub}</div></div>
+    <div class="gs">${fmt(live && live.itemLevel)}<small>GS</small></div>
+    <select data-f="role" aria-label="Statut de ${esc(r.name)}">${ROLES.map(x => `<option${x === r.role ? " selected" : ""}>${x}</option>`).join("")}</select>
+    <div class="acts">
+      ${isChanged(r) && !r.isNew ? `<button type="button" class="icon" data-act="reset" title="Annuler les changements de ${esc(r.name)}">${ICON.undo}</button>` : ""}
+      <button type="button" data-act="toggle" title="Ne plus suivre ce perso (son historique est conservé)">${ICON.pause} En attente</button>
+    </div>
+  </div>`;
+}
+function itemOff(r, i) {
+  const confirming = CONFIRM === i;
+  return `<div class="item ${isChanged(r) ? "changed" : ""}" data-i="${i}">
+    <div class="c1"><input data-f="name" value="${esc(r.name)}" aria-label="Pseudo" placeholder="Pseudo exact"></div>
+    <input data-f="server" list="servers" value="${esc(r.server)}" aria-label="Serveur de ${esc(r.name)}">
+    <select data-f="role" aria-label="Statut de ${esc(r.name)}">${ROLES.map(x => `<option${x === r.role ? " selected" : ""}>${x}</option>`).join("")}</select>
+    <div class="acts">
+      <a class="ext" href="${esc(searchUrl(r))}" target="_blank" rel="noopener" title="Chercher ce pseudo sur le site officiel">Vérifier ↗</a>
+      ${confirming
+        ? `<button type="button" class="danger" data-act="delok">Supprimer ?</button><button type="button" class="quiet" data-act="delno">Non</button>`
+        : `<button type="button" data-act="toggle" title="Suivre à nouveau ce perso">${ICON.play} Réactiver</button>
+           <button type="button" class="icon" data-act="del" title="Supprimer définitivement de la liste" aria-label="Supprimer ${esc(r.name)}">${ICON.trash}</button>`}
+    </div>
+  </div>`;
 }
 function render() {
-  const idx = ROWS.map((r, i) => [r, i]);
-  const on = idx.filter(([r]) => r.on), off = idx.filter(([r]) => !r.on);
-  on.sort((a, b) => (a[0].isNew - b[0].isNew) || (ROLES.indexOf(a[0].role) - ROLES.indexOf(b[0].role)) || ((LIVE[norm(b[0].name)]?.itemLevel || 0) - (LIVE[norm(a[0].name)]?.itemLevel || 0)));
-  $("on").innerHTML = on.map(([r, i]) => rowHtml(r, i)).join("") || `<tr><td colspan="6" class="muted">Aucun membre suivi.</td></tr>`;
-  $("off").innerHTML = off.map(([r, i]) => rowHtml(r, i)).join("") || `<tr><td colspan="6" class="muted">Personne en attente.</td></tr>`;
-  $("cntOn").textContent = `(${on.length})`; $("cntOff").textContent = `(${off.length})`;
+  const q = norm($("q").value);
+  const on = ROWS.map((r, i) => [r, i]).filter(([r]) => r.on), off = ROWS.map((r, i) => [r, i]).filter(([r]) => !r.on);
+  $("cntOn").textContent = on.length; $("cntOff").textContent = off.length;
+  $("tabOn").setAttribute("aria-selected", TAB === "on"); $("tabOff").setAttribute("aria-selected", TAB === "off");
+  const gs = r => LIVE[norm(r.name)]?.itemLevel || 0;
+  let items = TAB === "on" ? on : off;
+  if (q) items = items.filter(([r]) => norm(r.name).includes(q));
+  if (TAB === "on") items.sort((a, b) => (b[0].isNew - a[0].isNew) || (ROLES.indexOf(a[0].role) - ROLES.indexOf(b[0].role)) || (gs(b[0]) - gs(a[0])));
+  else items.sort((a, b) => a[0].name.localeCompare(b[0].name, "fr"));
+  $("list").className = "list " + TAB;
+  $("hint").textContent = TAB === "on"
+    ? "Les persos suivis apparaissent dans le classement. « En attente » arrête le suivi sans perdre l'historique."
+    : "Persos non suivis : introuvables, à vérifier ou partis. Corrige le pseudo ou le serveur si besoin (« Vérifier » ouvre la recherche officielle), puis « Réactiver ».";
+  $("list").innerHTML = items.length
+    ? items.map(([r, i]) => TAB === "on" ? itemOn(r, i) : itemOff(r, i)).join("")
+    : `<div class="empty">${q ? `Aucun pseudo ne contient « ${esc($("q").value)} ».` : TAB === "on" ? "Aucun perso suivi." : "Personne en attente."}</div>`;
   updateBar();
 }
 function updateBar() {
-  const n = changes();
-  $("bar").hidden = !n;
-  $("barText").innerHTML = n ? `<strong>${n} modification${n > 1 ? "s" : ""}</strong> non enregistrée${n > 1 ? "s" : ""}` : "";
+  const ch = changeList();
+  $("bar").hidden = !ch.length;
+  if (ch.length) {
+    const shown = ch.slice(0, 3).map(esc).join(" · ") + (ch.length > 3 ? ` · +${ch.length - 3}` : "");
+    $("barText").innerHTML = `<strong>${ch.length} modification${ch.length > 1 ? "s" : ""}</strong> à enregistrer : ${shown}`;
+  }
 }
-function changes() {
-  let n = ROWS.filter(r => !r.deleted && (r.isNew ? r.name.trim() : (r.name !== r.o.name || r.server !== r.o.server || r.role !== r.o.role || r.on !== r.o.on))).length;
-  return n + DELETED;
-}
-let DELETED = 0;
 
-function onEdit(e) {
-  const tr = e.target.closest("tr[data-i]"); if (!tr) return;
-  const r = ROWS[+tr.dataset.i], f = e.target.dataset.f;
-  if (f === "on") { r.on = e.target.checked; render(); return; }
-  if (f) { r[f] = e.target.value; if (f === "role") render(); else updateBar(); }
-}
-function onClick(e) {
-  const b = e.target.closest("button[data-act=del]"); if (!b) return;
-  const i = +b.closest("tr").dataset.i, r = ROWS[i];
-  if (!r.isNew) DELETED++;
-  ROWS.splice(i, 1); render();
-}
-["on", "off"].forEach(id => { $(id).addEventListener("change", onEdit); $(id).addEventListener("input", onEdit); $(id).addEventListener("click", onClick); });
-
-$("add").addEventListener("click", () => {
-  ROWS.push({ name: "", server: DEFAULT_SERVER, role: "Membre", on: true, isNew: true, o: {} });
-  render();
-  const inputs = $("on").querySelectorAll("input.name"); inputs[inputs.length - 1]?.focus();
+// ---------- Interactions ----------
+$("list").addEventListener("input", e => {
+  const it = e.target.closest(".item"); if (!it) return;
+  const r = ROWS[+it.dataset.i], f = e.target.dataset.f;
+  if (f === "name" || f === "server") { r[f] = e.target.value; it.classList.toggle("changed", isChanged(r)); updateBar(); }
 });
-$("discard").addEventListener("click", () => loadMembers());
+$("list").addEventListener("change", e => {
+  const it = e.target.closest(".item"); if (!it) return;
+  const r = ROWS[+it.dataset.i], f = e.target.dataset.f;
+  if (f === "role") { r.role = e.target.value; render(); }
+  if (f === "name" || f === "server") { r[f] = e.target.value.trim(); render(); }
+});
+$("list").addEventListener("click", e => {
+  const b = e.target.closest("button[data-act]"); if (!b) return;
+  const i = +b.closest(".item").dataset.i, r = ROWS[i], act = b.dataset.act;
+  if (act === "toggle") { r.on = !r.on; CONFIRM = null; render(); toast(r.on ? `${r.name} réactivé` : `${r.name} mis en attente`); }
+  if (act === "reset") { Object.assign(r, r.o); render(); }
+  if (act === "del") { CONFIRM = i; render(); }
+  if (act === "delno") { CONFIRM = null; render(); }
+  if (act === "delok") { if (!r.isNew) REMOVED.push(r.o); ROWS.splice(i, 1); CONFIRM = null; render(); toast(`${r.name} supprimé`); }
+});
+$("tabOn").addEventListener("click", () => { TAB = "on"; CONFIRM = null; render(); });
+$("tabOff").addEventListener("click", () => { TAB = "off"; CONFIRM = null; render(); });
+$("q").addEventListener("input", render);
+$("addForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const name = $("nName").value.trim(), server = $("nServer").value.trim() || DEFAULT_SERVER;
+  if (!name) return;
+  const dup = ROWS.find(r => norm(r.name) === norm(name) && norm(r.server) === norm(server));
+  if (dup) { toast(`${dup.name} est déjà dans la liste${dup.on ? "" : " (en attente)"}`); return; }
+  ROWS.push({ name, server, role: $("nRole").value, on: true, isNew: true, o: {} });
+  $("nName").value = ""; $("nRole").value = "Membre"; $("nName").focus();
+  TAB = "on"; render(); toast(`${name} ajouté : pense à enregistrer`);
+});
+$("discard").addEventListener("click", () => loadMembers().then(() => toast("Changements annulés")));
 
 // ---------- Chargement / enregistrement ----------
 async function loadLive() {
   try {
     const db = await fetch("data/db.json?t=" + Date.now(), { cache: "no-store" }).then(r => r.json());
-    const FR = { Gladiator: "Gladiateur", Templar: "Templier", Cleric: "Clerc", Chanter: "Aède", Assassin: "Assassin", Ranger: "Ranger", Sorcerer: "Sorcier", Spiritmaster: "Spiritualiste" };
-    LIVE = {};
-    (db.members || []).forEach(m => { LIVE[norm(m.name)] = { ...m, classFr: FR[m.className] || m.className }; });
+    LIVE = {}; (db.members || []).forEach(m => { LIVE[norm(m.name)] = m; });
   } catch { LIVE = {}; }
 }
 async function loadMembers() {
   const f = await gh(`/contents/members.csv?ref=main&t=${Date.now()}`);
-  SHA = f.sha; ORIG = b64decode(f.content);
-  const p = parseCsv(ORIG);
-  HEAD = p.head; DELETED = 0;
-  const firstSrv = p.rows.find(r => r.server)?.server; if (firstSrv) DEFAULT_SERVER = firstSrv;
+  SHA = f.sha;
+  const p = parseCsv(b64decode(f.content));
+  HEAD = p.head; REMOVED = []; CONFIRM = null;
+  const firstSrv = p.rows.find(r => r.on)?.server; if (firstSrv) DEFAULT_SERVER = firstSrv;
+  $("nServer").value = DEFAULT_SERVER;
   ROWS = p.rows.map(r => ({ ...r, o: { ...r } }));
   render();
 }
 $("save").addEventListener("click", async () => {
-  const empty = ROWS.find(r => r.isNew && !r.name.trim());
-  if (empty) ROWS = ROWS.filter(r => !(r.isNew && !r.name.trim()));
-  const names = ROWS.map(r => norm(r.name) + "|" + norm(r.server));
-  const dup = names.find((n, i) => names.indexOf(n) !== i);
-  if (dup) { $("barText").innerHTML = `<span style="color:var(--down)">Ce perso est en double : ${esc(dup.split("|")[0])}</span>`; return; }
+  ROWS = ROWS.filter(r => r.name.trim());
+  const keys = ROWS.map(r => norm(r.name) + "|" + norm(r.server));
+  const dupKey = keys.find((k, i) => keys.indexOf(k) !== i);
+  if (dupKey) { $("barText").innerHTML = `<span style="color:var(--down)">${esc(dupKey.split("|")[0])} apparaît deux fois dans la liste.</span>`; return; }
+  const ch = changeList();
   $("save").disabled = true; $("barText").textContent = "Enregistrement…";
   try {
-    const n = changes();
-    const res = await gh("/contents/members.csv", {
+    await gh("/contents/members.csv", {
       method: "PUT",
-      body: JSON.stringify({ message: `Admin : ${n} modification${n > 1 ? "s" : ""} de la liste des membres`, content: b64encode(buildCsv()), sha: SHA, branch: "main" }),
+      body: JSON.stringify({ message: `Admin : ${ch.slice(0, 5).join(", ")}${ch.length > 5 ? "…" : ""}`, content: b64encode(buildCsv()), sha: SHA, branch: "main" }),
     });
-    SHA = res.content.sha;
     await loadMembers();
-    $("runMsg").className = "msg ok";
-    $("runMsg").innerHTML = `Enregistré. La mise à jour des GS/CP se lance toute seule : le classement sera à jour dans 1 à 2 minutes. <a href="https://github.com/${OWNER}/${REPO}/actions" target="_blank" rel="noopener">Suivre sur GitHub</a>`;
+    $("runMsg").hidden = false; $("runMsg").className = "msg ok";
+    $("runMsg").innerHTML = `Enregistré. Les GS/CP se mettent à jour tout seuls : le classement sera à jour dans 1 à 2 minutes. <a href="https://github.com/${OWNER}/${REPO}/actions" target="_blank" rel="noopener">Suivre</a>`;
+    toast("Enregistré");
   } catch (e) {
-    $("barText").innerHTML = `<span style="color:var(--down)">${e.status === 409 ? "La liste a été modifiée entre-temps. Clique sur « Annuler les changements » pour recharger, puis refais tes modifications." : e.status === 403 || e.status === 404 ? "Ta clé n'a pas le droit d'écrire dans ce dépôt (permission Contents : Read and write)." : "Échec de l'enregistrement : " + esc(e.message)}</span>`;
+    const why = e.status === 409 ? "La liste a été modifiée ailleurs entre-temps. Clique sur « Tout annuler » pour recharger, puis refais tes changements."
+      : e.status === 403 || e.status === 404 ? "GitHub refuse l'écriture : la clé doit avoir « Contents : Read and write » sur ce dépôt (github.com → Settings → Personal access tokens → Edit)."
+      : "Échec de l'enregistrement : " + e.message;
+    $("barText").innerHTML = `<span style="color:var(--down)">${esc(why)}</span>`;
   } finally { $("save").disabled = false; }
 });
 $("rerun").addEventListener("click", async () => {
-  $("rerun").disabled = true;
+  $("rerun").disabled = true; $("runMsg").hidden = false;
   try {
     await gh("/actions/workflows/update.yml/dispatches", { method: "POST", body: JSON.stringify({ ref: "main" }) });
     $("runMsg").className = "msg ok";
-    $("runMsg").innerHTML = `Mise à jour lancée : le classement sera à jour dans 1 à 2 minutes. <a href="https://github.com/${OWNER}/${REPO}/actions" target="_blank" rel="noopener">Suivre sur GitHub</a>`;
+    $("runMsg").innerHTML = `Mise à jour lancée : le classement sera à jour dans 1 à 2 minutes. <a href="https://github.com/${OWNER}/${REPO}/actions" target="_blank" rel="noopener">Suivre</a>`;
   } catch (e) {
     $("runMsg").className = "msg err";
-    $("runMsg").textContent = e.status === 403 || e.status === 404 ? "Ta clé n'a pas la permission « Actions : Read and write ». Ajoute-la au token, ou relance depuis GitHub." : "Échec : " + e.message;
+    $("runMsg").textContent = e.status === 403 || e.status === 404 ? "Ta clé n'a pas la permission « Actions : Read and write ». Ajoute-la dans les réglages du token." : "Échec : " + e.message;
   } finally { setTimeout(() => $("rerun").disabled = false, 3000); }
 });
 
@@ -319,15 +445,15 @@ async function connect(tok, remember) {
     const repo = await gh("");
     if (!repo.permissions || !repo.permissions.push) throw Object.assign(new Error("no-push"), { status: 403 });
     const me = await gh("https://api.github.com/user").catch(() => null);
-    $("who").textContent = me ? me.login : "utilisateur GitHub";
+    $("who").textContent = me ? me.login : "GitHub";
     try { remember ? localStorage.setItem(KEY, TOKEN) : localStorage.removeItem(KEY); } catch {}
     await loadLive(); await loadMembers();
     $("login").hidden = true; $("editor").hidden = false; $("loginMsg").textContent = "";
   } catch (e) {
     TOKEN = "";
     $("loginMsg").className = "msg err";
-    $("loginMsg").textContent = e.status === 401 ? "Clé refusée par GitHub : vérifie-la ou crées-en une nouvelle (elle a peut-être expiré)."
-      : e.status === 403 || e.status === 404 ? `Cette clé n'a pas accès en écriture au dépôt ${REPO}. Vérifie « Repository access » et la permission Contents.`
+    $("loginMsg").textContent = e.status === 401 ? "Clé refusée par GitHub : vérifie-la, ou crée-en une nouvelle (elle a peut-être expiré)."
+      : e.status === 403 || e.status === 404 ? `Cette clé n'a pas accès au dépôt ${REPO}. Vérifie « Repository access » dans les réglages du token.`
       : "Connexion impossible : " + e.message;
     try { localStorage.removeItem(KEY); } catch {}
   }
@@ -338,7 +464,7 @@ $("logout").addEventListener("click", () => {
   try { localStorage.removeItem(KEY); } catch {}
   TOKEN = ""; $("token").value = ""; $("editor").hidden = true; $("bar").hidden = true; $("login").hidden = false;
 });
-window.addEventListener("beforeunload", e => { if (TOKEN && changes()) { e.preventDefault(); e.returnValue = ""; } });
+window.addEventListener("beforeunload", e => { if (TOKEN && changeList().length) { e.preventDefault(); e.returnValue = ""; } });
 
 let saved = null; try { saved = localStorage.getItem(KEY); } catch {}
 if (saved) connect(saved, true);
