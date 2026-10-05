@@ -1,7 +1,7 @@
 {
  "guild": "Ivalys",
  "region": "eu",
- "updatedAt": "2026-10-05T12:20:53+00:00",
+ "updatedAt": "2026-10-05T17:55:08+00:00",
  "counts": {
   "total": 20,
   "ok": 20
@@ -11,6 +11,7 @@
    "key": "triniel:doc",
    "name": "Doc",
    "server": "Triniel",
+   "role": "Chef",
    "history": [
     {
      "d": "2026-10-03",
@@ -19,8 +20,8 @@
     },
     {
      "d": "2026-10-05",
-     "cp": 107052,
-     "il": 2150
+     "cp": 108801,
+     "il": 2154
     }
    ],
    "serverId": 2303,
@@ -28,12 +29,12 @@
    "race": "Asmodians",
    "className": "Assassin",
    "level": 45,
-   "cp": 107052,
-   "itemLevel": 2150,
+   "cp": 108801,
+   "itemLevel": 2154,
    "legion": "Ivalys",
    "title": "",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364854038",
-   "lastOk": "2026-10-05T12:20:53+00:00",
+   "lastOk": "2026-10-05T17:55:08+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -41,6 +42,7 @@
    "key": "triniel:organiz",
    "name": "OrGaniZ",
    "server": "Triniel",
+   "role": "Membre",
    "history": [
     {
      "d": "2026-10-03",
@@ -63,7 +65,7 @@
    "legion": "Ivalys",
    "title": "Vanguard of Atreia",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364852934",
-   "lastOk": "2026-10-05T12:20:53+00:00",
+   "lastOk": "2026-10-05T17:55:08+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -71,6 +73,7 @@
    "key": "triniel:yunalska",
    "name": "Yunalska",
    "server": "Triniel",
+   "role": "Membre",
    "history": [
     {
      "d": "2026-10-03",
@@ -79,7 +82,7 @@
     },
     {
      "d": "2026-10-05",
-     "cp": 102160,
+     "cp": 102719,
      "il": 2150
     }
    ],
@@ -88,12 +91,12 @@
    "race": "Asmodians",
    "className": "Ranger",
    "level": 45,
-   "cp": 102160,
+   "cp": 102719,
    "itemLevel": 2150,
    "legion": "Ivalys",
    "title": "",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364857316",
-   "lastOk": "2026-10-05T12:20:53+00:00",
+   "lastOk": "2026-10-05T17:55:08+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -101,6 +104,7 @@
    "key": "triniel:kinysse",
    "name": "Kinysse",
    "server": "Triniel",
+   "role": "Membre",
    "history": [
     {
      "d": "2026-10-03",
@@ -109,7 +113,7 @@
     },
     {
      "d": "2026-10-05",
-     "cp": 101279,
+     "cp": 100419,
      "il": 2103
     }
    ],
@@ -118,12 +122,12 @@
    "race": "Asmodians",
    "className": "Ranger",
    "level": 45,
-   "cp": 101279,
+   "cp": 100419,
    "itemLevel": 2103,
    "legion": "Ivalys",
    "title": "Vanguard of Atreia",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364853638",
-   "lastOk": "2026-10-05T12:20:53+00:00",
+   "lastOk": "2026-10-05T17:55:08+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -131,6 +135,7 @@
    "key": "triniel:nioky",
    "name": "Nioky",
    "server": "Triniel",
+   "role": "Membre",
    "history": [
     {
      "d": "2026-10-03",
@@ -139,7 +144,7 @@
     },
     {
      "d": "2026-10-05",
-     "cp": 100829,
+     "cp": 101040,
      "il": 2219
     }
    ],
@@ -148,12 +153,12 @@
    "race": "Asmodians",
    "className": "Chanter",
    "level": 45,
-   "cp": 100829,
+   "cp": 101040,
    "itemLevel": 2219,
    "legion": "Ivalys",
    "title": "Vanguard of Atreia",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364853809",
-   "lastOk": "2026-10-05T12:20:53+00:00",
+   "lastOk": "2026-10-05T17:55:08+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -161,6 +166,7 @@
    "key": "triniel:lyric",
    "name": "Lyric",
    "server": "Triniel",
+   "role": "Membre",
    "history": [
     {
      "d": "2026-10-03",
@@ -169,8 +175,8 @@
     },
     {
      "d": "2026-10-05",
-     "cp": 96238,
-     "il": 2102
+     "cp": 99059,
+     "il": 2131
     }
    ],
    "serverId": 2303,
@@ -178,12 +184,12 @@
    "race": "Asmodians",
    "className": "Sorcerer",
    "level": 45,
-   "cp": 96238,
-   "itemLevel": 2102,
+   "cp": 99059,
+   "itemLevel": 2131,
    "legion": "Ivalys",
    "title": "Through Hell and Back",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364873470",
-   "lastOk": "2026-10-05T12:20:53+00:00",
+   "lastOk": "2026-10-05T17:55:08+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -191,6 +197,7 @@
    "key": "triniel:shineiki",
    "name": "Shineiki",
    "server": "Triniel",
+   "role": "Membre",
    "history": [
     {
      "d": "2026-10-03",
@@ -199,8 +206,8 @@
     },
     {
      "d": "2026-10-05",
-     "cp": 96138,
-     "il": 2160
+     "cp": 98501,
+     "il": 2178
     }
    ],
    "serverId": 2303,
@@ -208,12 +215,12 @@
    "race": "Asmodians",
    "className": "Ranger",
    "level": 45,
-   "cp": 96138,
-   "itemLevel": 2160,
+   "cp": 98501,
+   "itemLevel": 2178,
    "legion": "Ivalys",
    "title": "Vanguard of Atreia",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364861183",
-   "lastOk": "2026-10-05T12:20:53+00:00",
+   "lastOk": "2026-10-05T17:55:08+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -221,6 +228,7 @@
    "key": "triniel:rezemafemme",
    "name": "RezeMaFemme",
    "server": "Triniel",
+   "role": "Membre",
    "history": [
     {
      "d": "2026-10-03",
@@ -229,7 +237,7 @@
     },
     {
      "d": "2026-10-05",
-     "cp": 91138,
+     "cp": 93019,
      "il": 2109
     }
    ],
@@ -238,12 +246,12 @@
    "race": "Asmodians",
    "className": "Sorcerer",
    "level": 45,
-   "cp": 91138,
+   "cp": 93019,
    "itemLevel": 2109,
-   "legion": "Ivalys",
+   "legion": "",
    "title": "My Instructor",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364854785",
-   "lastOk": "2026-10-05T12:20:53+00:00",
+   "lastOk": "2026-10-05T17:55:08+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -251,6 +259,7 @@
    "key": "triniel:slynn",
    "name": "Slynn",
    "server": "Triniel",
+   "role": "Membre",
    "history": [
     {
      "d": "2026-10-03",
@@ -259,7 +268,7 @@
     },
     {
      "d": "2026-10-05",
-     "cp": 94203,
+     "cp": 95518,
      "il": 2138
     }
    ],
@@ -268,12 +277,12 @@
    "race": "Asmodians",
    "className": "Spiritmaster",
    "level": 45,
-   "cp": 94203,
+   "cp": 95518,
    "itemLevel": 2138,
    "legion": "Ivalys",
    "title": "Lifeguard",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364868604",
-   "lastOk": "2026-10-05T12:20:53+00:00",
+   "lastOk": "2026-10-05T17:55:08+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -281,6 +290,7 @@
    "key": "triniel:hymia",
    "name": "Hymia",
    "server": "Triniel",
+   "role": "Membre",
    "history": [
     {
      "d": "2026-10-03",
@@ -289,7 +299,7 @@
     },
     {
      "d": "2026-10-05",
-     "cp": 91799,
+     "cp": 91828,
      "il": 2118
     }
    ],
@@ -298,12 +308,12 @@
    "race": "Asmodians",
    "className": "Templar",
    "level": 45,
-   "cp": 91799,
+   "cp": 91828,
    "itemLevel": 2118,
    "legion": "Ivalys",
    "title": "",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364872980",
-   "lastOk": "2026-10-05T12:20:53+00:00",
+   "lastOk": "2026-10-05T17:55:08+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -311,6 +321,7 @@
    "key": "triniel:lumeka",
    "name": "Lumeka",
    "server": "Triniel",
+   "role": "Membre",
    "history": [
     {
      "d": "2026-10-03",
@@ -319,8 +330,8 @@
     },
     {
      "d": "2026-10-05",
-     "cp": 93517,
-     "il": 2030
+     "cp": 94749,
+     "il": 2052
     }
    ],
    "serverId": 2303,
@@ -328,12 +339,12 @@
    "race": "Asmodians",
    "className": "Spiritmaster",
    "level": 45,
-   "cp": 93517,
-   "itemLevel": 2030,
+   "cp": 94749,
+   "itemLevel": 2052,
    "legion": "Ivalys",
    "title": "",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364860070",
-   "lastOk": "2026-10-05T12:20:53+00:00",
+   "lastOk": "2026-10-05T17:55:08+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -341,6 +352,7 @@
    "key": "triniel:slawn",
    "name": "Slawn",
    "server": "Triniel",
+   "role": "Membre",
    "history": [
     {
      "d": "2026-10-03",
@@ -349,7 +361,7 @@
     },
     {
      "d": "2026-10-05",
-     "cp": 89296,
+     "cp": 92902,
      "il": 2142
     }
    ],
@@ -358,12 +370,12 @@
    "race": "Asmodians",
    "className": "Cleric",
    "level": 45,
-   "cp": 89296,
+   "cp": 92902,
    "itemLevel": 2142,
    "legion": "Ivalys",
    "title": "",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364866724",
-   "lastOk": "2026-10-05T12:20:53+00:00",
+   "lastOk": "2026-10-05T17:55:08+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -371,6 +383,7 @@
    "key": "triniel:phiona",
    "name": "Phiona",
    "server": "Triniel",
+   "role": "Membre",
    "history": [
     {
      "d": "2026-10-03",
@@ -393,7 +406,7 @@
    "legion": "Ivalys",
    "title": "Vanguard of Atreia",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364858581",
-   "lastOk": "2026-10-05T12:20:53+00:00",
+   "lastOk": "2026-10-05T17:55:08+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -401,6 +414,7 @@
    "key": "triniel:celestal",
    "name": "Celestal",
    "server": "Triniel",
+   "role": "Membre",
    "history": [
     {
      "d": "2026-10-03",
@@ -409,8 +423,8 @@
     },
     {
      "d": "2026-10-05",
-     "cp": 87486,
-     "il": 1919
+     "cp": 91911,
+     "il": 2100
     }
    ],
    "serverId": 2303,
@@ -418,12 +432,12 @@
    "race": "Asmodians",
    "className": "Cleric",
    "level": 45,
-   "cp": 87486,
-   "itemLevel": 1919,
+   "cp": 91911,
+   "itemLevel": 2100,
    "legion": "Ivalys",
    "title": "Saint of Altgard",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364854629",
-   "lastOk": "2026-10-05T12:20:53+00:00",
+   "lastOk": "2026-10-05T17:55:08+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -431,6 +445,7 @@
    "key": "triniel:miaiphónos",
    "name": "Miaiphónos",
    "server": "Triniel",
+   "role": "Membre",
    "history": [
     {
      "d": "2026-10-03",
@@ -453,7 +468,7 @@
    "legion": "Ivalys",
    "title": "",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364860931",
-   "lastOk": "2026-10-05T12:20:53+00:00",
+   "lastOk": "2026-10-05T17:55:08+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -461,6 +476,7 @@
    "key": "triniel:fera",
    "name": "FERA",
    "server": "Triniel",
+   "role": "Officier",
    "history": [
     {
      "d": "2026-10-03",
@@ -469,8 +485,8 @@
     },
     {
      "d": "2026-10-05",
-     "cp": 82735,
-     "il": 1741
+     "cp": 83717,
+     "il": 1782
     }
    ],
    "serverId": 2303,
@@ -478,12 +494,12 @@
    "race": "Asmodians",
    "className": "Sorcerer",
    "level": 45,
-   "cp": 82735,
-   "itemLevel": 1741,
+   "cp": 83717,
+   "itemLevel": 1782,
    "legion": "Ivalys",
    "title": "Guardian of Altgard",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364862167",
-   "lastOk": "2026-10-05T12:20:53+00:00",
+   "lastOk": "2026-10-05T17:55:08+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -491,6 +507,7 @@
    "key": "triniel:jamick",
    "name": "Jamick",
    "server": "Triniel",
+   "role": "Membre",
    "history": [
     {
      "d": "2026-10-03",
@@ -499,7 +516,7 @@
     },
     {
      "d": "2026-10-05",
-     "cp": 81689,
+     "cp": 81692,
      "il": 1649
     }
    ],
@@ -508,12 +525,12 @@
    "race": "Asmodians",
    "className": "Gladiator",
    "level": 45,
-   "cp": 81689,
+   "cp": 81692,
    "itemLevel": 1649,
    "legion": "Ivalys",
    "title": "Saint of Altgard",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364858470",
-   "lastOk": "2026-10-05T12:20:53+00:00",
+   "lastOk": "2026-10-05T17:55:08+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -521,6 +538,7 @@
    "key": "triniel:sorcerino",
    "name": "Sorcerino",
    "server": "Triniel",
+   "role": "Membre",
    "history": [
     {
      "d": "2026-10-03",
@@ -529,8 +547,8 @@
     },
     {
      "d": "2026-10-05",
-     "cp": 79559,
-     "il": 1720
+     "cp": 84415,
+     "il": 1715
     }
    ],
    "serverId": 2303,
@@ -538,12 +556,12 @@
    "race": "Asmodians",
    "className": "Spiritmaster",
    "level": 45,
-   "cp": 79559,
-   "itemLevel": 1720,
+   "cp": 84415,
+   "itemLevel": 1715,
    "legion": "Ivalys",
    "title": "",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364864166",
-   "lastOk": "2026-10-05T12:20:53+00:00",
+   "lastOk": "2026-10-05T17:55:08+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -551,6 +569,7 @@
    "key": "triniel:phénix",
    "name": "Phénix",
    "server": "Triniel",
+   "role": "Membre",
    "history": [
     {
      "d": "2026-10-03",
@@ -559,8 +578,8 @@
     },
     {
      "d": "2026-10-05",
-     "cp": 78245,
-     "il": 1776
+     "cp": 78946,
+     "il": 1779
     }
    ],
    "serverId": 2303,
@@ -568,12 +587,12 @@
    "race": "Asmodians",
    "className": "Cleric",
    "level": 45,
-   "cp": 78245,
-   "itemLevel": 1776,
+   "cp": 78946,
+   "itemLevel": 1779,
    "legion": "Ivalys",
    "title": "",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364871825",
-   "lastOk": "2026-10-05T12:20:53+00:00",
+   "lastOk": "2026-10-05T17:55:08+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -581,6 +600,7 @@
    "key": "triniel:mikio",
    "name": "Mikio",
    "server": "Triniel",
+   "role": "Officier",
    "history": [
     {
      "d": "2026-10-03",
@@ -589,8 +609,8 @@
     },
     {
      "d": "2026-10-05",
-     "cp": 66014,
-     "il": 1500
+     "cp": 68885,
+     "il": 1526
     }
    ],
    "serverId": 2303,
@@ -598,12 +618,12 @@
    "race": "Asmodians",
    "className": "Gladiator",
    "level": 45,
-   "cp": 66014,
-   "itemLevel": 1500,
+   "cp": 68885,
+   "itemLevel": 1526,
    "legion": "Ivalys",
    "title": "Encountering Zikel's Core",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364873432",
-   "lastOk": "2026-10-05T12:20:53+00:00",
+   "lastOk": "2026-10-05T17:55:08+00:00",
    "region": "eu",
    "status": "ok"
   }
