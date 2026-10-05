@@ -87,7 +87,17 @@ REGIONS = ["eu", "naw", "nae", "la", "as"]
 
 
 def read_manual_history():
-    """data/historique-manuel.csv : GS relevés à la main (pseudo,date,gs), fusionnés dans l'historique."""
+    """data/historique-manuel.csv : relevés faits à la main (pseudo,date,gs,cp), fusionnés dans l'historique."""
+    def to_int(v):
+        v = (v or "").strip().replace(" ", "").replace(",", ".")
+        if not v:
+            return None
+        mult = 1000 if v.lower().endswith("k") else 1
+        try:
+            return int(round(float(v.rstrip("kK")) * mult))
+        except ValueError:
+            return None
+
     out = {}
     if not MANUAL.exists():
         return out
@@ -95,19 +105,26 @@ def read_manual_history():
         for row in csv.reader(f):
             if len(row) < 3 or row[0].strip().startswith("#") or norm(row[0]) == "pseudo":
                 continue
-            try:
-                gs = int(float(row[2].strip().replace(" ", "").replace(",", ".")))
-            except ValueError:
+            gs = to_int(row[2])
+            cp = to_int(row[3]) if len(row) > 3 else None
+            if gs is None and cp is None:
                 continue
-            out.setdefault(norm(row[0]), []).append({"d": row[1].strip(), "cp": None, "il": gs})
+            out.setdefault(norm(row[0]), []).append({"d": row[1].strip(), "cp": cp, "il": gs})
     return out
 
 
 def merge_manual(history, manual):
-    """Ajoute les points manuels aux dates où il n'y a pas de relevé automatique."""
-    known = {h.get("d") for h in history}
-    merged = history + [p for p in manual if p["d"] not in known]
-    return sorted(merged, key=lambda h: h.get("d", ""))
+    """Ajoute les relevés manuels ; à une date déjà connue, ne complète que les valeurs manquantes."""
+    by_date = {h.get("d"): dict(h) for h in history}
+    for p in manual:
+        cur = by_date.get(p["d"])
+        if cur is None:
+            by_date[p["d"]] = dict(p)
+        else:
+            for k in ("cp", "il"):
+                if cur.get(k) is None and p.get(k) is not None:
+                    cur[k] = p[k]
+    return sorted(by_date.values(), key=lambda h: h.get("d", ""))
 
 
 def load_servers(preferred):
