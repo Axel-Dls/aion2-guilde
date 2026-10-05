@@ -1,0 +1,32 @@
+{
+ "guild": "Ivalys",
+ "region": "eu",
+ "updatedAt": "2026-10-05T09:16:32+00:00",
+ "counts": {
+  "total": 3,
+  "ok": 0
+ },
+ "members": [
+  {
+   "key": "tiriel:nioky",
+   "name": "Nioky",
+   "server": "Tiriel",
+   "history": [],
+   "status": "unknown_server"
+  },
+  {
+   "key": "tiriel:doc",
+   "name": "Doc",
+   "server": "Tiriel",
+   "history": [],
+   "status": "unknown_server"
+  },
+  {
+   "key": "tiriel:shineiki",
+   "name": "Shineiki",
+   "server": "Tiriel",
+   "history": [],
+   "status": "unknown_server"
+  }
+ ]
+}
