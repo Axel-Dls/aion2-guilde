@@ -61,10 +61,6 @@ tr.top .rank{color:var(--gold);font-weight:800}
 .d{font-weight:700;font-size:13px}
 .d.up{color:var(--up)} .d.down{color:var(--down)} .d.flat{color:var(--muted);font-weight:400}
 .pill{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;border:1px solid currentColor;color:var(--warn);white-space:nowrap}
-.spark{display:block}
-.spark path.l{fill:none;stroke:var(--gold);stroke-width:1.6}
-.spark path.a{fill:var(--gold-soft);stroke:none}
-.spark circle{fill:var(--gold)}
 .empty{padding:40px 20px;text-align:center;color:var(--muted)}
 .empty strong{color:var(--ink);display:block;font-size:17px;margin-bottom:6px}
 @media (max-width:640px){
@@ -111,9 +107,9 @@ footer{margin-top:24px;font-size:13px;color:var(--muted);max-width:75ch}
         <th><button data-k="name">Perso <span class="ar"></span></button></th>
         <th><button data-k="server">Serveur <span class="ar"></span></button></th>
         <th class="num"><button data-k="itemLevel" title="Gear Score (Item Level sur le site officiel)">GS <span class="ar"></span></button></th>
-        <th class="num"><button data-k="d7" title="Progression du GS sur 7 jours">7 j <span class="ar"></span></button></th>
-        <th class="num"><button data-k="cp">Combat Power <span class="ar"></span></button></th>
-        <th>Évolution GS</th>
+        <th class="num"><button data-k="d7" title="Progression du GS sur 7 jours">GS 7 j <span class="ar"></span></button></th>
+        <th class="num"><button data-k="cp" title="Combat Power">CP <span class="ar"></span></button></th>
+        <th class="num"><button data-k="cp7" title="Progression du CP sur 7 jours">CP 7 j <span class="ar"></span></button></th>
       </tr></thead>
       <tbody id="rows"><tr><td colspan="7" class="empty">Chargement des données…</td></tr></tbody>
     </table>
@@ -153,17 +149,11 @@ function valueDaysAgo(h, days, field) {
   return ref === pts[pts.length - 1] ? null : ref[field];
 }
 
-function spark(h, field = "il") {
-  const pts = (h || []).filter(p => p[field] != null).slice(-30);
-  if (pts.length < 2) return '<span class="sub">–</span>';
-  const W = 120, H = 30, P = 3;
-  const vs = pts.map(p => p[field]), min = Math.min(...vs), max = Math.max(...vs), span = max - min || 1;
-  const x = i => P + i * (W - 2 * P) / (pts.length - 1);
-  const y = v => H - P - (v - min) * (H - 2 * P) / span;
-  const line = pts.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(p[field]).toFixed(1)}`).join("");
-  const area = `${line}L${x(pts.length - 1).toFixed(1)},${H}L${x(0).toFixed(1)},${H}Z`;
-  const t = `GS ${pts[0].d} : ${fmt(pts[0][field])} → ${pts[pts.length - 1].d} : ${fmt(pts[pts.length - 1][field])}`;
-  return `<svg class="spark" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(t)}"><title>${esc(t)}</title><path class="a" d="${area}"/><path class="l" d="${line}"/><circle cx="${x(pts.length - 1).toFixed(1)}" cy="${y(pts[pts.length - 1][field]).toFixed(1)}" r="2.6"/></svg>`;
+
+function delta(d) {
+  if (d == null) return '<span class="d flat">–</span>';
+  const cls = d > 0 ? "up" : d < 0 ? "down" : "flat";
+  return `<span class="d ${cls}">${d > 0 ? "+" : d < 0 ? "−" : ""}${fmt(Math.abs(d))}</span>`;
 }
 
 const OFFICIAL = "https://aion2.plaync.com/en-us/characters";
@@ -198,8 +188,6 @@ function render() {
   }
   if (!list.length) { $("rows").innerHTML = `<tr><td colspan="7" class="empty">Aucun perso ne correspond à « ${esc(q)} ».</td></tr>`; return; }
   $("rows").innerHTML = list.map((m, i) => {
-    const d = m.d7, dcls = d == null ? "flat" : d > 0 ? "up" : d < 0 ? "down" : "flat";
-    const dtxt = d == null ? "–" : (d > 0 ? "+" : d < 0 ? "−" : "") + fmt(Math.abs(d));
     const status = m.status && m.status !== "ok" ? ` <span class="pill" title="${m.lastOk ? "Dernière mise à jour réussie : " + esc(new Date(m.lastOk).toLocaleString("fr-FR")) : ""}">${STATUS[m.status] || m.status}</span>` : "";
     const legion = m.legion && m.legion.toLowerCase() !== GUILD.toLowerCase() ? m.legion : "";
     const sub = [m.className, m.level ? "niv. " + m.level : "", legion].filter(Boolean).map(esc).join(" · ");
@@ -209,9 +197,9 @@ function render() {
       <td><div class="who">${m.image ? `<img class="av" src="${esc(m.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">` : `<span class="av"></span>`}<div><div class="nm"><a class="pl" href="${esc(profileUrl(m))}" target="_blank" rel="noopener" title="Voir la fiche officielle">${esc(m.name)}</a>${status}</div><div class="sub">${sub || "&nbsp;"}</div></div></div></td>
       <td>${esc(m.server)}${m.race ? `<div class="sub">${esc(m.race)}</div>` : ""}</td>
       <td class="num cp">${fmt(m.itemLevel)}</td>
-      <td class="num"><span class="d ${dcls}">${dtxt}</span></td>
+      <td class="num">${delta(m.d7)}</td>
       <td class="num">${fmt(m.cp)}</td>
-      <td>${spark(m.history)}</td>
+      <td class="num">${delta(m.cp7)}</td>
     </tr>`;
   }).join("");
 }
@@ -243,8 +231,10 @@ fetch("data/db.json?t=" + Date.now(), { cache: "no-store" })
   .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
   .then(db => {
     DATA = (db.members || []).map(m => {
-      const before = valueDaysAgo(m.history, 7, "il");
-      return { ...m, d7: before != null && m.itemLevel != null ? m.itemLevel - before : null };
+      const gs0 = valueDaysAgo(m.history, 7, "il"), cp0 = valueDaysAgo(m.history, 7, "cp");
+      return { ...m,
+        d7: gs0 != null && m.itemLevel != null ? m.itemLevel - gs0 : null,
+        cp7: cp0 != null && m.cp != null ? m.cp - cp0 : null };
     });
     GUILD = db.guild || ""; REGION = db.region || "eu";
     if (db.guild) { $("guild").textContent = db.guild; document.title = db.guild + " · Aion 2"; }
