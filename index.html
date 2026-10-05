@@ -72,6 +72,7 @@ tr.top .rank{color:var(--gold);font-weight:800}
   th,td{padding:10px 8px}
   .av{display:none}
 }
+.help{font-size:13px;color:var(--muted);margin:0 0 12px;max-width:80ch}
 footer{margin-top:24px;font-size:13px;color:var(--muted);max-width:75ch}
 </style>
 </head>
@@ -95,9 +96,11 @@ footer{margin-top:24px;font-size:13px;color:var(--muted);max-width:75ch}
     <input type="search" id="q" placeholder="Filtrer par pseudo, classe, serveur…" aria-label="Filtrer">
     <div class="links">
       <a id="edit" href="#" target="_blank" rel="noopener">Modifier la liste des membres</a>
-      <a id="run" href="#" target="_blank" rel="noopener">Forcer une mise à jour</a>
+      <a id="run" href="#" target="_blank" rel="noopener" title="Ouvre GitHub : clique ensuite sur « Run workflow » puis le bouton vert">Lancer une mise à jour</a>
     </div>
   </div>
+
+  <p class="help">Après avoir modifié la liste des membres, la mise à jour se lance toute seule : recharge cette page 2 minutes plus tard. Pour relancer à la main : « Lancer une mise à jour » → <strong>Run workflow</strong> → bouton vert <strong>Run workflow</strong>.</p>
 
   <div class="tbl">
     <table>
@@ -115,7 +118,7 @@ footer{margin-top:24px;font-size:13px;color:var(--muted);max-width:75ch}
   </div>
 
   <footer>
-    Données récupérées une fois par jour sur le site officiel d'Aion 2 (page Character Info). Un perso marqué « introuvable » a peut-être changé de pseudo ou de serveur : corrige-le dans la liste des membres.
+    Données récupérées une fois par jour sur le site officiel d'Aion 2 (page Character Info). Un perso marqué « Introuvable » a peut-être changé de pseudo ou de serveur, ou son nom contient un accent (ex. Phénix) : écris-le exactement comme en jeu dans la liste des membres.
   </footer>
 </div>
 
