@@ -160,10 +160,13 @@ def main():
             "server": srv["serverName"] if srv else m["server"],
             "history": prev.get("history", []),
         }
-        for k in ("race", "className", "level", "cp", "itemLevel", "legion", "title", "image", "lastOk"):
+        for k in ("serverId", "characterId", "race", "className", "level", "cp", "itemLevel", "legion", "title", "image", "lastOk"):
             if k in prev:
                 entry[k] = prev[k]
 
+        if srv:
+            entry["serverId"] = srv["serverId"]
+            entry["region"] = srv["region"]
         if not srv:
             entry["status"] = "unknown_server"
             close = difflib.get_close_matches(norm(m["server"]), list(servers), n=1)
@@ -195,6 +198,8 @@ def main():
                 "title": p.get("titleName") or "",
                 "image": p.get("profileImage") or "",
                 "region": srv["region"],
+                "serverId": srv["serverId"],
+                "characterId": char["characterId"],
                 "status": "ok",
                 "lastOk": now.isoformat(timespec="seconds"),
             })

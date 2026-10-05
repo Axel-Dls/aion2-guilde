@@ -54,6 +54,8 @@ tr.top .rank{color:var(--gold);font-weight:800}
 .who{display:flex;align-items:center;gap:10px;min-width:0}
 .av{width:34px;height:34px;border-radius:50%;object-fit:cover;background:var(--surface-2);border:1px solid var(--line);flex:none}
 .nm{font-weight:700}
+.pl{color:inherit;text-decoration:none;border-bottom:1px solid transparent}
+.pl:hover{color:var(--gold);border-bottom-color:currentColor}
 .sub{font-size:13px;color:var(--muted)}
 .cp{font-weight:800;font-size:16px}
 .d{font-weight:700;font-size:13px}
@@ -162,7 +164,16 @@ function spark(h) {
   return `<svg class="spark" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(t)}"><title>${esc(t)}</title><path class="a" d="${area}"/><path class="l" d="${line}"/><circle cx="${x(pts.length - 1).toFixed(1)}" cy="${y(pts[pts.length - 1].cp).toFixed(1)}" r="2.6"/></svg>`;
 }
 
-let GUILD = "", DATA = [], sortKey = "cp", sortDir = -1;
+const OFFICIAL = "https://aion2.plaync.com/en-us/characters";
+function profileUrl(m) {
+  const region = m.region || REGION;
+  if (m.serverId && m.characterId) return `${OFFICIAL}/${m.serverId}/${m.characterId}?region=${encodeURIComponent(region)}`;
+  const q = new URLSearchParams({ keyword: m.name, region });
+  if (m.serverId) q.set("serverId", m.serverId);
+  return `${OFFICIAL}/index?${q}`;
+}
+
+let REGION = "eu", GUILD = "", DATA = [], sortKey = "cp", sortDir = -1;
 
 function render() {
   const q = $("q").value.trim().toLowerCase();
@@ -193,7 +204,7 @@ function render() {
     const rank = sortKey === "cp" && sortDir < 0 && !q && m.cp != null ? i + 1 : "";
     return `<tr class="${rank && rank <= 3 ? "top" : ""}">
       <td class="rank">${rank}</td>
-      <td><div class="who">${m.image ? `<img class="av" src="${esc(m.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">` : `<span class="av"></span>`}<div><div class="nm">${esc(m.name)}${status}</div><div class="sub">${sub || "&nbsp;"}</div></div></div></td>
+      <td><div class="who">${m.image ? `<img class="av" src="${esc(m.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">` : `<span class="av"></span>`}<div><div class="nm"><a class="pl" href="${esc(profileUrl(m))}" target="_blank" rel="noopener" title="Voir la fiche officielle">${esc(m.name)}</a>${status}</div><div class="sub">${sub || "&nbsp;"}</div></div></div></td>
       <td>${esc(m.server)}${m.race ? `<div class="sub">${esc(m.race)}</div>` : ""}</td>
       <td class="num cp">${fmt(m.cp)}</td>
       <td class="num"><span class="d ${dcls}">${dtxt}</span></td>
@@ -233,7 +244,7 @@ fetch("data/db.json?t=" + Date.now(), { cache: "no-store" })
       const before = cpDaysAgo(m.history, 7);
       return { ...m, d7: before != null && m.cp != null ? m.cp - before : null };
     });
-    GUILD = db.guild || "";
+    GUILD = db.guild || ""; REGION = db.region || "eu";
     if (db.guild) { $("guild").textContent = db.guild; document.title = db.guild + " · Aion 2"; }
     $("eyebrow").textContent = `Aion 2 · Global · ${String(db.region || "eu").toUpperCase()}`;
     $("meta").innerHTML = db.updatedAt
