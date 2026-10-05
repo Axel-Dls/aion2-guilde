@@ -1,32 +1,80 @@
 {
  "guild": "Ivalys",
  "region": "eu",
- "updatedAt": "2026-10-05T09:16:32+00:00",
+ "updatedAt": "2026-10-05T09:18:29+00:00",
  "counts": {
   "total": 3,
-  "ok": 0
+  "ok": 3
  },
  "members": [
   {
-   "key": "tiriel:nioky",
+   "key": "triniel:nioky",
    "name": "Nioky",
-   "server": "Tiriel",
-   "history": [],
-   "status": "unknown_server"
+   "server": "Triniel",
+   "history": [
+    {
+     "d": "2026-10-05",
+     "cp": 100829,
+     "il": 2219
+    }
+   ],
+   "race": "Asmodians",
+   "className": "Chanter",
+   "level": 45,
+   "cp": 100829,
+   "itemLevel": 2219,
+   "legion": "Ivalys",
+   "title": "Vanguard of Atreia",
+   "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364853809",
+   "region": "eu",
+   "status": "ok",
+   "lastOk": "2026-10-05T09:18:29+00:00"
   },
   {
-   "key": "tiriel:doc",
+   "key": "triniel:doc",
    "name": "Doc",
-   "server": "Tiriel",
-   "history": [],
-   "status": "unknown_server"
+   "server": "Triniel",
+   "history": [
+    {
+     "d": "2026-10-05",
+     "cp": 107052,
+     "il": 2150
+    }
+   ],
+   "race": "Asmodians",
+   "className": "Assassin",
+   "level": 45,
+   "cp": 107052,
+   "itemLevel": 2150,
+   "legion": "Ivalys",
+   "title": "",
+   "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364854038",
+   "region": "eu",
+   "status": "ok",
+   "lastOk": "2026-10-05T09:18:29+00:00"
   },
   {
-   "key": "tiriel:shineiki",
+   "key": "triniel:shineiki",
    "name": "Shineiki",
-   "server": "Tiriel",
-   "history": [],
-   "status": "unknown_server"
+   "server": "Triniel",
+   "history": [
+    {
+     "d": "2026-10-05",
+     "cp": 96138,
+     "il": 2160
+    }
+   ],
+   "race": "Asmodians",
+   "className": "Ranger",
+   "level": 45,
+   "cp": 96138,
+   "itemLevel": 2160,
+   "legion": "Ivalys",
+   "title": "Vanguard of Atreia",
+   "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364861183",
+   "region": "eu",
+   "status": "ok",
+   "lastOk": "2026-10-05T09:18:29+00:00"
   }
  ]
 }
