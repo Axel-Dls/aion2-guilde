@@ -60,6 +60,25 @@ tr.top .rank{color:var(--gold);font-weight:800}
 .cp{font-weight:800;font-size:16px}
 .d{font-weight:700;font-size:13px}
 .d.up{color:var(--up)} .d.down{color:var(--down)} .d.flat{color:var(--muted);font-weight:400}
+.role{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:4px;margin-left:6px;vertical-align:2px;white-space:nowrap}
+.role.chef{background:var(--gold);color:var(--bg)}
+.role.officier{border:1px solid var(--gold);color:var(--gold)}
+.compo{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:24px}
+.compo-h{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:10px}
+.compo-h .k{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.compo-h .s{font-size:13px;color:var(--muted)}
+.roles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:760px){.roles{grid-template-columns:repeat(2,minmax(0,1fr))}.compo-h .s{display:none}}
+.rl{min-width:0;border-top:2px solid var(--line);padding-top:8px}
+.rl .t{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.rl .n{font-weight:700;font-size:14px}
+.rl .c{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums}
+.rl ul{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:2px}
+.rl li button{all:unset;cursor:pointer;display:flex;justify-content:space-between;gap:8px;width:100%;font-size:13px;color:var(--muted);padding:2px 0;border-radius:4px}
+.rl li button:hover,.rl li button[aria-pressed="true"]{color:var(--gold)}
+.rl li button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.rl li b{color:var(--ink);font-variant-numeric:tabular-nums}
+.rl li button.zero b{color:var(--down)}
 .pill{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;border:1px solid currentColor;color:var(--warn);white-space:nowrap}
 .empty{padding:40px 20px;text-align:center;color:var(--muted)}
 .empty strong{color:var(--ink);display:block;font-size:17px;margin-bottom:6px}
@@ -90,8 +109,13 @@ footer{margin-top:24px;font-size:13px;color:var(--muted);max-width:75ch}
     <div class="stat"><div class="k">Meilleure progression GS · 7 j</div><div class="v" id="s-best">–</div><div class="s" id="s-best-sub">&nbsp;</div></div>
   </section>
 
+  <section class="compo" aria-label="Composition de la guilde">
+    <div class="compo-h"><span class="k">Composition</span><span class="s">Clique sur une classe pour filtrer le classement</span></div>
+    <div class="roles" id="roles"></div>
+  </section>
+
   <div class="toolbar">
-    <input type="search" id="q" placeholder="Filtrer par pseudo, classe, serveur…" aria-label="Filtrer">
+    <input type="search" id="q" placeholder="Filtrer par pseudo, classe, statut…" aria-label="Filtrer">
     <div class="links">
       <a id="edit" href="#" target="_blank" rel="noopener">Modifier la liste des membres</a>
       <a id="run" href="#" target="_blank" rel="noopener" title="Ouvre GitHub : clique ensuite sur « Run workflow » puis le bouton vert">Lancer une mise à jour</a>
@@ -150,11 +174,42 @@ function valueDaysAgo(h, days, field) {
 }
 
 
+function roleBadge(r) {
+  const k = (r || "").toLowerCase();
+  return k === "chef" || k === "officier" ? `<span class="role ${k}">${esc(r)}</span>` : "";
+}
+
 function delta(d) {
   if (d == null) return '<span class="d flat">–</span>';
   const cls = d > 0 ? "up" : d < 0 ? "down" : "flat";
   return `<span class="d ${cls}">${d > 0 ? "+" : d < 0 ? "−" : ""}${fmt(Math.abs(d))}</span>`;
 }
+
+const CLASS_FR = { Gladiator: "Gladiateur", Templar: "Templier", Cleric: "Clerc", Chanter: "Aède",
+  Assassin: "Assassin", Ranger: "Ranger", Sorcerer: "Sorcier", Spiritmaster: "Spiritualiste" };
+const ROLES = [
+  { name: "Tank", classes: ["Gladiateur", "Templier"] },
+  { name: "Heal", classes: ["Clerc"] },
+  { name: "Aède", classes: ["Aède"] },
+  { name: "DPS", classes: ["Assassin", "Ranger", "Sorcier", "Spiritualiste"] },
+];
+
+function composition() {
+  const count = {};
+  DATA.forEach(m => { if (m.classFr) count[m.classFr] = (count[m.classFr] || 0) + 1; });
+  const q = $("q").value.trim().toLowerCase();
+  $("roles").innerHTML = ROLES.map(r => {
+    const total = r.classes.reduce((t, c) => t + (count[c] || 0), 0);
+    const items = r.classes.map(c => `<li><button type="button" data-class="${esc(c)}" aria-pressed="${q === c.toLowerCase()}" class="${count[c] ? "" : "zero"}"><span>${esc(c)}</span><b>${count[c] || 0}</b></button></li>`).join("");
+    return `<div class="rl"><div class="t"><span class="n">${r.name}</span><span class="c">${total}</span></div><ul>${items}</ul></div>`;
+  }).join("");
+}
+$("roles").addEventListener("click", e => {
+  const b = e.target.closest("button[data-class]"); if (!b) return;
+  const c = b.dataset.class;
+  $("q").value = $("q").value.trim().toLowerCase() === c.toLowerCase() ? "" : c;
+  render();
+});
 
 const OFFICIAL = "https://aion2.plaync.com/en-us/characters";
 function profileUrl(m) {
@@ -169,7 +224,8 @@ let REGION = "eu", GUILD = "", DATA = [], sortKey = "itemLevel", sortDir = -1;
 
 function render() {
   const q = $("q").value.trim().toLowerCase();
-  const list = DATA.filter(m => !q || [m.name, m.server, m.className, m.legion].join(" ").toLowerCase().includes(q));
+  composition();
+  const list = DATA.filter(m => !q || (m.classFr || "").toLowerCase() === q || [m.name, m.server, m.className, m.classFr, m.role, m.legion].join(" ").toLowerCase().includes(q));
   list.sort((a, b) => {
     const va = a[sortKey], vb = b[sortKey];
     if (va == null && vb == null) return 0;
@@ -190,11 +246,11 @@ function render() {
   $("rows").innerHTML = list.map((m, i) => {
     const status = m.status && m.status !== "ok" ? ` <span class="pill" title="${m.lastOk ? "Dernière mise à jour réussie : " + esc(new Date(m.lastOk).toLocaleString("fr-FR")) : ""}">${STATUS[m.status] || m.status}</span>` : "";
     const legion = m.legion && m.legion.toLowerCase() !== GUILD.toLowerCase() ? m.legion : "";
-    const sub = [m.className, m.level ? "niv. " + m.level : "", legion].filter(Boolean).map(esc).join(" · ");
+    const sub = [m.classFr || m.className, m.level ? "niv. " + m.level : "", legion].filter(Boolean).map(esc).join(" · ");
     const rank = sortKey === "itemLevel" && sortDir < 0 && !q && m.itemLevel != null ? i + 1 : "";
     return `<tr class="${rank && rank <= 3 ? "top" : ""}">
       <td class="rank">${rank}</td>
-      <td><div class="who">${m.image ? `<img class="av" src="${esc(m.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">` : `<span class="av"></span>`}<div><div class="nm"><a class="pl" href="${esc(profileUrl(m))}" target="_blank" rel="noopener" title="Voir la fiche officielle">${esc(m.name)}</a>${status}</div><div class="sub">${sub || "&nbsp;"}</div></div></div></td>
+      <td><div class="who">${m.image ? `<img class="av" src="${esc(m.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">` : `<span class="av"></span>`}<div><div class="nm"><a class="pl" href="${esc(profileUrl(m))}" target="_blank" rel="noopener" title="Voir la fiche officielle">${esc(m.name)}</a>${roleBadge(m.role)}${status}</div><div class="sub">${sub || "&nbsp;"}</div></div></div></td>
       <td>${esc(m.server)}${m.race ? `<div class="sub">${esc(m.race)}</div>` : ""}</td>
       <td class="num cp">${fmt(m.itemLevel)}</td>
       <td class="num">${delta(m.d7)}</td>
@@ -232,7 +288,7 @@ fetch("data/db.json?t=" + Date.now(), { cache: "no-store" })
   .then(db => {
     DATA = (db.members || []).map(m => {
       const gs0 = valueDaysAgo(m.history, 7, "il"), cp0 = valueDaysAgo(m.history, 7, "cp");
-      return { ...m,
+      return { ...m, classFr: CLASS_FR[m.className] || m.className || "",
         d7: gs0 != null && m.itemLevel != null ? m.itemLevel - gs0 : null,
         cp7: cp0 != null && m.cp != null ? m.cp - cp0 : null };
     });

@@ -1,41 +1,40 @@
-# Membres suivis : une ligne par perso, au format « pseudo,serveur ».
+# Membres suivis : une ligne par perso, au format « pseudo,serveur,statut » (statut : Chef, Officier ou Membre).
 # Écris le pseudo exactement comme en jeu (accents compris). Le site se met à jour tout seul 1 à 2 minutes après.
-pseudo,serveur
-Doc,Triniel
-OrGaniZ,Triniel
-Yunalska,Triniel
-Kinysse,Triniel
-Nioky,Triniel
-Lyric,Triniel
-Shineiki,Triniel
-RezeMaFemme,Triniel
-Slynn,Triniel
-Hymia,Triniel
-Lumeka,Triniel
-Slawn,Triniel
-Phiona,Triniel
-Celestal,Triniel
-Miaiphónos,Triniel
-FERA,Triniel
-Jamick,Triniel
-Sorcerino,Triniel
-Phénix,Triniel
-Mikio,Triniel
+pseudo,serveur,statut
+Doc,Triniel,Chef
+OrGaniZ,Triniel,Membre
+Yunalska,Triniel,Membre
+Kinysse,Triniel,Membre
+Nioky,Triniel,Membre
+Lyric,Triniel,Membre
+Shineiki,Triniel,Membre
+RezeMaFemme,Triniel,Membre
+Slynn,Triniel,Membre
+Hymia,Triniel,Membre
+Lumeka,Triniel,Membre
+Slawn,Triniel,Membre
+Phiona,Triniel,Membre
+Celestal,Triniel,Membre
+Miaiphónos,Triniel,Membre
+FERA,Triniel,Officier
+Jamick,Triniel,Membre
+Sorcerino,Triniel,Membre
+Phénix,Triniel,Membre
+Mikio,Triniel,Officier
 
 # Introuvables sur le site officiel avec cette orthographe : corrige le pseudo puis retire le « # »
-# DocDanny,Triniel
-# KodaySod,Triniel
-# Harrg,Triniel
-# Silly,Triniel
-# CØRÐE,Triniel
-# BakaViolet,Triniel
-# CaptaiinJump,Triniel
-# 长ler,Triniel
-# Gatss01,Triniel
-# Agalyarept,Triniel
-# Zhin.Gao,Triniel
+# KodaySod,Triniel,Membre
+# Harrg,Triniel,Membre
+# Silly,Triniel,Membre
+# CØRÐE,Triniel,Membre
+# BakaViolet,Triniel,Membre
+# CaptaiinJump,Triniel,Membre
+# 长ler,Triniel,Membre
+# Gatss01,Triniel,Membre
+# Agalyarept,Triniel,Membre
+# Zhin.Gao,Triniel,Membre
 
 # Trouvés sur Triniel mais pas dans la légion Ivalys : retire le « # » si c'est bien eux
-# Nayko,Triniel
-# Alex,Triniel
-# LeMick,Triniel
+# Nayko,Triniel,Membre
+# Alex,Triniel,Membre
+# LeMick,Triniel,Membre

@@ -66,7 +66,7 @@ def norm(s):
 
 
 def read_members():
-    """members.csv : une ligne par perso, « pseudo,serveur ». Les lignes # sont ignorées."""
+    """members.csv : une ligne par perso, « pseudo,serveur[,statut] ». Les lignes # sont ignorées."""
     out, seen = [], set()
     with MEMBERS.open(encoding="utf-8-sig", newline="") as f:
         for row in csv.reader(f):
@@ -79,7 +79,8 @@ def read_members():
             k = (norm(name), norm(server))
             if k not in seen:
                 seen.add(k)
-                out.append({"name": name, "server": server})
+                role = row[2].strip() if len(row) > 2 else ""
+                out.append({"name": name, "server": server, "role": role or "Membre"})
     return out
 
 
@@ -201,6 +202,7 @@ def main():
             "key": key,
             "name": prev.get("name", m["name"]),
             "server": srv["serverName"] if srv else m["server"],
+            "role": m["role"],
             "history": prev.get("history", []),
         }
         for k in ("serverId", "characterId", "race", "className", "level", "cp", "itemLevel", "legion", "title", "image", "lastOk"):
