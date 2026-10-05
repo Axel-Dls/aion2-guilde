@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Guilde · Aion 2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Figtree:wght@400;600;700;800&display=swap">
+<style>
+/* Classement de guilde : en-tête, 3 indicateurs, tableau triable — or d'Atreia sur fond nuit */
+:root{
+  --bg:#f4f2ed; --surface:#ffffff; --surface-2:#f8f6f1; --ink:#1b1d24; --muted:#62645e; --line:#e0dccf;
+  --gold:#94730c; --gold-soft:rgb(201 162 39 / .14); --up:#25804a; --down:#b4432f; --warn:#a86b00;
+  --display:"Marcellus","Palatino Linotype",Georgia,serif;
+  --body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0e1015; --surface:#161920; --surface-2:#1b1f27; --ink:#ebe8e1; --muted:#a19f97; --line:#292d37;
+  --gold:#e3c35a; --gold-soft:rgb(227 195 90 / .12); --up:#6fcf97; --down:#ff8a7a; --warn:#f0b54a; color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--body);padding:0 20px}
+.wrap{max-width:1100px;margin:0 auto;padding-block:40px 56px}
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:16px 32px;margin-bottom:28px}
+.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);font-weight:700;margin:0 0 6px}
+h1{font-family:var(--display);font-weight:400;font-size:clamp(34px,5vw,50px);line-height:1.05;margin:0;text-wrap:balance}
+.meta{color:var(--muted);font-size:14px;text-align:right}
+.meta strong{color:var(--ink);font-weight:600}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:24px}
+@media (max-width:640px){.stats{grid-template-columns:minmax(0,1fr)}}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;min-width:0}
+.stat .k{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.stat .v{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stat .s{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:10px}
+input[type=search]{font:inherit;padding:9px 12px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);min-width:0;width:260px;max-width:100%}
+input[type=search]:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.links{display:flex;flex-wrap:wrap;gap:8px}
+.links a{font-size:14px;font-weight:600;color:var(--gold);text-decoration:none;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.links a:hover{border-color:var(--gold)}
+.tbl{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+table{width:100%;border-collapse:collapse;min-width:720px}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr:last-child td{border-bottom:0}
+th{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;background:var(--surface-2);white-space:nowrap}
+th button{all:unset;cursor:pointer;display:inline-flex;gap:4px;align-items:center}
+th button[aria-sort] .ar{color:var(--gold)}
+th.num,td.num{text-align:right;font-variant-numeric:tabular-nums}
+tbody tr:hover{background:var(--gold-soft)}
+.rank{color:var(--muted);font-variant-numeric:tabular-nums;width:40px}
+tr.top .rank{color:var(--gold);font-weight:800}
+.who{display:flex;align-items:center;gap:10px;min-width:0}
+.av{width:34px;height:34px;border-radius:50%;object-fit:cover;background:var(--surface-2);border:1px solid var(--line);flex:none}
+.nm{font-weight:700}
+.sub{font-size:13px;color:var(--muted)}
+.cp{font-weight:800;font-size:16px}
+.d{font-weight:700;font-size:13px}
+.d.up{color:var(--up)} .d.down{color:var(--down)} .d.flat{color:var(--muted);font-weight:400}
+.pill{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;border:1px solid currentColor;color:var(--warn);white-space:nowrap}
+.spark{display:block}
+.spark path.l{fill:none;stroke:var(--gold);stroke-width:1.6}
+.spark path.a{fill:var(--gold-soft);stroke:none}
+.spark circle{fill:var(--gold)}
+.empty{padding:40px 20px;text-align:center;color:var(--muted)}
+.empty strong{color:var(--ink);display:block;font-size:17px;margin-bottom:6px}
+@media (max-width:640px){
+  .meta{text-align:left}
+  table{min-width:0}
+  th:nth-child(3),td:nth-child(3),th:nth-child(7),td:nth-child(7){display:none}
+  th,td{padding:10px 8px}
+  .av{display:none}
+}
+footer{margin-top:24px;font-size:13px;color:var(--muted);max-width:75ch}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <p class="eyebrow" id="eyebrow">Aion 2 · Global</p>
+      <h1 id="guild">Guilde</h1>
+    </div>
+    <div class="meta" id="meta">Chargement…</div>
+  </header>
+
+  <section class="stats" aria-label="Résumé">
+    <div class="stat"><div class="k">Membres suivis</div><div class="v" id="s-count">–</div><div class="s" id="s-count-sub">&nbsp;</div></div>
+    <div class="stat"><div class="k">CP moyen</div><div class="v" id="s-avg">–</div><div class="s" id="s-avg-sub">&nbsp;</div></div>
+    <div class="stat"><div class="k">Meilleure progression · 7 j</div><div class="v" id="s-best">–</div><div class="s" id="s-best-sub">&nbsp;</div></div>
+  </section>
+
+  <div class="toolbar">
+    <input type="search" id="q" placeholder="Filtrer par pseudo, classe, serveur…" aria-label="Filtrer">
+    <div class="links">
+      <a id="edit" href="#" target="_blank" rel="noopener">Modifier la liste des membres</a>
+      <a id="run" href="#" target="_blank" rel="noopener">Forcer une mise à jour</a>
+    </div>
+  </div>
+
+  <div class="tbl">
+    <table>
+      <thead><tr>
+        <th>#</th>
+        <th><button data-k="name">Perso <span class="ar"></span></button></th>
+        <th><button data-k="server">Serveur <span class="ar"></span></button></th>
+        <th class="num"><button data-k="cp">Combat Power <span class="ar"></span></button></th>
+        <th class="num"><button data-k="d7">7 j <span class="ar"></span></button></th>
+        <th class="num"><button data-k="itemLevel">Item Lvl <span class="ar"></span></button></th>
+        <th>Évolution CP</th>
+      </tr></thead>
+      <tbody id="rows"><tr><td colspan="7" class="empty">Chargement des données…</td></tr></tbody>
+    </table>
+  </div>
+
+  <footer>
+    Données récupérées une fois par jour sur le site officiel d'Aion 2 (page Character Info). Un perso marqué « introuvable » a peut-être changé de pseudo ou de serveur : corrige-le dans la liste des membres.
+  </footer>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const fmt = n => n == null ? "–" : Number(n).toLocaleString("fr-FR");
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const STATUS = { not_found: "Introuvable", unknown_server: "Serveur inconnu", error: "Échec de mise à jour" };
+
+// Liens GitHub déduits de l'adresse du site (utilisateur.github.io/depot)
+(function githubLinks(){
+  const m = location.hostname.match(/^([^.]+)\.github\.io$/);
+  const repo = location.pathname.split("/").filter(Boolean)[0];
+  if (m && repo) {
+    const base = `https://github.com/${m[1]}/${repo}`;
+    $("edit").href = `${base}/edit/main/members.csv`;
+    $("run").href = `${base}/actions/workflows/update.yml`;
+  } else { $("edit").hidden = true; $("run").hidden = true; }
+})();
+
+function cpDaysAgo(h, days) {
+  if (!h || h.length < 2) return null;
+  const last = new Date(h[h.length - 1].d);
+  const target = new Date(last); target.setDate(target.getDate() - days);
+  let ref = null;
+  for (const p of h) { if (new Date(p.d) <= target) ref = p; }
+  if (!ref) ref = h[0];
+  return ref === h[h.length - 1] ? null : ref.cp;
+}
+
+function spark(h) {
+  const pts = (h || []).filter(p => p.cp != null).slice(-30);
+  if (pts.length < 2) return '<span class="sub">–</span>';
+  const W = 120, H = 30, P = 3;
+  const vs = pts.map(p => p.cp), min = Math.min(...vs), max = Math.max(...vs), span = max - min || 1;
+  const x = i => P + i * (W - 2 * P) / (pts.length - 1);
+  const y = v => H - P - (v - min) * (H - 2 * P) / span;
+  const line = pts.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(p.cp).toFixed(1)}`).join("");
+  const area = `${line}L${x(pts.length - 1).toFixed(1)},${H}L${x(0).toFixed(1)},${H}Z`;
+  const t = `${pts[0].d} : ${fmt(pts[0].cp)} → ${pts[pts.length - 1].d} : ${fmt(pts[pts.length - 1].cp)}`;
+  return `<svg class="spark" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(t)}"><title>${esc(t)}</title><path class="a" d="${area}"/><path class="l" d="${line}"/><circle cx="${x(pts.length - 1).toFixed(1)}" cy="${y(pts[pts.length - 1].cp).toFixed(1)}" r="2.6"/></svg>`;
+}
+
+let GUILD = "", DATA = [], sortKey = "cp", sortDir = -1;
+
+function render() {
+  const q = $("q").value.trim().toLowerCase();
+  const list = DATA.filter(m => !q || [m.name, m.server, m.className, m.legion].join(" ").toLowerCase().includes(q));
+  list.sort((a, b) => {
+    const va = a[sortKey], vb = b[sortKey];
+    if (va == null && vb == null) return 0;
+    if (va == null) return 1; if (vb == null) return -1;
+    return (typeof va === "string" ? va.localeCompare(vb, "fr") : va - vb) * sortDir;
+  });
+  document.querySelectorAll("th button").forEach(b => {
+    const on = b.dataset.k === sortKey;
+    b.toggleAttribute("aria-sort", on);
+    if (on) b.setAttribute("aria-sort", sortDir < 0 ? "descending" : "ascending");
+    b.querySelector(".ar").textContent = on ? (sortDir < 0 ? "▼" : "▲") : "";
+  });
+  if (!DATA.length) {
+    $("rows").innerHTML = `<tr><td colspan="7" class="empty"><strong>Aucun membre suivi pour l'instant</strong>Ajoute des lignes « pseudo,serveur » dans la liste des membres : le classement apparaît ici quelques minutes après.</td></tr>`;
+    return;
+  }
+  if (!list.length) { $("rows").innerHTML = `<tr><td colspan="7" class="empty">Aucun perso ne correspond à « ${esc(q)} ».</td></tr>`; return; }
+  $("rows").innerHTML = list.map((m, i) => {
+    const d = m.d7, dcls = d == null ? "flat" : d > 0 ? "up" : d < 0 ? "down" : "flat";
+    const dtxt = d == null ? "–" : (d > 0 ? "+" : d < 0 ? "−" : "") + fmt(Math.abs(d));
+    const status = m.status && m.status !== "ok" ? ` <span class="pill" title="${m.lastOk ? "Dernière mise à jour réussie : " + esc(new Date(m.lastOk).toLocaleString("fr-FR")) : ""}">${STATUS[m.status] || m.status}</span>` : "";
+    const legion = m.legion && m.legion.toLowerCase() !== GUILD.toLowerCase() ? m.legion : "";
+    const sub = [m.className, m.level ? "niv. " + m.level : "", legion].filter(Boolean).map(esc).join(" · ");
+    const rank = sortKey === "cp" && sortDir < 0 && !q && m.cp != null ? i + 1 : "";
+    return `<tr class="${rank && rank <= 3 ? "top" : ""}">
+      <td class="rank">${rank}</td>
+      <td><div class="who">${m.image ? `<img class="av" src="${esc(m.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">` : `<span class="av"></span>`}<div><div class="nm">${esc(m.name)}${status}</div><div class="sub">${sub || "&nbsp;"}</div></div></div></td>
+      <td>${esc(m.server)}${m.race ? `<div class="sub">${esc(m.race)}</div>` : ""}</td>
+      <td class="num cp">${fmt(m.cp)}</td>
+      <td class="num"><span class="d ${dcls}">${dtxt}</span></td>
+      <td class="num">${fmt(m.itemLevel)}</td>
+      <td>${spark(m.history)}</td>
+    </tr>`;
+  }).join("");
+}
+
+function summary(db) {
+  const withCp = DATA.filter(m => m.cp != null);
+  $("s-count").textContent = DATA.length;
+  const bad = DATA.length - (db.counts?.ok ?? withCp.length);
+  $("s-count-sub").textContent = bad > 0 ? `${bad} non mis à jour au dernier passage` : "Tous à jour";
+  if (withCp.length) {
+    const avg = withCp.reduce((s, m) => s + m.cp, 0) / withCp.length;
+    $("s-avg").textContent = fmt(Math.round(avg));
+    const top = withCp.reduce((a, b) => b.cp > a.cp ? b : a);
+    $("s-avg-sub").textContent = `Max : ${top.name} (${fmt(top.cp)})`;
+  }
+  const prog = DATA.filter(m => m.d7 != null && m.d7 > 0).sort((a, b) => b.d7 - a.d7)[0];
+  if (prog) { $("s-best").textContent = "+" + fmt(prog.d7); $("s-best-sub").textContent = prog.name; }
+  else { $("s-best").textContent = "–"; $("s-best-sub").textContent = "Il faut quelques jours d'historique"; }
+}
+
+document.querySelectorAll("th button").forEach(b => b.addEventListener("click", () => {
+  const k = b.dataset.k;
+  if (sortKey === k) sortDir = -sortDir; else { sortKey = k; sortDir = (k === "name" || k === "server") ? 1 : -1; }
+  render();
+}));
+$("q").addEventListener("input", render);
+
+fetch("data/db.json?t=" + Date.now(), { cache: "no-store" })
+  .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+  .then(db => {
+    DATA = (db.members || []).map(m => {
+      const before = cpDaysAgo(m.history, 7);
+      return { ...m, d7: before != null && m.cp != null ? m.cp - before : null };
+    });
+    GUILD = db.guild || "";
+    if (db.guild) { $("guild").textContent = db.guild; document.title = db.guild + " · Aion 2"; }
+    $("eyebrow").textContent = `Aion 2 · Global · ${String(db.region || "eu").toUpperCase()}`;
+    $("meta").innerHTML = db.updatedAt
+      ? `Mis à jour le <strong>${esc(new Date(db.updatedAt).toLocaleString("fr-FR", { dateStyle: "long", timeStyle: "short" }))}</strong><br>Prochaine mise à jour vers 6 h`
+      : "Pas encore de mise à jour";
+    summary(db); render();
+  })
+  .catch(() => {
+    $("meta").textContent = "Pas encore de données";
+    DATA = []; render();
+  });
+</script>
+</body>
+</html>
