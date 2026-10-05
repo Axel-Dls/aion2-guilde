@@ -1,7 +1,7 @@
 {
  "guild": "Ivalys",
  "region": "eu",
- "updatedAt": "2026-10-05T09:29:26+00:00",
+ "updatedAt": "2026-10-05T09:36:44+00:00",
  "counts": {
   "total": 8,
   "ok": 8
@@ -26,8 +26,10 @@
    "legion": "Ivalys",
    "title": "Vanguard of Atreia",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364853809",
-   "lastOk": "2026-10-05T09:29:26+00:00",
+   "lastOk": "2026-10-05T09:36:44+00:00",
+   "serverId": 2303,
    "region": "eu",
+   "characterId": "TUX0YElveOR57e6S2mhlFF-bzdD4mRfBDfDs81EOcY4%3D",
    "status": "ok"
   },
   {
@@ -49,8 +51,10 @@
    "legion": "Ivalys",
    "title": "",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364854038",
-   "lastOk": "2026-10-05T09:29:26+00:00",
+   "lastOk": "2026-10-05T09:36:44+00:00",
+   "serverId": 2303,
    "region": "eu",
+   "characterId": "TUX0YElveOR57e6S2mhlFLd-S47oRWNak9FUiov37S4%3D",
    "status": "ok"
   },
   {
@@ -72,8 +76,10 @@
    "legion": "Ivalys",
    "title": "Vanguard of Atreia",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364861183",
-   "lastOk": "2026-10-05T09:29:26+00:00",
+   "lastOk": "2026-10-05T09:36:44+00:00",
+   "serverId": 2303,
    "region": "eu",
+   "characterId": "TUX0YElveOR57e6S2mhlFOR9tAgX-oE1kcupOMI-xQM%3D",
    "status": "ok"
   },
   {
@@ -95,8 +101,10 @@
    "legion": "Ivalys",
    "title": "",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364857316",
-   "lastOk": "2026-10-05T09:29:26+00:00",
+   "lastOk": "2026-10-05T09:36:44+00:00",
+   "serverId": 2303,
    "region": "eu",
+   "characterId": "TUX0YElveOR57e6S2mhlFBJqgmIZb1yKGUY0WutejZo%3D",
    "status": "ok"
   },
   {
@@ -118,8 +126,10 @@
    "legion": "Ivalys",
    "title": "Vanguard of Atreia",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364853638",
-   "lastOk": "2026-10-05T09:29:26+00:00",
+   "lastOk": "2026-10-05T09:36:44+00:00",
+   "serverId": 2303,
    "region": "eu",
+   "characterId": "TUX0YElveOR57e6S2mhlFOHdJv_9MEd-OCghEk403Mc%3D",
    "status": "ok"
   },
   {
@@ -141,8 +151,10 @@
    "legion": "Ivalys",
    "title": "Vanguard of Atreia",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364852934",
-   "lastOk": "2026-10-05T09:29:26+00:00",
+   "lastOk": "2026-10-05T09:36:44+00:00",
+   "serverId": 2303,
    "region": "eu",
+   "characterId": "TUX0YElveOR57e6S2mhlFGfARqSRp1Q24Fmoch9QbR4%3D",
    "status": "ok"
   },
   {
@@ -164,9 +176,11 @@
    "legion": "Ivalys",
    "title": "",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364871825",
+   "lastOk": "2026-10-05T09:36:44+00:00",
+   "serverId": 2303,
    "region": "eu",
-   "status": "ok",
-   "lastOk": "2026-10-05T09:29:26+00:00"
+   "characterId": "TUX0YElveOR57e6S2mhlFFSaNO5GCneueWYolxWgNQ0%3D",
+   "status": "ok"
   },
   {
    "key": "triniel:slawn",
@@ -187,8 +201,10 @@
    "legion": "Ivalys",
    "title": "",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364866724",
-   "lastOk": "2026-10-05T09:29:26+00:00",
+   "lastOk": "2026-10-05T09:36:44+00:00",
+   "serverId": 2303,
    "region": "eu",
+   "characterId": "TUX0YElveOR57e6S2mhlFNb5ckebA9jGUmGgBQcZqSU%3D",
    "status": "ok"
   }
  ]
