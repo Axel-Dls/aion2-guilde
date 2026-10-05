@@ -11,6 +11,7 @@ Les adresses utilisées sont celles de la page officielle « Character Info »
 """
 
 import csv
+import difflib
 import json
 import re
 import sys
@@ -165,7 +166,9 @@ def main():
 
         if not srv:
             entry["status"] = "unknown_server"
-            log(f"  ✗ {m['name']} : serveur « {m['server']} » inconnu")
+            close = difflib.get_close_matches(norm(m["server"]), list(servers), n=1)
+            hint = f" (tu voulais dire « {servers[close[0]]['serverName']} » ?)" if close else ""
+            log(f"  ✗ {m['name']} : serveur « {m['server']} » inconnu{hint}")
             result.append(entry)
             continue
 
