@@ -6,7 +6,7 @@ on:
   workflow_dispatch:           # bouton « Run workflow » dans l'onglet Actions
   push:
     branches: [main]
-    paths: [members.csv, config.json, scripts/update.py]
+    paths: [members.csv, config.json, scripts/update.py, data/historique-manuel.csv]
 
 permissions:
   contents: write

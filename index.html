@@ -90,8 +90,8 @@ footer{margin-top:24px;font-size:13px;color:var(--muted);max-width:75ch}
 
   <section class="stats" aria-label="Résumé">
     <div class="stat"><div class="k">Membres suivis</div><div class="v" id="s-count">–</div><div class="s" id="s-count-sub">&nbsp;</div></div>
-    <div class="stat"><div class="k">CP moyen</div><div class="v" id="s-avg">–</div><div class="s" id="s-avg-sub">&nbsp;</div></div>
-    <div class="stat"><div class="k">Meilleure progression · 7 j</div><div class="v" id="s-best">–</div><div class="s" id="s-best-sub">&nbsp;</div></div>
+    <div class="stat"><div class="k">GS moyen</div><div class="v" id="s-avg">–</div><div class="s" id="s-avg-sub">&nbsp;</div></div>
+    <div class="stat"><div class="k">Meilleure progression GS · 7 j</div><div class="v" id="s-best">–</div><div class="s" id="s-best-sub">&nbsp;</div></div>
   </section>
 
   <div class="toolbar">
@@ -110,10 +110,10 @@ footer{margin-top:24px;font-size:13px;color:var(--muted);max-width:75ch}
         <th>#</th>
         <th><button data-k="name">Perso <span class="ar"></span></button></th>
         <th><button data-k="server">Serveur <span class="ar"></span></button></th>
+        <th class="num"><button data-k="itemLevel" title="Gear Score (Item Level sur le site officiel)">GS <span class="ar"></span></button></th>
+        <th class="num"><button data-k="d7" title="Progression du GS sur 7 jours">7 j <span class="ar"></span></button></th>
         <th class="num"><button data-k="cp">Combat Power <span class="ar"></span></button></th>
-        <th class="num"><button data-k="d7">7 j <span class="ar"></span></button></th>
-        <th class="num"><button data-k="itemLevel">Item Lvl <span class="ar"></span></button></th>
-        <th>Évolution CP</th>
+        <th>Évolution GS</th>
       </tr></thead>
       <tbody id="rows"><tr><td colspan="7" class="empty">Chargement des données…</td></tr></tbody>
     </table>
@@ -141,27 +141,29 @@ const STATUS = { not_found: "Introuvable", unknown_server: "Serveur inconnu", er
   } else { $("edit").hidden = true; $("run").hidden = true; }
 })();
 
-function cpDaysAgo(h, days) {
-  if (!h || h.length < 2) return null;
-  const last = new Date(h[h.length - 1].d);
+// Valeur de `field` environ `days` jours avant le dernier point (ou le plus ancien point connu)
+function valueDaysAgo(h, days, field) {
+  const pts = (h || []).filter(p => p[field] != null);
+  if (pts.length < 2) return null;
+  const last = new Date(pts[pts.length - 1].d);
   const target = new Date(last); target.setDate(target.getDate() - days);
   let ref = null;
-  for (const p of h) { if (new Date(p.d) <= target) ref = p; }
-  if (!ref) ref = h[0];
-  return ref === h[h.length - 1] ? null : ref.cp;
+  for (const p of pts) { if (new Date(p.d) <= target) ref = p; }
+  if (!ref) ref = pts[0];
+  return ref === pts[pts.length - 1] ? null : ref[field];
 }
 
-function spark(h) {
-  const pts = (h || []).filter(p => p.cp != null).slice(-30);
+function spark(h, field = "il") {
+  const pts = (h || []).filter(p => p[field] != null).slice(-30);
   if (pts.length < 2) return '<span class="sub">–</span>';
   const W = 120, H = 30, P = 3;
-  const vs = pts.map(p => p.cp), min = Math.min(...vs), max = Math.max(...vs), span = max - min || 1;
+  const vs = pts.map(p => p[field]), min = Math.min(...vs), max = Math.max(...vs), span = max - min || 1;
   const x = i => P + i * (W - 2 * P) / (pts.length - 1);
   const y = v => H - P - (v - min) * (H - 2 * P) / span;
-  const line = pts.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(p.cp).toFixed(1)}`).join("");
+  const line = pts.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(p[field]).toFixed(1)}`).join("");
   const area = `${line}L${x(pts.length - 1).toFixed(1)},${H}L${x(0).toFixed(1)},${H}Z`;
-  const t = `${pts[0].d} : ${fmt(pts[0].cp)} → ${pts[pts.length - 1].d} : ${fmt(pts[pts.length - 1].cp)}`;
-  return `<svg class="spark" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(t)}"><title>${esc(t)}</title><path class="a" d="${area}"/><path class="l" d="${line}"/><circle cx="${x(pts.length - 1).toFixed(1)}" cy="${y(pts[pts.length - 1].cp).toFixed(1)}" r="2.6"/></svg>`;
+  const t = `GS ${pts[0].d} : ${fmt(pts[0][field])} → ${pts[pts.length - 1].d} : ${fmt(pts[pts.length - 1][field])}`;
+  return `<svg class="spark" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(t)}"><title>${esc(t)}</title><path class="a" d="${area}"/><path class="l" d="${line}"/><circle cx="${x(pts.length - 1).toFixed(1)}" cy="${y(pts[pts.length - 1][field]).toFixed(1)}" r="2.6"/></svg>`;
 }
 
 const OFFICIAL = "https://aion2.plaync.com/en-us/characters";
@@ -173,7 +175,7 @@ function profileUrl(m) {
   return `${OFFICIAL}/index?${q}`;
 }
 
-let REGION = "eu", GUILD = "", DATA = [], sortKey = "cp", sortDir = -1;
+let REGION = "eu", GUILD = "", DATA = [], sortKey = "itemLevel", sortDir = -1;
 
 function render() {
   const q = $("q").value.trim().toLowerCase();
@@ -201,29 +203,29 @@ function render() {
     const status = m.status && m.status !== "ok" ? ` <span class="pill" title="${m.lastOk ? "Dernière mise à jour réussie : " + esc(new Date(m.lastOk).toLocaleString("fr-FR")) : ""}">${STATUS[m.status] || m.status}</span>` : "";
     const legion = m.legion && m.legion.toLowerCase() !== GUILD.toLowerCase() ? m.legion : "";
     const sub = [m.className, m.level ? "niv. " + m.level : "", legion].filter(Boolean).map(esc).join(" · ");
-    const rank = sortKey === "cp" && sortDir < 0 && !q && m.cp != null ? i + 1 : "";
+    const rank = sortKey === "itemLevel" && sortDir < 0 && !q && m.itemLevel != null ? i + 1 : "";
     return `<tr class="${rank && rank <= 3 ? "top" : ""}">
       <td class="rank">${rank}</td>
       <td><div class="who">${m.image ? `<img class="av" src="${esc(m.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">` : `<span class="av"></span>`}<div><div class="nm"><a class="pl" href="${esc(profileUrl(m))}" target="_blank" rel="noopener" title="Voir la fiche officielle">${esc(m.name)}</a>${status}</div><div class="sub">${sub || "&nbsp;"}</div></div></div></td>
       <td>${esc(m.server)}${m.race ? `<div class="sub">${esc(m.race)}</div>` : ""}</td>
-      <td class="num cp">${fmt(m.cp)}</td>
+      <td class="num cp">${fmt(m.itemLevel)}</td>
       <td class="num"><span class="d ${dcls}">${dtxt}</span></td>
-      <td class="num">${fmt(m.itemLevel)}</td>
+      <td class="num">${fmt(m.cp)}</td>
       <td>${spark(m.history)}</td>
     </tr>`;
   }).join("");
 }
 
 function summary(db) {
-  const withCp = DATA.filter(m => m.cp != null);
+  const withGs = DATA.filter(m => m.itemLevel != null);
   $("s-count").textContent = DATA.length;
-  const bad = DATA.length - (db.counts?.ok ?? withCp.length);
+  const bad = DATA.length - (db.counts?.ok ?? withGs.length);
   $("s-count-sub").textContent = bad > 0 ? `${bad} non mis à jour au dernier passage` : "Tous à jour";
-  if (withCp.length) {
-    const avg = withCp.reduce((s, m) => s + m.cp, 0) / withCp.length;
+  if (withGs.length) {
+    const avg = withGs.reduce((s, m) => s + m.itemLevel, 0) / withGs.length;
     $("s-avg").textContent = fmt(Math.round(avg));
-    const top = withCp.reduce((a, b) => b.cp > a.cp ? b : a);
-    $("s-avg-sub").textContent = `Max : ${top.name} (${fmt(top.cp)})`;
+    const top = withGs.reduce((a, b) => b.itemLevel > a.itemLevel ? b : a);
+    $("s-avg-sub").textContent = `Max : ${top.name} (${fmt(top.itemLevel)})`;
   }
   const prog = DATA.filter(m => m.d7 != null && m.d7 > 0).sort((a, b) => b.d7 - a.d7)[0];
   if (prog) { $("s-best").textContent = "+" + fmt(prog.d7); $("s-best-sub").textContent = prog.name; }
@@ -241,8 +243,8 @@ fetch("data/db.json?t=" + Date.now(), { cache: "no-store" })
   .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
   .then(db => {
     DATA = (db.members || []).map(m => {
-      const before = cpDaysAgo(m.history, 7);
-      return { ...m, d7: before != null && m.cp != null ? m.cp - before : null };
+      const before = valueDaysAgo(m.history, 7, "il");
+      return { ...m, d7: before != null && m.itemLevel != null ? m.itemLevel - before : null };
     });
     GUILD = db.guild || ""; REGION = db.region || "eu";
     if (db.guild) { $("guild").textContent = db.guild; document.title = db.guild + " · Aion 2"; }

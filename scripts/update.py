@@ -26,6 +26,7 @@ ROOT = Path(__file__).resolve().parent.parent
 MEMBERS = ROOT / "members.csv"
 CONFIG = ROOT / "config.json"
 DB = ROOT / "data" / "db.json"
+MANUAL = ROOT / "data" / "historique-manuel.csv"
 
 SITE = "https://aion2.plaync.com"
 SEARCH = "https://api-search.plaync.com/aion2global/search/v2/character"
@@ -83,6 +84,30 @@ def read_members():
 
 
 REGIONS = ["eu", "naw", "nae", "la", "as"]
+
+
+def read_manual_history():
+    """data/historique-manuel.csv : GS relevés à la main (pseudo,date,gs), fusionnés dans l'historique."""
+    out = {}
+    if not MANUAL.exists():
+        return out
+    with MANUAL.open(encoding="utf-8-sig", newline="") as f:
+        for row in csv.reader(f):
+            if len(row) < 3 or row[0].strip().startswith("#") or norm(row[0]) == "pseudo":
+                continue
+            try:
+                gs = int(float(row[2].strip().replace(" ", "").replace(",", ".")))
+            except ValueError:
+                continue
+            out.setdefault(norm(row[0]), []).append({"d": row[1].strip(), "cp": None, "il": gs})
+    return out
+
+
+def merge_manual(history, manual):
+    """Ajoute les points manuels aux dates où il n'y a pas de relevé automatique."""
+    known = {h.get("d") for h in history}
+    merged = history + [p for p in manual if p["d"] not in known]
+    return sorted(merged, key=lambda h: h.get("d", ""))
 
 
 def load_servers(preferred):
@@ -143,6 +168,7 @@ def main():
         prev = json.loads(DB.read_text(encoding="utf-8"))
         old = {m["key"]: m for m in prev.get("members", [])}
 
+    manual = read_manual_history()
     members = read_members()
     log(f"{len(members)} membres dans members.csv, région {region}")
 
@@ -205,7 +231,7 @@ def main():
             })
             hist = [h for h in entry["history"] if h.get("d") != today]
             hist.append({"d": today, "cp": entry["cp"], "il": il})
-            entry["history"] = hist[-MAX_HISTORY:]
+            entry["history"] = merge_manual(hist, manual.get(norm(entry["name"]), []))[-MAX_HISTORY:]
             ok_count += 1
             log(f"  ✓ {entry['name']} ({entry['server']}) : CP {entry['cp']}, IL {il}")
         except Exception as e:  # on garde les anciennes valeurs
