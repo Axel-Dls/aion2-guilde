@@ -1,7 +1,7 @@
 {
  "guild": "Ivalys",
  "region": "eu",
- "updatedAt": "2026-10-05T11:56:28+00:00",
+ "updatedAt": "2026-10-05T12:20:53+00:00",
  "counts": {
   "total": 20,
   "ok": 20
@@ -12,6 +12,11 @@
    "name": "Doc",
    "server": "Triniel",
    "history": [
+    {
+     "d": "2026-10-03",
+     "cp": 96800,
+     "il": 2049
+    },
     {
      "d": "2026-10-05",
      "cp": 107052,
@@ -28,7 +33,7 @@
    "legion": "Ivalys",
    "title": "",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364854038",
-   "lastOk": "2026-10-05T11:56:28+00:00",
+   "lastOk": "2026-10-05T12:20:53+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -39,7 +44,7 @@
    "history": [
     {
      "d": "2026-10-03",
-     "cp": null,
+     "cp": 89490,
      "il": 1912
     },
     {
@@ -58,7 +63,7 @@
    "legion": "Ivalys",
    "title": "Vanguard of Atreia",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364852934",
-   "lastOk": "2026-10-05T11:56:28+00:00",
+   "lastOk": "2026-10-05T12:20:53+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -69,7 +74,7 @@
    "history": [
     {
      "d": "2026-10-03",
-     "cp": null,
+     "cp": 90260,
      "il": 1915
     },
     {
@@ -88,7 +93,7 @@
    "legion": "Ivalys",
    "title": "",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364857316",
-   "lastOk": "2026-10-05T11:56:28+00:00",
+   "lastOk": "2026-10-05T12:20:53+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -99,7 +104,7 @@
    "history": [
     {
      "d": "2026-10-03",
-     "cp": null,
+     "cp": 89750,
      "il": 2001
     },
     {
@@ -118,7 +123,7 @@
    "legion": "Ivalys",
    "title": "Vanguard of Atreia",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364853638",
-   "lastOk": "2026-10-05T11:56:28+00:00",
+   "lastOk": "2026-10-05T12:20:53+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -129,7 +134,7 @@
    "history": [
     {
      "d": "2026-10-03",
-     "cp": null,
+     "cp": 88140,
      "il": 2101
     },
     {
@@ -148,7 +153,7 @@
    "legion": "Ivalys",
    "title": "Vanguard of Atreia",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364853809",
-   "lastOk": "2026-10-05T11:56:28+00:00",
+   "lastOk": "2026-10-05T12:20:53+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -159,7 +164,7 @@
    "history": [
     {
      "d": "2026-10-03",
-     "cp": null,
+     "cp": 92450,
      "il": 2036
     },
     {
@@ -178,7 +183,7 @@
    "legion": "Ivalys",
    "title": "Through Hell and Back",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364873470",
-   "lastOk": "2026-10-05T11:56:28+00:00",
+   "lastOk": "2026-10-05T12:20:53+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -189,7 +194,7 @@
    "history": [
     {
      "d": "2026-10-03",
-     "cp": null,
+     "cp": 74150,
      "il": 1487
     },
     {
@@ -208,7 +213,7 @@
    "legion": "Ivalys",
    "title": "Vanguard of Atreia",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364861183",
-   "lastOk": "2026-10-05T11:56:28+00:00",
+   "lastOk": "2026-10-05T12:20:53+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -219,7 +224,7 @@
    "history": [
     {
      "d": "2026-10-03",
-     "cp": null,
+     "cp": 75650,
      "il": 1617
     },
     {
@@ -238,7 +243,7 @@
    "legion": "Ivalys",
    "title": "My Instructor",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364854785",
-   "lastOk": "2026-10-05T11:56:28+00:00",
+   "lastOk": "2026-10-05T12:20:53+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -249,7 +254,7 @@
    "history": [
     {
      "d": "2026-10-03",
-     "cp": null,
+     "cp": 83940,
      "il": 1760
     },
     {
@@ -268,7 +273,7 @@
    "legion": "Ivalys",
    "title": "Lifeguard",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364868604",
-   "lastOk": "2026-10-05T11:56:28+00:00",
+   "lastOk": "2026-10-05T12:20:53+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -279,7 +284,7 @@
    "history": [
     {
      "d": "2026-10-03",
-     "cp": null,
+     "cp": 78380,
      "il": 1843
     },
     {
@@ -298,7 +303,7 @@
    "legion": "Ivalys",
    "title": "",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364872980",
-   "lastOk": "2026-10-05T11:56:28+00:00",
+   "lastOk": "2026-10-05T12:20:53+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -309,7 +314,7 @@
    "history": [
     {
      "d": "2026-10-03",
-     "cp": null,
+     "cp": 83720,
      "il": 1773
     },
     {
@@ -328,7 +333,7 @@
    "legion": "Ivalys",
    "title": "",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364860070",
-   "lastOk": "2026-10-05T11:56:28+00:00",
+   "lastOk": "2026-10-05T12:20:53+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -339,7 +344,7 @@
    "history": [
     {
      "d": "2026-10-03",
-     "cp": null,
+     "cp": 74070,
      "il": 1812
     },
     {
@@ -358,7 +363,7 @@
    "legion": "Ivalys",
    "title": "",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364866724",
-   "lastOk": "2026-10-05T11:56:28+00:00",
+   "lastOk": "2026-10-05T12:20:53+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -369,7 +374,7 @@
    "history": [
     {
      "d": "2026-10-03",
-     "cp": null,
+     "cp": 76250,
      "il": 1608
     },
     {
@@ -388,7 +393,7 @@
    "legion": "Ivalys",
    "title": "Vanguard of Atreia",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364858581",
-   "lastOk": "2026-10-05T11:56:28+00:00",
+   "lastOk": "2026-10-05T12:20:53+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -399,7 +404,7 @@
    "history": [
     {
      "d": "2026-10-03",
-     "cp": null,
+     "cp": 77610,
      "il": 1518
     },
     {
@@ -418,7 +423,7 @@
    "legion": "Ivalys",
    "title": "Saint of Altgard",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364854629",
-   "lastOk": "2026-10-05T11:56:28+00:00",
+   "lastOk": "2026-10-05T12:20:53+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -429,7 +434,7 @@
    "history": [
     {
      "d": "2026-10-03",
-     "cp": null,
+     "cp": 83440,
      "il": 1829
     },
     {
@@ -448,7 +453,7 @@
    "legion": "Ivalys",
    "title": "",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364860931",
-   "lastOk": "2026-10-05T11:56:28+00:00",
+   "lastOk": "2026-10-05T12:20:53+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -459,7 +464,7 @@
    "history": [
     {
      "d": "2026-10-03",
-     "cp": null,
+     "cp": 73200,
      "il": 1535
     },
     {
@@ -478,7 +483,7 @@
    "legion": "Ivalys",
    "title": "Guardian of Altgard",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364862167",
-   "lastOk": "2026-10-05T11:56:28+00:00",
+   "lastOk": "2026-10-05T12:20:53+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -489,7 +494,7 @@
    "history": [
     {
      "d": "2026-10-03",
-     "cp": null,
+     "cp": 67980,
      "il": 1321
     },
     {
@@ -508,7 +513,7 @@
    "legion": "Ivalys",
    "title": "Saint of Altgard",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364858470",
-   "lastOk": "2026-10-05T11:56:28+00:00",
+   "lastOk": "2026-10-05T12:20:53+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -519,7 +524,7 @@
    "history": [
     {
      "d": "2026-10-03",
-     "cp": null,
+     "cp": 67930,
      "il": 1436
     },
     {
@@ -538,7 +543,7 @@
    "legion": "Ivalys",
    "title": "",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364864166",
-   "lastOk": "2026-10-05T11:56:28+00:00",
+   "lastOk": "2026-10-05T12:20:53+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -549,7 +554,7 @@
    "history": [
     {
      "d": "2026-10-03",
-     "cp": null,
+     "cp": 64270,
      "il": 1341
     },
     {
@@ -568,7 +573,7 @@
    "legion": "Ivalys",
    "title": "",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364871825",
-   "lastOk": "2026-10-05T11:56:28+00:00",
+   "lastOk": "2026-10-05T12:20:53+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -579,7 +584,7 @@
    "history": [
     {
      "d": "2026-10-03",
-     "cp": null,
+     "cp": 57520,
      "il": 1400
     },
     {
@@ -598,7 +603,7 @@
    "legion": "Ivalys",
    "title": "Encountering Zikel's Core",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364873432",
-   "lastOk": "2026-10-05T11:56:28+00:00",
+   "lastOk": "2026-10-05T12:20:53+00:00",
    "region": "eu",
    "status": "ok"
   }
