@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Admin · Ivalys</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Figtree:wght@400;600;700;800&display=swap">
+<style>
+/* Admin : connexion GitHub, puis tableau éditable des membres et barre d'enregistrement collante */
+:root{
+  --bg:#f4f2ed; --surface:#ffffff; --surface-2:#f8f6f1; --ink:#1b1d24; --muted:#62645e; --line:#e0dccf;
+  --gold:#94730c; --gold-strong:#c9a227; --on-gold:#14161c; --gold-soft:rgb(201 162 39 / .14);
+  --up:#25804a; --down:#b4432f; --warn:#a86b00;
+  --display:"Marcellus","Palatino Linotype",Georgia,serif;
+  --body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:ui-monospace,"Cascadia Mono",Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0e1015; --surface:#161920; --surface-2:#1b1f27; --ink:#ebe8e1; --muted:#a19f97; --line:#292d37;
+  --gold:#e3c35a; --gold-strong:#c9a227; --on-gold:#14161c; --gold-soft:rgb(227 195 90 / .12);
+  --up:#6fcf97; --down:#ff8a7a; --warn:#f0b54a; color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--body);padding:0 20px}
+.wrap{max-width:900px;margin:0 auto;padding-block:40px 120px}
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:12px 32px;margin-bottom:24px}
+.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);font-weight:700;margin:0 0 6px}
+h1{font-family:var(--display);font-weight:400;font-size:clamp(32px,5vw,44px);line-height:1.05;margin:0}
+h2{font-size:17px;margin:0 0 8px}
+a{color:var(--gold)}
+.back{font-size:14px;font-weight:600;text-decoration:none}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin-bottom:20px}
+.card p{margin:0 0 10px;max-width:70ch}
+.card ol{margin:0 0 12px;padding-left:20px;max-width:70ch}
+.card li{margin-bottom:4px}
+.muted{color:var(--muted);font-size:14px}
+code{font:13px var(--mono);background:var(--surface-2);border:1px solid var(--line);border-radius:4px;padding:1px 5px}
+input,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:7px 10px;min-width:0}
+input:focus-visible,select:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.row input[type=password]{flex:1 1 280px;font-family:var(--mono)}
+label.chk{display:inline-flex;gap:6px;align-items:center;font-size:14px;color:var(--muted)}
+button{font:inherit;font-weight:700;font-size:14px;border-radius:7px;padding:8px 14px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+button.primary{background:var(--gold-strong);border-color:var(--gold-strong);color:var(--on-gold)}
+button.ghost{background:none;border-color:transparent;color:var(--muted);padding:6px 8px}
+button.ghost:hover{color:var(--down)}
+button:disabled{opacity:.5;cursor:default}
+.msg{margin-top:10px;font-size:14px}
+.msg.err{color:var(--down)} .msg.ok{color:var(--up)}
+.tbl{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+table{width:100%;border-collapse:collapse;min-width:620px}
+th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;background:var(--surface-2);white-space:nowrap}
+tbody tr:last-child td{border-bottom:0}
+tr.off td{opacity:.55}
+tr.changed{background:var(--gold-soft)}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+td input.name{width:100%;max-width:200px}
+td input.srv{width:110px}
+.sub{font-size:12px;color:var(--muted)}
+.pill{display:inline-block;font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;border:1px solid currentColor;color:var(--warn);white-space:nowrap}
+.sect{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:24px 0 8px}
+.sect h2{margin:0}
+.bar{position:fixed;left:0;right:0;bottom:0;padding:12px 20px calc(12px + env(safe-area-inset-bottom,0px));background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -6px 20px rgb(0 0 0 / .12)}
+.bar .in{max-width:900px;margin:0 auto;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.bar .s{font-size:14px;color:var(--muted)}
+.bar .s strong{color:var(--ink)}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <p class="eyebrow">Ivalys · Administration</p>
+      <h1>Gestion des membres</h1>
+    </div>
+    <a class="back" href="./">← Retour au classement</a>
+  </header>
+
+  <!-- Connexion -->
+  <section class="card" id="login">
+    <h2>Connexion GitHub</h2>
+    <p>Cette page modifie directement la liste des membres sur GitHub. Il te faut une <strong>clé d'accès personnelle</strong> (token), à créer une seule fois :</p>
+    <ol>
+      <li>Ouvre <a id="tokLink" href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com → nouveau token</a>.</li>
+      <li>Nom : <code>Admin Ivalys</code>. Expiration : au choix (90 jours, par exemple).</li>
+      <li><strong>Repository access</strong> : « Only select repositories », puis choisis <code id="repoName">aion2-guilde</code>.</li>
+      <li><strong>Permissions → Repository permissions</strong> : <code>Contents</code> sur « Read and write », et <code>Actions</code> sur « Read and write » (pour le bouton « Relancer la mise à jour »).</li>
+      <li>Clique sur « Generate token », copie la clé et colle-la ici.</li>
+    </ol>
+    <div class="row">
+      <input type="password" id="token" placeholder="github_pat_…" autocomplete="off" spellcheck="false" aria-label="Token GitHub">
+      <button class="primary" id="connect" type="button">Se connecter</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <label class="chk"><input type="checkbox" id="remember" checked> Se souvenir de moi sur cet appareil</label>
+    </div>
+    <p class="msg" id="loginMsg" role="status"></p>
+    <p class="muted" style="margin-top:8px">La clé reste dans ton navigateur et n'est envoyée qu'à GitHub. Chaque officier qui doit gérer les membres crée la sienne, après avoir été ajouté comme collaborateur du dépôt.</p>
+  </section>
+
+  <!-- Éditeur -->
+  <section id="editor" hidden>
+    <div class="card row" style="justify-content:space-between">
+      <span class="muted">Connecté en tant que <strong id="who" style="color:var(--ink)"></strong></span>
+      <span class="row">
+        <button type="button" id="rerun" title="Relance la récupération des GS/CP sans rien modifier">Relancer la mise à jour</button>
+        <button type="button" class="ghost" id="logout">Se déconnecter</button>
+      </span>
+    </div>
+    <p class="msg" id="runMsg" role="status"></p>
+
+    <div class="sect"><h2>Membres suivis <span class="muted" id="cntOn"></span></h2><button type="button" id="add">+ Ajouter un membre</button></div>
+    <div class="tbl"><table>
+      <thead><tr><th>Pseudo</th><th>Serveur</th><th>Statut</th><th class="num">GS</th><th>Suivi</th><th></th></tr></thead>
+      <tbody id="on"></tbody>
+    </table></div>
+
+    <div class="sect"><h2>En attente <span class="muted" id="cntOff"></span></h2></div>
+    <p class="muted" style="margin:0 0 8px">Persos non suivis : introuvables, en vérification ou partis. Coche « Suivi » pour les réactiver.</p>
+    <div class="tbl"><table>
+      <thead><tr><th>Pseudo</th><th>Serveur</th><th>Statut</th><th class="num">GS</th><th>Suivi</th><th></th></tr></thead>
+      <tbody id="off"></tbody>
+    </table></div>
+  </section>
+</div>
+
+<div class="bar" id="bar" hidden>
+  <div class="in">
+    <span class="s" id="barText"></span>
+    <span class="row">
+      <button type="button" id="discard">Annuler les changements</button>
+      <button type="button" class="primary" id="save">Enregistrer</button>
+    </span>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt = n => n == null ? "–" : Number(n).toLocaleString("fr-FR");
+const norm = s => String(s || "").trim().replace(/\s+/g, " ").toLowerCase();
+const ROLES = ["Chef", "Officier", "Membre"];
+const STATUS = { not_found: "Introuvable", unknown_server: "Serveur inconnu", error: "Échec" };
+const KEY = "aion2-guilde-token";
+
+// Dépôt déduit de l'adresse (utilisateur.github.io/depot)
+const host = location.hostname.match(/^([^.]+)\.github\.io$/);
+const OWNER = host ? host[1] : "Axel-Dls";
+const REPO = (host && location.pathname.split("/").filter(Boolean)[0]) || "aion2-guilde";
+const API = `https://api.github.com/repos/${OWNER}/${REPO}`;
+$("repoName").textContent = REPO;
+
+let TOKEN = "", SHA = "", HEAD = [], ORIG = "", ROWS = [], LIVE = {}, DEFAULT_SERVER = "Triniel";
+
+// ---------- GitHub ----------
+async function gh(path, opts = {}) {
+  const r = await fetch(path.startsWith("http") ? path : API + path, {
+    ...opts,
+    headers: { Accept: "application/vnd.github+json", Authorization: `Bearer ${TOKEN}`, "X-GitHub-Api-Version": "2022-11-28", ...(opts.headers || {}) },
+  });
+  if (!r.ok) {
+    let m = ""; try { m = (await r.json()).message || ""; } catch {}
+    const e = new Error(m || `HTTP ${r.status}`); e.status = r.status; throw e;
+  }
+  return r.status === 204 ? null : r.json();
+}
+const b64decode = s => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\n/g, "")), c => c.charCodeAt(0)));
+const b64encode = s => { const b = new TextEncoder().encode(s); let bin = ""; b.forEach(x => bin += String.fromCharCode(x)); return btoa(bin); };
+
+// ---------- members.csv ----------
+function parseCsv(text) {
+  const head = [], rows = [];
+  let seenHeader = false;
+  for (const raw of text.split(/\r?\n/)) {
+    const line = raw.trim();
+    if (!line) continue;
+    if (!seenHeader) {
+      if (/^pseudo\s*,/i.test(line)) { seenHeader = true; continue; }
+      if (line.startsWith("#")) { head.push(raw); continue; }
+    }
+    const off = line.startsWith("#");
+    const body = off ? line.replace(/^#+\s*/, "") : line;
+    const parts = body.split(",").map(x => x.trim());
+    // Une ligne de commentaire sans virgule (ou phrase) n'est pas un membre
+    if (parts.length < 2 || !parts[0] || /\s/.test(parts[0]) && parts[0].split(" ").length > 2) continue;
+    if (/^pseudo$/i.test(parts[0])) continue;
+    rows.push({ name: parts[0], server: parts[1] || DEFAULT_SERVER, role: ROLES.includes(parts[2]) ? parts[2] : "Membre", on: !off });
+  }
+  if (!head.length) head.push("# Membres suivis : une ligne par perso, au format « pseudo,serveur,statut » (statut : Chef, Officier ou Membre).");
+  return { head, rows };
+}
+function buildCsv() {
+  const clean = ROWS.filter(r => r.name.trim());
+  const on = clean.filter(r => r.on), off = clean.filter(r => !r.on);
+  const line = r => `${r.name.trim()},${(r.server || DEFAULT_SERVER).trim()},${r.role}`;
+  let out = HEAD.join("\n") + "\npseudo,serveur,statut\n" + on.map(line).join("\n") + "\n";
+  if (off.length) out += "\n# En attente (non suivis) : retire le « # » pour réactiver\n" + off.map(r => "# " + line(r)).join("\n") + "\n";
+  return out;
+}
+
+// ---------- Rendu ----------
+function rowHtml(r, i) {
+  const live = LIVE[norm(r.name)];
+  const st = live && live.status && live.status !== "ok" && r.on ? ` <span class="pill">${STATUS[live.status] || live.status}</span>` : "";
+  const cls = live && live.classFr ? `<div class="sub">${esc(live.classFr)}${live.level ? " · niv. " + live.level : ""}</div>` : (r.isNew ? `<div class="sub">Nouveau : vérifié à la prochaine mise à jour</div>` : "");
+  const changed = r.isNew || r.name !== r.o.name || r.server !== r.o.server || r.role !== r.o.role || r.on !== r.o.on;
+  return `<tr data-i="${i}" class="${r.on ? "" : "off"} ${changed ? "changed" : ""}">
+    <td>${r.isNew ? `<input class="name" data-f="name" value="${esc(r.name)}" placeholder="Pseudo exact" aria-label="Pseudo">` : `<strong>${esc(r.name)}</strong>`}${st}${cls}</td>
+    <td>${r.isNew ? `<input class="srv" data-f="server" value="${esc(r.server)}" aria-label="Serveur">` : esc(r.server)}</td>
+    <td><select data-f="role" aria-label="Statut de ${esc(r.name)}">${ROLES.map(x => `<option${x === r.role ? " selected" : ""}>${x}</option>`).join("")}</select></td>
+    <td class="num">${fmt(live && live.itemLevel)}</td>
+    <td><label class="chk"><input type="checkbox" data-f="on"${r.on ? " checked" : ""}> Suivi</label></td>
+    <td><button type="button" class="ghost" data-act="del" title="Supprimer de la liste" aria-label="Supprimer ${esc(r.name)}">Supprimer</button></td>
+  </tr>`;
+}
+function render() {
+  const idx = ROWS.map((r, i) => [r, i]);
+  const on = idx.filter(([r]) => r.on), off = idx.filter(([r]) => !r.on);
+  on.sort((a, b) => (a[0].isNew - b[0].isNew) || (ROLES.indexOf(a[0].role) - ROLES.indexOf(b[0].role)) || ((LIVE[norm(b[0].name)]?.itemLevel || 0) - (LIVE[norm(a[0].name)]?.itemLevel || 0)));
+  $("on").innerHTML = on.map(([r, i]) => rowHtml(r, i)).join("") || `<tr><td colspan="6" class="muted">Aucun membre suivi.</td></tr>`;
+  $("off").innerHTML = off.map(([r, i]) => rowHtml(r, i)).join("") || `<tr><td colspan="6" class="muted">Personne en attente.</td></tr>`;
+  $("cntOn").textContent = `(${on.length})`; $("cntOff").textContent = `(${off.length})`;
+  updateBar();
+}
+function updateBar() {
+  const n = changes();
+  $("bar").hidden = !n;
+  $("barText").innerHTML = n ? `<strong>${n} modification${n > 1 ? "s" : ""}</strong> non enregistrée${n > 1 ? "s" : ""}` : "";
+}
+function changes() {
+  let n = ROWS.filter(r => !r.deleted && (r.isNew ? r.name.trim() : (r.name !== r.o.name || r.server !== r.o.server || r.role !== r.o.role || r.on !== r.o.on))).length;
+  return n + DELETED;
+}
+let DELETED = 0;
+
+function onEdit(e) {
+  const tr = e.target.closest("tr[data-i]"); if (!tr) return;
+  const r = ROWS[+tr.dataset.i], f = e.target.dataset.f;
+  if (f === "on") { r.on = e.target.checked; render(); return; }
+  if (f) { r[f] = e.target.value; if (f === "role") render(); else updateBar(); }
+}
+function onClick(e) {
+  const b = e.target.closest("button[data-act=del]"); if (!b) return;
+  const i = +b.closest("tr").dataset.i, r = ROWS[i];
+  if (!r.isNew) DELETED++;
+  ROWS.splice(i, 1); render();
+}
+["on", "off"].forEach(id => { $(id).addEventListener("change", onEdit); $(id).addEventListener("input", onEdit); $(id).addEventListener("click", onClick); });
+
+$("add").addEventListener("click", () => {
+  ROWS.push({ name: "", server: DEFAULT_SERVER, role: "Membre", on: true, isNew: true, o: {} });
+  render();
+  const inputs = $("on").querySelectorAll("input.name"); inputs[inputs.length - 1]?.focus();
+});
+$("discard").addEventListener("click", () => loadMembers());
+
+// ---------- Chargement / enregistrement ----------
+async function loadLive() {
+  try {
+    const db = await fetch("data/db.json?t=" + Date.now(), { cache: "no-store" }).then(r => r.json());
+    const FR = { Gladiator: "Gladiateur", Templar: "Templier", Cleric: "Clerc", Chanter: "Aède", Assassin: "Assassin", Ranger: "Ranger", Sorcerer: "Sorcier", Spiritmaster: "Spiritualiste" };
+    LIVE = {};
+    (db.members || []).forEach(m => { LIVE[norm(m.name)] = { ...m, classFr: FR[m.className] || m.className }; });
+  } catch { LIVE = {}; }
+}
+async function loadMembers() {
+  const f = await gh(`/contents/members.csv?ref=main&t=${Date.now()}`);
+  SHA = f.sha; ORIG = b64decode(f.content);
+  const p = parseCsv(ORIG);
+  HEAD = p.head; DELETED = 0;
+  const firstSrv = p.rows.find(r => r.server)?.server; if (firstSrv) DEFAULT_SERVER = firstSrv;
+  ROWS = p.rows.map(r => ({ ...r, o: { ...r } }));
+  render();
+}
+$("save").addEventListener("click", async () => {
+  const empty = ROWS.find(r => r.isNew && !r.name.trim());
+  if (empty) ROWS = ROWS.filter(r => !(r.isNew && !r.name.trim()));
+  const names = ROWS.map(r => norm(r.name) + "|" + norm(r.server));
+  const dup = names.find((n, i) => names.indexOf(n) !== i);
+  if (dup) { $("barText").innerHTML = `<span style="color:var(--down)">Ce perso est en double : ${esc(dup.split("|")[0])}</span>`; return; }
+  $("save").disabled = true; $("barText").textContent = "Enregistrement…";
+  try {
+    const n = changes();
+    const res = await gh("/contents/members.csv", {
+      method: "PUT",
+      body: JSON.stringify({ message: `Admin : ${n} modification${n > 1 ? "s" : ""} de la liste des membres`, content: b64encode(buildCsv()), sha: SHA, branch: "main" }),
+    });
+    SHA = res.content.sha;
+    await loadMembers();
+    $("runMsg").className = "msg ok";
+    $("runMsg").innerHTML = `Enregistré. La mise à jour des GS/CP se lance toute seule : le classement sera à jour dans 1 à 2 minutes. <a href="https://github.com/${OWNER}/${REPO}/actions" target="_blank" rel="noopener">Suivre sur GitHub</a>`;
+  } catch (e) {
+    $("barText").innerHTML = `<span style="color:var(--down)">${e.status === 409 ? "La liste a été modifiée entre-temps. Clique sur « Annuler les changements » pour recharger, puis refais tes modifications." : e.status === 403 || e.status === 404 ? "Ta clé n'a pas le droit d'écrire dans ce dépôt (permission Contents : Read and write)." : "Échec de l'enregistrement : " + esc(e.message)}</span>`;
+  } finally { $("save").disabled = false; }
+});
+$("rerun").addEventListener("click", async () => {
+  $("rerun").disabled = true;
+  try {
+    await gh("/actions/workflows/update.yml/dispatches", { method: "POST", body: JSON.stringify({ ref: "main" }) });
+    $("runMsg").className = "msg ok";
+    $("runMsg").innerHTML = `Mise à jour lancée : le classement sera à jour dans 1 à 2 minutes. <a href="https://github.com/${OWNER}/${REPO}/actions" target="_blank" rel="noopener">Suivre sur GitHub</a>`;
+  } catch (e) {
+    $("runMsg").className = "msg err";
+    $("runMsg").textContent = e.status === 403 || e.status === 404 ? "Ta clé n'a pas la permission « Actions : Read and write ». Ajoute-la au token, ou relance depuis GitHub." : "Échec : " + e.message;
+  } finally { setTimeout(() => $("rerun").disabled = false, 3000); }
+});
+
+// ---------- Connexion ----------
+async function connect(tok, remember) {
+  TOKEN = tok.trim();
+  $("loginMsg").className = "msg"; $("loginMsg").textContent = "Connexion…";
+  try {
+    const repo = await gh("");
+    if (!repo.permissions || !repo.permissions.push) throw Object.assign(new Error("no-push"), { status: 403 });
+    const me = await gh("https://api.github.com/user").catch(() => null);
+    $("who").textContent = me ? me.login : "utilisateur GitHub";
+    try { remember ? localStorage.setItem(KEY, TOKEN) : localStorage.removeItem(KEY); } catch {}
+    await loadLive(); await loadMembers();
+    $("login").hidden = true; $("editor").hidden = false; $("loginMsg").textContent = "";
+  } catch (e) {
+    TOKEN = "";
+    $("loginMsg").className = "msg err";
+    $("loginMsg").textContent = e.status === 401 ? "Clé refusée par GitHub : vérifie-la ou crées-en une nouvelle (elle a peut-être expiré)."
+      : e.status === 403 || e.status === 404 ? `Cette clé n'a pas accès en écriture au dépôt ${REPO}. Vérifie « Repository access » et la permission Contents.`
+      : "Connexion impossible : " + e.message;
+    try { localStorage.removeItem(KEY); } catch {}
+  }
+}
+$("connect").addEventListener("click", () => $("token").value.trim() && connect($("token").value, $("remember").checked));
+$("token").addEventListener("keydown", e => { if (e.key === "Enter") $("connect").click(); });
+$("logout").addEventListener("click", () => {
+  try { localStorage.removeItem(KEY); } catch {}
+  TOKEN = ""; $("token").value = ""; $("editor").hidden = true; $("bar").hidden = true; $("login").hidden = false;
+});
+window.addEventListener("beforeunload", e => { if (TOKEN && changes()) { e.preventDefault(); e.returnValue = ""; } });
+
+let saved = null; try { saved = localStorage.getItem(KEY); } catch {}
+if (saved) connect(saved, true);
+</script>
+</body>
+</html>

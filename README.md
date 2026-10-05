@@ -4,7 +4,7 @@ Site qui affiche le Combat Power et l'Item Level des membres de la guilde, mis �
 
 ## Ajouter ou retirer un membre
 
-Modifie [`members.csv`](members.csv) directement sur GitHub (icône crayon), une ligne par perso :
+Le plus simple : page **Admin** du site (lien en haut du classement), avec un token GitHub. Sinon, modifie [`members.csv`](members.csv) directement sur GitHub (icône crayon), une ligne par perso :
 
 ```
 Nioky,Tiriel

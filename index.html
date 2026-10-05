@@ -117,12 +117,9 @@ footer{margin-top:24px;font-size:13px;color:var(--muted);max-width:75ch}
   <div class="toolbar">
     <input type="search" id="q" placeholder="Filtrer par pseudo, classe, statut…" aria-label="Filtrer">
     <div class="links">
-      <a id="edit" href="#" target="_blank" rel="noopener">Modifier la liste des membres</a>
-      <a id="run" href="#" target="_blank" rel="noopener" title="Ouvre GitHub : clique ensuite sur « Run workflow » puis le bouton vert">Lancer une mise à jour</a>
+      <a id="admin" href="admin.html" title="Gérer les membres et leurs statuts (réservé aux gérants de la guilde)">Admin</a>
     </div>
   </div>
-
-  <p class="help">Après avoir modifié la liste des membres, la mise à jour se lance toute seule : recharge cette page 2 minutes plus tard. Pour relancer à la main : « Lancer une mise à jour » → <strong>Run workflow</strong> → bouton vert <strong>Run workflow</strong>.</p>
 
   <div class="tbl">
     <table>
@@ -151,15 +148,6 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;
 const STATUS = { not_found: "Introuvable", unknown_server: "Serveur inconnu", error: "Échec de mise à jour" };
 
 // Liens GitHub déduits de l'adresse du site (utilisateur.github.io/depot)
-(function githubLinks(){
-  const m = location.hostname.match(/^([^.]+)\.github\.io$/);
-  const repo = location.pathname.split("/").filter(Boolean)[0];
-  if (m && repo) {
-    const base = `https://github.com/${m[1]}/${repo}`;
-    $("edit").href = `${base}/edit/main/members.csv`;
-    $("run").href = `${base}/actions/workflows/update.yml`;
-  } else { $("edit").hidden = true; $("run").hidden = true; }
-})();
 
 // Valeur de `field` environ `days` jours avant le dernier point (ou le plus ancien point connu)
 function valueDaysAgo(h, days, field) {
