@@ -1,11 +1,41 @@
 # Membres suivis : une ligne par perso, au format « pseudo,serveur ».
-# Ajoute ou supprime des lignes ici ; le site se met à jour tout seul quelques minutes après.
+# Écris le pseudo exactement comme en jeu (accents compris). Le site se met à jour tout seul 1 à 2 minutes après.
 pseudo,serveur
-Nioky,Triniel
 Doc,Triniel
+OrGaniZ,Triniel
+Yunalska,Triniel
+Kinysse,Triniel
+Nioky,Triniel
+Lyric,Triniel
 Shineiki,Triniel
-Yunalska, Triniel
-Kinysse, Triniel
-Organiz, Triniel
-Phénix, Triniel
-Slawn, Triniel
+RezeMaFemme,Triniel
+Slynn,Triniel
+Hymia,Triniel
+Lumeka,Triniel
+Slawn,Triniel
+Phiona,Triniel
+Celestal,Triniel
+Miaiphónos,Triniel
+FERA,Triniel
+Jamick,Triniel
+Sorcerino,Triniel
+Phénix,Triniel
+Mikio,Triniel
+
+# Introuvables sur le site officiel avec cette orthographe : corrige le pseudo puis retire le « # »
+# DocDanny,Triniel
+# KodaySod,Triniel
+# Harrg,Triniel
+# Silly,Triniel
+# CØRÐE,Triniel
+# BakaViolet,Triniel
+# CaptaiinJump,Triniel
+# 长ler,Triniel
+# Gatss01,Triniel
+# Agalyarept,Triniel
+# Zhin.Gao,Triniel
+
+# Trouvés sur Triniel mais pas dans la légion Ivalys : retire le « # » si c'est bien eux
+# Nayko,Triniel
+# Alex,Triniel
+# LeMick,Triniel
