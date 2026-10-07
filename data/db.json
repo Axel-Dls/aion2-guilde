@@ -1,7 +1,7 @@
 {
  "guild": "Ivalys",
  "region": "eu",
- "updatedAt": "2026-10-06T11:15:32+00:00",
+ "updatedAt": "2026-10-07T11:03:45+00:00",
  "counts": {
   "total": 21,
   "ok": 21
@@ -27,6 +27,11 @@
      "d": "2026-10-06",
      "cp": 109304,
      "il": 2160
+    },
+    {
+     "d": "2026-10-07",
+     "cp": 109325,
+     "il": 2160
     }
    ],
    "serverId": 2303,
@@ -34,12 +39,12 @@
    "race": "Asmodians",
    "className": "Assassin",
    "level": 45,
-   "cp": 109304,
+   "cp": 109325,
    "itemLevel": 2160,
    "legion": "Ivalys",
    "title": "",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364854038",
-   "lastOk": "2026-10-06T11:15:32+00:00",
+   "lastOk": "2026-10-07T11:03:45+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -63,6 +68,11 @@
      "d": "2026-10-06",
      "cp": 104231,
      "il": 2217
+    },
+    {
+     "d": "2026-10-07",
+     "cp": 106897,
+     "il": 2275
     }
    ],
    "serverId": 2303,
@@ -70,12 +80,12 @@
    "race": "Asmodians",
    "className": "Cleric",
    "level": 45,
-   "cp": 104231,
-   "itemLevel": 2217,
+   "cp": 106897,
+   "itemLevel": 2275,
    "legion": "Ivalys",
    "title": "Vanguard of Atreia",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364852934",
-   "lastOk": "2026-10-06T11:15:32+00:00",
+   "lastOk": "2026-10-07T11:03:45+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -99,6 +109,11 @@
      "d": "2026-10-06",
      "cp": 103714,
      "il": 2150
+    },
+    {
+     "d": "2026-10-07",
+     "cp": 107443,
+     "il": 2150
     }
    ],
    "serverId": 2303,
@@ -106,12 +121,12 @@
    "race": "Asmodians",
    "className": "Ranger",
    "level": 45,
-   "cp": 103714,
+   "cp": 107443,
    "itemLevel": 2150,
    "legion": "Ivalys",
    "title": "",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364857316",
-   "lastOk": "2026-10-06T11:15:32+00:00",
+   "lastOk": "2026-10-07T11:03:45+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -135,6 +150,11 @@
      "d": "2026-10-06",
      "cp": 100419,
      "il": 2103
+    },
+    {
+     "d": "2026-10-07",
+     "cp": 103572,
+     "il": 2116
     }
    ],
    "serverId": 2303,
@@ -142,12 +162,12 @@
    "race": "Asmodians",
    "className": "Ranger",
    "level": 45,
-   "cp": 100419,
-   "itemLevel": 2103,
+   "cp": 103572,
+   "itemLevel": 2116,
    "legion": "Ivalys",
-   "title": "Vanguard of Atreia",
+   "title": "Teleportation Specialist",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364853638",
-   "lastOk": "2026-10-06T11:15:32+00:00",
+   "lastOk": "2026-10-07T11:03:45+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -171,6 +191,11 @@
      "d": "2026-10-06",
      "cp": 105722,
      "il": 2219
+    },
+    {
+     "d": "2026-10-07",
+     "cp": 105211,
+     "il": 2219
     }
    ],
    "serverId": 2303,
@@ -178,12 +203,12 @@
    "race": "Asmodians",
    "className": "Chanter",
    "level": 45,
-   "cp": 105722,
+   "cp": 105211,
    "itemLevel": 2219,
    "legion": "Ivalys",
    "title": "Vanguard of Atreia",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364853809",
-   "lastOk": "2026-10-06T11:15:32+00:00",
+   "lastOk": "2026-10-07T11:03:45+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -207,6 +232,11 @@
      "d": "2026-10-06",
      "cp": 103686,
      "il": 2181
+    },
+    {
+     "d": "2026-10-07",
+     "cp": 104551,
+     "il": 2181
     }
    ],
    "serverId": 2303,
@@ -214,12 +244,12 @@
    "race": "Asmodians",
    "className": "Sorcerer",
    "level": 45,
-   "cp": 103686,
+   "cp": 104551,
    "itemLevel": 2181,
    "legion": "Ivalys",
    "title": "Through Hell and Back",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364873470",
-   "lastOk": "2026-10-06T11:15:32+00:00",
+   "lastOk": "2026-10-07T11:03:45+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -243,6 +273,11 @@
      "d": "2026-10-06",
      "cp": 105860,
      "il": 2223
+    },
+    {
+     "d": "2026-10-07",
+     "cp": 110121,
+     "il": 2241
     }
    ],
    "serverId": 2303,
@@ -250,12 +285,12 @@
    "race": "Asmodians",
    "className": "Ranger",
    "level": 45,
-   "cp": 105860,
-   "itemLevel": 2223,
+   "cp": 110121,
+   "itemLevel": 2241,
    "legion": "Ivalys",
    "title": "Vanguard of Atreia",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364861183",
-   "lastOk": "2026-10-06T11:15:32+00:00",
+   "lastOk": "2026-10-07T11:03:45+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -279,6 +314,11 @@
      "d": "2026-10-06",
      "cp": 92556,
      "il": 2149
+    },
+    {
+     "d": "2026-10-07",
+     "cp": 105950,
+     "il": 2257
     }
    ],
    "serverId": 2303,
@@ -286,12 +326,12 @@
    "race": "Asmodians",
    "className": "Sorcerer",
    "level": 45,
-   "cp": 92556,
-   "itemLevel": 2149,
+   "cp": 105950,
+   "itemLevel": 2257,
    "legion": "ToG",
    "title": "My Instructor",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364854785",
-   "lastOk": "2026-10-06T11:15:32+00:00",
+   "lastOk": "2026-10-07T11:03:45+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -315,6 +355,11 @@
      "d": "2026-10-06",
      "cp": 97784,
      "il": 2144
+    },
+    {
+     "d": "2026-10-07",
+     "cp": 98904,
+     "il": 2147
     }
    ],
    "serverId": 2303,
@@ -322,12 +367,12 @@
    "race": "Asmodians",
    "className": "Spiritmaster",
    "level": 45,
-   "cp": 97784,
-   "itemLevel": 2144,
+   "cp": 98904,
+   "itemLevel": 2147,
    "legion": "Ivalys",
    "title": "Lifeguard",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364868604",
-   "lastOk": "2026-10-06T11:15:32+00:00",
+   "lastOk": "2026-10-07T11:03:45+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -351,6 +396,11 @@
      "d": "2026-10-06",
      "cp": 95709,
      "il": 2132
+    },
+    {
+     "d": "2026-10-07",
+     "cp": 94531,
+     "il": 2132
     }
    ],
    "serverId": 2303,
@@ -358,12 +408,12 @@
    "race": "Asmodians",
    "className": "Templar",
    "level": 45,
-   "cp": 95709,
+   "cp": 94531,
    "itemLevel": 2132,
    "legion": "Ivalys",
    "title": "",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364872980",
-   "lastOk": "2026-10-06T11:15:32+00:00",
+   "lastOk": "2026-10-07T11:03:45+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -387,6 +437,11 @@
      "d": "2026-10-06",
      "cp": 95473,
      "il": 2092
+    },
+    {
+     "d": "2026-10-07",
+     "cp": 101861,
+     "il": 2115
     }
    ],
    "serverId": 2303,
@@ -394,12 +449,12 @@
    "race": "Asmodians",
    "className": "Spiritmaster",
    "level": 45,
-   "cp": 95473,
-   "itemLevel": 2092,
+   "cp": 101861,
+   "itemLevel": 2115,
    "legion": "Ivalys",
    "title": "",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364860070",
-   "lastOk": "2026-10-06T11:15:32+00:00",
+   "lastOk": "2026-10-07T11:03:45+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -423,6 +478,11 @@
      "d": "2026-10-06",
      "cp": 93099,
      "il": 2163
+    },
+    {
+     "d": "2026-10-07",
+     "cp": 95554,
+     "il": 2163
     }
    ],
    "serverId": 2303,
@@ -430,12 +490,12 @@
    "race": "Asmodians",
    "className": "Cleric",
    "level": 45,
-   "cp": 93099,
+   "cp": 95554,
    "itemLevel": 2163,
    "legion": "Ivalys",
    "title": "",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364866724",
-   "lastOk": "2026-10-06T11:15:32+00:00",
+   "lastOk": "2026-10-07T11:03:45+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -459,6 +519,11 @@
      "d": "2026-10-06",
      "cp": 87129,
      "il": 2100
+    },
+    {
+     "d": "2026-10-07",
+     "cp": 87540,
+     "il": 2100
     }
    ],
    "serverId": 2303,
@@ -466,12 +531,12 @@
    "race": "Asmodians",
    "className": "Templar",
    "level": 45,
-   "cp": 87129,
+   "cp": 87540,
    "itemLevel": 2100,
    "legion": "Ivalys",
    "title": "Vanguard of Atreia",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364858581",
-   "lastOk": "2026-10-06T11:15:32+00:00",
+   "lastOk": "2026-10-07T11:03:45+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -495,6 +560,11 @@
      "d": "2026-10-06",
      "cp": 92387,
      "il": 2100
+    },
+    {
+     "d": "2026-10-07",
+     "cp": 93975,
+     "il": 2131
     }
    ],
    "serverId": 2303,
@@ -502,12 +572,12 @@
    "race": "Asmodians",
    "className": "Cleric",
    "level": 45,
-   "cp": 92387,
-   "itemLevel": 2100,
+   "cp": 93975,
+   "itemLevel": 2131,
    "legion": "Ivalys",
-   "title": "Saint of Altgard",
+   "title": "Vanguard of Atreia",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364854629",
-   "lastOk": "2026-10-06T11:15:32+00:00",
+   "lastOk": "2026-10-07T11:03:45+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -531,6 +601,11 @@
      "d": "2026-10-06",
      "cp": 86986,
      "il": 1917
+    },
+    {
+     "d": "2026-10-07",
+     "cp": 92845,
+     "il": 2105
     }
    ],
    "serverId": 2303,
@@ -538,12 +613,12 @@
    "race": "Asmodians",
    "className": "Chanter",
    "level": 45,
-   "cp": 86986,
-   "itemLevel": 1917,
+   "cp": 92845,
+   "itemLevel": 2105,
    "legion": "Ivalys",
    "title": "",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364860931",
-   "lastOk": "2026-10-06T11:15:32+00:00",
+   "lastOk": "2026-10-07T11:03:45+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -567,6 +642,11 @@
      "d": "2026-10-06",
      "cp": 84309,
      "il": 1851
+    },
+    {
+     "d": "2026-10-07",
+     "cp": 84309,
+     "il": 1851
     }
    ],
    "serverId": 2303,
@@ -579,7 +659,7 @@
    "legion": "Ivalys",
    "title": "Guardian of Altgard",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364862167",
-   "lastOk": "2026-10-06T11:15:32+00:00",
+   "lastOk": "2026-10-07T11:03:45+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -603,6 +683,11 @@
      "d": "2026-10-06",
      "cp": 82492,
      "il": 1649
+    },
+    {
+     "d": "2026-10-07",
+     "cp": 90893,
+     "il": 1990
     }
    ],
    "serverId": 2303,
@@ -610,12 +695,12 @@
    "race": "Asmodians",
    "className": "Gladiator",
    "level": 45,
-   "cp": 82492,
-   "itemLevel": 1649,
+   "cp": 90893,
+   "itemLevel": 1990,
    "legion": "Ivalys",
    "title": "Saint of Altgard",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364858470",
-   "lastOk": "2026-10-06T11:15:32+00:00",
+   "lastOk": "2026-10-07T11:03:45+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -639,6 +724,11 @@
      "d": "2026-10-06",
      "cp": 86766,
      "il": 1902
+    },
+    {
+     "d": "2026-10-07",
+     "cp": 91255,
+     "il": 2005
     }
    ],
    "serverId": 2303,
@@ -646,12 +736,12 @@
    "race": "Asmodians",
    "className": "Spiritmaster",
    "level": 45,
-   "cp": 86766,
-   "itemLevel": 1902,
+   "cp": 91255,
+   "itemLevel": 2005,
    "legion": "Ivalys",
-   "title": "",
+   "title": "Team Player",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364864166",
-   "lastOk": "2026-10-06T11:15:32+00:00",
+   "lastOk": "2026-10-07T11:03:45+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -675,6 +765,11 @@
      "d": "2026-10-06",
      "cp": 80826,
      "il": 1804
+    },
+    {
+     "d": "2026-10-07",
+     "cp": 80826,
+     "il": 1804
     }
    ],
    "serverId": 2303,
@@ -687,7 +782,7 @@
    "legion": "Ivalys",
    "title": "",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364871825",
-   "lastOk": "2026-10-06T11:15:32+00:00",
+   "lastOk": "2026-10-07T11:03:45+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -711,6 +806,11 @@
      "d": "2026-10-06",
      "cp": 75237,
      "il": 1732
+    },
+    {
+     "d": "2026-10-07",
+     "cp": 76646,
+     "il": 1801
     }
    ],
    "serverId": 2303,
@@ -718,12 +818,12 @@
    "race": "Asmodians",
    "className": "Gladiator",
    "level": 45,
-   "cp": 75237,
-   "itemLevel": 1732,
+   "cp": 76646,
+   "itemLevel": 1801,
    "legion": "Ivalys",
    "title": "Saint of Altgard",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364873432",
-   "lastOk": "2026-10-06T11:15:32+00:00",
+   "lastOk": "2026-10-07T11:03:45+00:00",
    "region": "eu",
    "status": "ok"
   },
@@ -742,6 +842,11 @@
      "d": "2026-10-06",
      "cp": 61877,
      "il": 1126
+    },
+    {
+     "d": "2026-10-07",
+     "cp": 70786,
+     "il": 1400
     }
    ],
    "serverId": 2303,
@@ -749,12 +854,12 @@
    "race": "Asmodians",
    "className": "Cleric",
    "level": 45,
-   "cp": 61877,
-   "itemLevel": 1126,
+   "cp": 70786,
+   "itemLevel": 1400,
    "legion": "Ivalys",
    "title": "",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364882045",
-   "lastOk": "2026-10-06T11:15:32+00:00",
+   "lastOk": "2026-10-07T11:03:45+00:00",
    "region": "eu",
    "status": "ok"
   }
