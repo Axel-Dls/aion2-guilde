@@ -2,8 +2,11 @@ name: Mise à jour CP guilde
 
 on:
   schedule:
-    - cron: "17 4 * * *"      # tous les jours vers 6h17 (heure de Paris en été)
-  workflow_dispatch:           # bouton « Run workflow » dans l'onglet Actions
+    # Deux passages par jour (heures UTC). GitHub les retarde souvent de plusieurs
+    # heures : le second sert de filet de sécurité si le premier ne part pas.
+    - cron: "17 4 * * *"
+    - cron: "47 15 * * *"
+  workflow_dispatch:           # bouton « Relancer la mise à jour » de l'admin
   push:
     branches: [main]
     paths: [members.csv, config.json, scripts/update.py, data/historique-manuel.csv]
@@ -11,6 +14,7 @@ on:
 permissions:
   contents: write
 
+# Un seul passage à la fois ; les suivants attendent leur tour.
 concurrency:
   group: update-db
   cancel-in-progress: false
@@ -18,15 +22,20 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
     steps:
+      # Toujours partir de la dernière version de main (et non du commit qui a
+      # déclenché le passage) : un passage qui a attendu son tour voit ainsi les
+      # données du précédent.
       - uses: actions/checkout@v4
+        with:
+          ref: main
 
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Récupérer les CP
+      - name: Récupérer les GS et CP
         run: python scripts/update.py
 
       - name: Enregistrer les données
@@ -37,8 +46,13 @@ jobs:
           git add data/db.json
           if git diff --cached --quiet; then
             echo "Aucun changement."
-          else
-            git commit -m "Mise à jour des CP ($(date -u +%Y-%m-%d))"
-            git pull --rebase
-            git push
+            exit 0
           fi
+          git commit -q -m "Mise à jour des CP ($(date -u +%Y-%m-%d))"
+          for i in 1 2 3; do
+            # En cas de modification concurrente, notre db.json (le plus récent) l'emporte.
+            git pull -q --rebase -X theirs origin main && git push -q && exit 0
+            sleep $((i * 5))
+          done
+          echo "::error::Impossible d'enregistrer data/db.json après 3 tentatives."
+          exit 1

@@ -1,18 +1,22 @@
 #!/usr/bin/env python3
 """
-Met à jour data/db.json avec le Combat Power et l'Item Level de chaque membre
-listé dans members.csv, en interrogeant le site officiel d'Aion 2 (global).
+Met à jour data/db.json : GS (Item Level) et CP de chaque membre listé dans
+members.csv, récupérés sur le site officiel d'Aion 2 (global).
 
-Lancé une fois par jour par GitHub Actions (.github/workflows/update.yml).
+Lancé par GitHub Actions (.github/workflows/update.yml) deux fois par jour, à
+chaque modification de la liste des membres, ou à la main.
 Aucune dépendance : bibliothèque standard Python 3.9+.
 
 Les adresses utilisées sont celles de la page officielle « Character Info »
-(aion2.plaync.com). Elles ne sont pas documentées par NCSoft et peuvent changer.
+(aion2.plaync.com). Elles ne sont pas documentées par NCSoft et peuvent changer :
+si moins de la moitié des persos sont trouvés, le passage échoue et GitHub
+prévient par e-mail.
 """
 
 import csv
 import difflib
 import json
+import os
 import re
 import sys
 import time
@@ -31,19 +35,38 @@ MANUAL = ROOT / "data" / "historique-manuel.csv"
 SITE = "https://aion2.plaync.com"
 SEARCH = "https://api-search.plaync.com/aion2global/search/v2/character"
 LANG = "en-US"
+REGIONS = ["eu", "naw", "nae", "la", "as"]
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (aion2-guilde tracker)",
     "Accept": "application/json",
     "Referer": f"{SITE}/en-us/characters/index",
     "Origin": SITE,
 }
-PAUSE = 0.6          # secondes entre deux requêtes, pour rester discret
-MAX_HISTORY = 400    # jours d'historique conservés par membre
+PAUSE = 0.6            # secondes entre deux requêtes, pour rester discret
+MAX_HISTORY = 400      # jours d'historique conservés par membre
+GS_DROP_ALERT = 30     # baisse de GS (par rapport au relevé précédent) signalée
+MIN_SUCCESS = 0.5      # en dessous de cette part de persos trouvés, le passage échoue
+KEEP = ("serverId", "characterId", "region", "className", "level", "cp", "itemLevel", "legion", "image", "lastOk")
+
+# Libellés des signalements (repris tels quels par le site et l'admin)
+ISSUE_LABEL = {
+    "not_found": "Introuvable",
+    "unknown_server": "Serveur inconnu",
+    "error": "Échec de lecture",
+    "left_guild": "Hors légion",
+    "gs_drop": "GS en baisse",
+}
 
 
 def log(*a):
     print(*a, flush=True)
 
+
+def norm(s):
+    return re.sub(r"\s+", " ", (s or "").strip()).lower()
+
+
+# ---------------------------------------------------------------- site officiel
 
 def get_json(url, params, tries=3):
     full = f"{url}?{urllib.parse.urlencode(params)}"
@@ -61,90 +84,44 @@ def get_json(url, params, tries=3):
     raise RuntimeError(f"{url} : {last}")
 
 
-def norm(s):
-    return re.sub(r"\s+", " ", (s or "").strip()).lower()
+class Servers:
+    """Nom de serveur → serveur (avec sa région). Charge la région de config.json,
+    et les autres seulement si un serveur demandé n'y figure pas."""
 
+    def __init__(self, preferred):
+        self.order = [preferred] + [r for r in REGIONS if r != preferred]
+        self.loaded, self.by_name = set(), {}
+        self._load(preferred)
 
-def read_members():
-    """members.csv : une ligne par perso, « pseudo,serveur[,statut] ». Les lignes # sont ignorées."""
-    out, seen = [], set()
-    with MEMBERS.open(encoding="utf-8-sig", newline="") as f:
-        for row in csv.reader(f):
-            if not row or not row[0].strip() or row[0].strip().startswith("#"):
-                continue
-            name = row[0].strip()
-            server = row[1].strip() if len(row) > 1 else ""
-            if norm(name) in ("pseudo", "name") and norm(server) in ("serveur", "server"):
-                continue  # ligne d'en-tête
-            k = (norm(name), norm(server))
-            if k not in seen:
-                seen.add(k)
-                role = row[2].strip() if len(row) > 2 else ""
-                out.append({"name": name, "server": server, "role": role or "Membre"})
-    return out
-
-
-REGIONS = ["eu", "naw", "nae", "la", "as"]
-
-
-def read_manual_history():
-    """data/historique-manuel.csv : relevés faits à la main (pseudo,date,gs,cp), fusionnés dans l'historique."""
-    def to_int(v):
-        v = (v or "").strip().replace(" ", "").replace(",", ".")
-        if not v:
-            return None
-        mult = 1000 if v.lower().endswith("k") else 1
-        try:
-            return int(round(float(v.rstrip("kK")) * mult))
-        except ValueError:
-            return None
-
-    out = {}
-    if not MANUAL.exists():
-        return out
-    with MANUAL.open(encoding="utf-8-sig", newline="") as f:
-        for row in csv.reader(f):
-            if len(row) < 3 or row[0].strip().startswith("#") or norm(row[0]) == "pseudo":
-                continue
-            gs = to_int(row[2])
-            cp = to_int(row[3]) if len(row) > 3 else None
-            if gs is None and cp is None:
-                continue
-            out.setdefault(norm(row[0]), []).append({"d": row[1].strip(), "cp": cp, "il": gs})
-    return out
-
-
-def merge_manual(history, manual):
-    """Ajoute les relevés manuels ; à une date déjà connue, ne complète que les valeurs manquantes."""
-    by_date = {h.get("d"): dict(h) for h in history}
-    for p in manual:
-        cur = by_date.get(p["d"])
-        if cur is None:
-            by_date[p["d"]] = dict(p)
-        else:
-            for k in ("cp", "il"):
-                if cur.get(k) is None and p.get(k) is not None:
-                    cur[k] = p[k]
-    return sorted(by_date.values(), key=lambda h: h.get("d", ""))
-
-
-def load_servers(preferred):
-    """Nom de serveur → serveur (avec sa région). La région de config.json est
-    prioritaire, puis les autres : un serveur absent de l'Europe est trouvé quand même."""
-    by_name = {}
-    for region in [preferred] + [r for r in REGIONS if r != preferred]:
+    def _load(self, region):
+        self.loaded.add(region)
         try:
             data = get_json(f"{SITE}/en-us/api/gameinfo/servers", {"lang": LANG, "region": region})
         except RuntimeError as e:
             log(f"  liste des serveurs {region} indisponible : {e}")
-            continue
+            return
         for s in data.get("serverList", []):
             s = {**s, "region": region}
             for k in (norm(s["serverName"]), norm(s["serverShortName"])):
-                by_name.setdefault(k, s)
-    if not by_name:
-        raise RuntimeError("impossible de charger la liste des serveurs")
-    return by_name
+                self.by_name.setdefault(k, s)
+
+    def _load_all(self):
+        for region in self.order:
+            if region not in self.loaded:
+                self._load(region)
+
+    def get(self, name):
+        if norm(name) not in self.by_name:
+            self._load_all()
+        return self.by_name.get(norm(name))
+
+    def suggest(self, name):
+        self._load_all()
+        close = difflib.get_close_matches(norm(name), list(self.by_name), n=1)
+        return self.by_name[close[0]]["serverName"] if close else None
+
+    def count(self):
+        return len({(s["region"], s["serverId"]) for s in self.by_name.values()})
 
 
 def find_character(name, server_id, region):
@@ -175,103 +152,187 @@ def item_level(info):
     return None
 
 
+# ---------------------------------------------------------------- fichiers du dépôt
+
+def read_members():
+    """members.csv : « pseudo,serveur,statut » par ligne. Les lignes # (persos en attente) sont ignorées."""
+    out, seen = [], set()
+    with MEMBERS.open(encoding="utf-8-sig", newline="") as f:
+        for row in csv.reader(f):
+            if not row or not row[0].strip() or row[0].strip().startswith("#") or norm(row[0]) == "pseudo":
+                continue
+            name = row[0].strip()
+            server = row[1].strip() if len(row) > 1 else ""
+            role = row[2].strip() if len(row) > 2 else ""
+            if (norm(name), norm(server)) not in seen:
+                seen.add((norm(name), norm(server)))
+                out.append({"name": name, "server": server, "role": role or "Membre"})
+    return out
+
+
+def to_int(v):
+    """« 2049 », « 96,80K » ou « 96.8k » → entier."""
+    v = (v or "").strip().replace(" ", "").replace(",", ".")
+    if not v:
+        return None
+    mult = 1000 if v.lower().endswith("k") else 1
+    try:
+        return int(round(float(v.rstrip("kK")) * mult))
+    except ValueError:
+        return None
+
+
+def read_manual_history():
+    """data/historique-manuel.csv : relevés faits à la main avant le suivi automatique (pseudo,date,gs,cp)."""
+    out = {}
+    if not MANUAL.exists():
+        return out
+    with MANUAL.open(encoding="utf-8-sig", newline="") as f:
+        for row in csv.reader(f):
+            if len(row) < 3 or row[0].strip().startswith("#") or norm(row[0]) == "pseudo":
+                continue
+            gs, cp = to_int(row[2]), (to_int(row[3]) if len(row) > 3 else None)
+            if gs is not None or cp is not None:
+                out.setdefault(norm(row[0]), []).append({"d": row[1].strip(), "cp": cp, "il": gs})
+    return out
+
+
+def merge_history(history, today_point, manual):
+    """Un point par jour, trié par date : le point du jour remplace l'éventuel précédent,
+    les relevés manuels complètent les valeurs manquantes."""
+    by_date = {h["d"]: dict(h) for h in history if h.get("d")}
+    if today_point:
+        by_date[today_point["d"]] = today_point
+    for p in manual:
+        cur = by_date.setdefault(p["d"], dict(p))
+        for k in ("cp", "il"):
+            if cur.get(k) is None and p.get(k) is not None:
+                cur[k] = p[k]
+    return sorted(by_date.values(), key=lambda h: h["d"])[-MAX_HISTORY:]
+
+
+# ---------------------------------------------------------------- un membre
+
+def update_member(m, prev, servers, manual, now, guild):
+    """Renvoie l'entrée à jour du membre et ses signalements [(type, détail)]."""
+    entry = {
+        "key": f"{norm(m['server'])}:{norm(m['name'])}",
+        "name": prev.get("name", m["name"]),
+        "server": m["server"],
+        "role": m["role"],
+        "history": prev.get("history", []),
+        **{k: prev[k] for k in KEEP if k in prev},
+    }
+
+    srv = servers.get(m["server"])
+    if not srv:
+        hint = servers.suggest(m["server"])
+        entry["status"] = "unknown_server"
+        return entry, [("unknown_server", f"serveur « {m['server']} » inconnu" + (f", « {hint} » ?" if hint else ""))]
+    entry.update(server=srv["serverName"], serverId=srv["serverId"], region=srv["region"])
+
+    try:
+        char = find_character(m["name"], srv["serverId"], srv["region"])
+        if not char:
+            entry["status"] = "not_found"
+            return entry, [("not_found", f"introuvable sur {srv['serverName']} : pseudo changé ou mal orthographié ?")]
+        info = get_info(char["characterId"], srv["serverId"], srv["region"])
+        p = info["profile"]
+    except Exception as e:  # réseau ou format inattendu : on garde les anciennes valeurs
+        entry["status"] = "error"
+        return entry, [("error", str(e)[:200])]
+
+    previous = [h for h in entry["history"] if h.get("il") is not None and h["d"] < now.date().isoformat()]
+    il = item_level(info)
+    entry.update({
+        "name": p.get("characterName") or m["name"],
+        "className": p.get("className"),
+        "level": p.get("characterLevel"),
+        "cp": p.get("combatPower"),
+        "itemLevel": il,
+        "legion": p.get("regionName") or "",
+        "image": p.get("profileImage") or "",
+        "characterId": char["characterId"],
+        "status": "ok",
+        "lastOk": now.isoformat(timespec="seconds"),
+    })
+    entry["history"] = merge_history(entry["history"], {"d": now.date().isoformat(), "cp": entry["cp"], "il": il},
+                                     manual.get(norm(entry["name"]), []))
+
+    issues = []
+    if guild and entry["legion"] and norm(entry["legion"]) != norm(guild):
+        issues.append(("left_guild", f"dans la légion « {entry['legion']} »"))
+    if il is not None and previous and il < previous[-1]["il"] - GS_DROP_ALERT:
+        issues.append(("gs_drop", f"GS {previous[-1]['il']} → {il} depuis le {previous[-1]['d']}"))
+    return entry, issues
+
+
+# ---------------------------------------------------------------- passage complet
+
+def step_summary(db, removed):
+    """Résumé lisible affiché sur la page du passage dans GitHub Actions."""
+    path = os.environ.get("GITHUB_STEP_SUMMARY")
+    if not path:
+        return
+    run = db["run"]
+    lines = [f"## {db['guild'] or 'Guilde'} : {run['ok']}/{run['total']} persos à jour", ""]
+    if run["issues"]:
+        lines += ["| Perso | Signalement | Détail |", "|---|---|---|"]
+        lines += [f"| {i['name']} | {ISSUE_LABEL.get(i['type'], i['type'])} | {i['detail']} |" for i in run["issues"]]
+    else:
+        lines.append("Aucun signalement.")
+    if removed:
+        lines += ["", "Retirés du suivi depuis le passage précédent : " + ", ".join(removed)]
+    top = sorted((m for m in db["members"] if m.get("itemLevel")), key=lambda m: -m["itemLevel"])[:5]
+    if top:
+        lines += ["", "Top GS : " + " · ".join(f"{m['name']} {m['itemLevel']}" for m in top)]
+    with open(path, "a", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
 def main():
     cfg = json.loads(CONFIG.read_text(encoding="utf-8"))
-    region = cfg.get("region", "eu")
+    guild, region = cfg.get("guild", ""), cfg.get("region", "eu")
     now = datetime.now(timezone.utc)
-    today = now.date().isoformat()
 
     old = {}
     if DB.exists():
-        prev = json.loads(DB.read_text(encoding="utf-8"))
-        old = {m["key"]: m for m in prev.get("members", [])}
+        old = {m["key"]: m for m in json.loads(DB.read_text(encoding="utf-8")).get("members", [])}
 
-    manual = read_manual_history()
     members = read_members()
-    log(f"{len(members)} membres dans members.csv, région {region}")
+    manual = read_manual_history()
+    servers = Servers(region)
+    log(f"{len(members)} membres suivis · région {region} · {servers.count()} serveurs chargés")
 
-    servers = load_servers(region)
-    log(f"{len({(s['region'], s['serverId']) for s in servers.values()})} serveurs chargés")
-
-    result, ok_count = [], 0
+    result, issues = [], []
     for m in members:
-        srv = servers.get(norm(m["server"]))
         key = f"{norm(m['server'])}:{norm(m['name'])}"
-        prev = old.get(key, {})
-        entry = {
-            "key": key,
-            "name": prev.get("name", m["name"]),
-            "server": srv["serverName"] if srv else m["server"],
-            "role": m["role"],
-            "history": prev.get("history", []),
-        }
-        for k in ("serverId", "characterId", "race", "className", "level", "cp", "itemLevel", "legion", "title", "image", "lastOk"):
-            if k in prev:
-                entry[k] = prev[k]
-
-        if srv:
-            entry["serverId"] = srv["serverId"]
-            entry["region"] = srv["region"]
-        if not srv:
-            entry["status"] = "unknown_server"
-            close = difflib.get_close_matches(norm(m["server"]), list(servers), n=1)
-            hint = f" (tu voulais dire « {servers[close[0]]['serverName']} » ?)" if close else ""
-            log(f"  ✗ {m['name']} : serveur « {m['server']} » inconnu{hint}")
-            result.append(entry)
-            continue
-
-        try:
-            char = find_character(m["name"], srv["serverId"], srv["region"])
-            if not char:
-                entry["status"] = "not_found"
-                log(f"  ✗ {m['name']} ({srv['serverName']}) : introuvable")
-                result.append(entry)
-                continue
-
-            info = get_info(char["characterId"], srv["serverId"], srv["region"])
-            p = info["profile"]
-            il = item_level(info)
-            entry.update({
-                "name": p.get("characterName") or m["name"],
-                "server": p.get("serverName") or srv["serverName"],
-                "race": p.get("raceName"),
-                "className": p.get("className"),
-                "level": p.get("characterLevel"),
-                "cp": p.get("combatPower"),
-                "itemLevel": il,
-                "legion": p.get("regionName") or "",
-                "title": p.get("titleName") or "",
-                "image": p.get("profileImage") or "",
-                "region": srv["region"],
-                "serverId": srv["serverId"],
-                "characterId": char["characterId"],
-                "status": "ok",
-                "lastOk": now.isoformat(timespec="seconds"),
-            })
-            hist = [h for h in entry["history"] if h.get("d") != today]
-            hist.append({"d": today, "cp": entry["cp"], "il": il})
-            entry["history"] = merge_manual(hist, manual.get(norm(entry["name"]), []))[-MAX_HISTORY:]
-            ok_count += 1
-            log(f"  ✓ {entry['name']} ({entry['server']}) : CP {entry['cp']}, IL {il}")
-        except Exception as e:  # on garde les anciennes valeurs
-            entry["status"] = "error"
-            log(f"  ! {m['name']} ({m['server']}) : {e}")
+        entry, found = update_member(m, old.get(key, {}), servers, manual, now, guild)
         result.append(entry)
+        for t, detail in found:
+            issues.append({"name": entry["name"], "type": t, "detail": detail})
+        mark = "✓" if entry["status"] == "ok" else "✗"
+        extra = "".join(f" [{ISSUE_LABEL[t]}: {d}]" for t, d in found)
+        log(f"  {mark} {entry['name']} ({entry['server']}) : GS {entry.get('itemLevel')}, CP {entry.get('cp')}{extra}")
 
+    ok = sum(1 for e in result if e["status"] == "ok")
+    removed = sorted(m["name"] for k, m in old.items() if k not in {e["key"] for e in result})
     db = {
-        "guild": cfg.get("guild", ""),
+        "guild": guild,
         "region": region,
         "updatedAt": now.isoformat(timespec="seconds"),
-        "counts": {"total": len(result), "ok": ok_count},
+        "counts": {"total": len(result), "ok": ok},
+        "run": {"at": now.isoformat(timespec="seconds"), "ok": ok, "total": len(result), "issues": issues},
         "members": result,
     }
     DB.parent.mkdir(parents=True, exist_ok=True)
     DB.write_text(json.dumps(db, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
-    log(f"Terminé : {ok_count}/{len(result)} mis à jour → {DB.relative_to(ROOT)}")
+    step_summary(db, removed)
+    log(f"Terminé : {ok}/{len(result)} à jour, {len(issues)} signalement(s)")
 
-    # Échec global (API bloquée ou modifiée) : on fait échouer le run pour être prévenu.
-    if members and ok_count == 0:
-        sys.exit("Aucun membre n'a pu être mis à jour.")
+    # Moins de la moitié des persos trouvés : le site officiel a sans doute changé.
+    if result and ok < len(result) * MIN_SUCCESS:
+        sys.exit(f"Seulement {ok}/{len(result)} persos mis à jour : le site officiel a peut-être changé.")
 
 
 if __name__ == "__main__":

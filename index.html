@@ -7,101 +7,78 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Figtree:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="assets/common.css">
 <style>
-/* Classement de guilde : en-tête, 3 indicateurs, tableau triable — or d'Atreia sur fond nuit */
-:root{
-  --bg:#f4f2ed; --surface:#ffffff; --surface-2:#f8f6f1; --ink:#1b1d24; --muted:#62645e; --line:#e0dccf;
-  --gold:#94730c; --gold-soft:rgb(201 162 39 / .14); --up:#25804a; --down:#b4432f; --warn:#a86b00;
-  --tank:#3d6fb4; --heal:#2f8a5a; --aede:#8a5cc2; --dps:#c0573a;
-  --display:"Marcellus","Palatino Linotype",Georgia,serif;
-  --body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
-  color-scheme:light;
-}
-@media (prefers-color-scheme:dark){:root{
-  --bg:#0e1015; --surface:#161920; --surface-2:#1b1f27; --ink:#ebe8e1; --muted:#a19f97; --line:#292d37;
-  --gold:#e3c35a; --gold-soft:rgb(227 195 90 / .12); --up:#6fcf97; --down:#ff8a7a; --warn:#f0b54a;
-  --tank:#7aa7e8; --heal:#6fcf97; --aede:#b99af0; --dps:#f08a6a; color-scheme:dark}}
-*{box-sizing:border-box}
-html,body{margin:0}
-body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--body);padding:0 20px}
-.wrap{max-width:1100px;margin:0 auto;padding-block:40px 56px}
-header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:16px 32px;margin-bottom:28px}
-.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);font-weight:700;margin:0 0 6px}
-h1{font-family:var(--display);font-weight:400;font-size:clamp(34px,5vw,50px);line-height:1.05;margin:0;text-wrap:balance}
+/* Classement : en-tête, 3 chiffres clés, composition, tableau triable */
+.wrap{max-width:1040px;margin:0 auto;padding-block:40px 56px}
 .meta{color:var(--muted);font-size:14px;text-align:right}
 .meta strong{color:var(--ink);font-weight:600}
-.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:24px}
-@media (max-width:640px){.stats{grid-template-columns:minmax(0,1fr)}}
-.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;min-width:0}
-.stat .k{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700}
+
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.stat{min-width:0}
 .stat .v{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .stat .s{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:10px}
-input[type=search]{font:inherit;padding:9px 12px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);min-width:0;width:260px;max-width:100%}
-input[type=search]:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
-.links{display:flex;flex-wrap:wrap;gap:8px}
-.links a{font-size:14px;font-weight:600;color:var(--gold);text-decoration:none;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
-.links a:hover{border-color:var(--gold)}
-.tbl{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px}
-table{width:100%;border-collapse:collapse;min-width:720px}
-th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
-tbody tr:last-child td{border-bottom:0}
-th{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;background:var(--surface-2);white-space:nowrap}
-th button{all:unset;cursor:pointer;display:inline-flex;gap:4px;align-items:center}
-th button[aria-sort] .ar{color:var(--gold)}
-th.num,td.num{text-align:right;font-variant-numeric:tabular-nums}
-tbody tr:hover{background:var(--gold-soft)}
-.rank{color:var(--muted);font-variant-numeric:tabular-nums;width:40px}
-tr.top .rank{color:var(--gold);font-weight:800}
-.who{display:flex;align-items:center;gap:10px;min-width:0}
-.av{width:34px;height:34px;border-radius:50%;object-fit:cover;background:var(--surface-2);border:1px solid var(--line);flex:none}
-.nm{font-weight:700}
-.pl{color:inherit;text-decoration:none;border-bottom:1px solid transparent}
-.pl:hover{color:var(--gold);border-bottom-color:currentColor}
-.sub{font-size:13px;color:var(--muted)}
-.cp{font-weight:800;font-size:16px}
-.d{font-weight:700;font-size:13px}
-.d.up{color:var(--up)} .d.down{color:var(--down)} .d.flat{color:var(--muted);font-weight:400}
-.role{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:4px;margin-left:6px;vertical-align:2px;white-space:nowrap}
-.role.chef{background:var(--gold);color:var(--bg)}
-.role.officier{border:1px solid var(--gold);color:var(--gold)}
-.compo{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-bottom:24px}
+
+.compo{margin-bottom:24px}
 .compo-h{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:10px}
-.compo-h .k{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700}
 .compo-h .s{font-size:13px;color:var(--muted)}
 .mix{display:flex;height:8px;border-radius:999px;overflow:hidden;background:var(--line);margin-bottom:14px;gap:2px}
-.mix span{display:block;height:100%}
 .roles{display:grid;gap:8px}
-.rl{display:grid;grid-template-columns:110px 36px minmax(0,1fr);align-items:center;gap:10px}
+.rl{display:grid;grid-template-columns:100px 32px minmax(0,1fr);align-items:center;gap:10px}
 .rl .n{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px}
 .rl .dot{width:10px;height:10px;border-radius:50%;flex:none}
 .rl .c{font-size:18px;font-weight:800;font-variant-numeric:tabular-nums;text-align:right}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{font:inherit;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:7px;padding:4px 6px 4px 11px;border-radius:999px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);cursor:pointer}
+.chip{font-size:13px;font-weight:600;gap:7px;padding:4px 6px 4px 11px;border-radius:999px;background:var(--surface-2)}
 .chip b{min-width:22px;text-align:center;padding:0 6px;border-radius:999px;background:var(--line);font-variant-numeric:tabular-nums;font-size:12px}
-.chip:hover{border-color:var(--gold)}
 .chip[aria-pressed="true"]{background:var(--gold-soft);border-color:var(--gold);color:var(--gold)}
 .chip[aria-pressed="true"] b{background:var(--gold);color:var(--bg)}
 .chip.zero{color:var(--muted)} .chip.zero b{background:none;color:var(--down)}
-.chip:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
-@media (max-width:640px){.rl{grid-template-columns:1fr auto}.rl .chips{grid-column:1/-1}.compo-h .s{display:none}}
-.pill{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;border:1px solid currentColor;color:var(--warn);white-space:nowrap}
+
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:10px}
+.toolbar input{width:280px;max-width:100%;background:var(--surface)}
+.count{font-size:13px;color:var(--muted);margin-right:auto}
+.admin-link{font-weight:600;color:var(--gold)}
+
+.tbl{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+table{width:100%;border-collapse:collapse;min-width:640px}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:var(--gold-soft)}
+th{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;background:var(--surface-2);white-space:nowrap}
+th button{all:unset;cursor:pointer;display:inline-flex;gap:4px;align-items:center}
+th button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+th button[aria-sort] .ar{color:var(--gold)}
+th.num,td.num{text-align:right;font-variant-numeric:tabular-nums}
+.rank{color:var(--muted);font-variant-numeric:tabular-nums;width:36px}
+tr.top .rank{color:var(--gold);font-weight:800}
+.who{display:flex;align-items:center;gap:10px;min-width:0}
+.av{position:relative;width:34px;height:34px;border-radius:50%;flex:none;display:grid;place-items:center;font-size:13px;font-weight:800;color:var(--muted);background:var(--surface-2);border:1px solid var(--line);overflow:hidden}
+.av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.nm{font-weight:700}
+.pl{color:inherit;text-decoration:none}
+.pl:hover{color:var(--gold);text-decoration:underline;text-underline-offset:3px}
+.sub{font-size:13px;color:var(--muted)}
+.gs{font-weight:800;font-size:16px}
+.d{font-weight:700;font-size:13px}
+.d.up{color:var(--up)} .d.down{color:var(--down)} .d.flat{color:var(--muted);font-weight:400}
 .empty{padding:40px 20px;text-align:center;color:var(--muted)}
 .empty strong{color:var(--ink);display:block;font-size:17px;margin-bottom:6px}
+footer{margin-top:20px;font-size:13px;color:var(--muted);max-width:80ch}
+
 @media (max-width:640px){
   .meta{text-align:left}
+  .stats{grid-template-columns:minmax(0,1fr)}
+  .rl{grid-template-columns:64px 22px minmax(0,1fr);gap:8px;align-items:start}.rl .n,.rl .c{line-height:30px}.compo-h .s{display:none}
   table{min-width:0}
-  th:nth-child(3),td:nth-child(3),th:nth-child(7),td:nth-child(7){display:none}
   th,td{padding:10px 8px}
-  .av{display:none}
+  .col-cp7,.av{display:none}
 }
-.help{font-size:13px;color:var(--muted);margin:0 0 12px;max-width:80ch}
-footer{margin-top:24px;font-size:13px;color:var(--muted);max-width:75ch}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header>
+  <header class="page-head">
     <div>
       <p class="eyebrow" id="eyebrow">Aion 2 · Global</p>
       <h1 id="guild">Guilde</h1>
@@ -109,23 +86,27 @@ footer{margin-top:24px;font-size:13px;color:var(--muted);max-width:75ch}
     <div class="meta" id="meta">Chargement…</div>
   </header>
 
-  <section class="stats" aria-label="Résumé">
-    <div class="stat"><div class="k">Membres suivis</div><div class="v" id="s-count">–</div><div class="s" id="s-count-sub">&nbsp;</div></div>
-    <div class="stat"><div class="k">GS moyen</div><div class="v" id="s-avg">–</div><div class="s" id="s-avg-sub">&nbsp;</div></div>
-    <div class="stat"><div class="k">Meilleure progression GS · 7 j</div><div class="v" id="s-best">–</div><div class="s" id="s-best-sub">&nbsp;</div></div>
+  <div class="notice" id="stale" hidden>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+    <span id="staleText"></span>
+  </div>
+
+  <section class="stats" aria-label="Chiffres clés">
+    <div class="card stat"><div class="label">Membres suivis</div><div class="v" id="s-count">–</div><div class="s" id="s-count-sub">&nbsp;</div></div>
+    <div class="card stat"><div class="label">GS moyen</div><div class="v" id="s-avg">–</div><div class="s" id="s-avg-sub">&nbsp;</div></div>
+    <div class="card stat"><div class="label">Meilleure progression GS · 7 j</div><div class="v" id="s-best">–</div><div class="s" id="s-best-sub">&nbsp;</div></div>
   </section>
 
-  <section class="compo" aria-label="Composition de la guilde">
-    <div class="compo-h"><span class="k">Composition <span id="compoN"></span></span><span class="s">Clique sur une classe pour filtrer le classement</span></div>
+  <section class="card compo" aria-label="Composition de la guilde">
+    <div class="compo-h"><span class="label">Composition <span id="compoN"></span></span><span class="s">Clique sur une classe pour filtrer le classement</span></div>
     <div class="mix" id="mix" aria-hidden="true"></div>
     <div class="roles" id="roles"></div>
   </section>
 
   <div class="toolbar">
-    <input type="search" id="q" placeholder="Filtrer par pseudo, classe, statut…" aria-label="Filtrer">
-    <div class="links">
-      <a id="admin" href="admin.html" title="Gérer les membres et leurs statuts (réservé aux gérants de la guilde)">Admin</a>
-    </div>
+    <input type="search" id="q" placeholder="Filtrer par pseudo, classe, statut…" aria-label="Filtrer le classement">
+    <span class="count" id="count"></span>
+    <a class="admin-link" href="admin.html" title="Gérer les membres (réservé aux gérants de la guilde)">Admin</a>
   </div>
 
   <div class="tbl">
@@ -133,75 +114,127 @@ footer{margin-top:24px;font-size:13px;color:var(--muted);max-width:75ch}
       <thead><tr>
         <th>#</th>
         <th><button data-k="name">Perso <span class="ar"></span></button></th>
-        <th><button data-k="server">Serveur <span class="ar"></span></button></th>
-        <th class="num"><button data-k="itemLevel" title="Gear Score (Item Level sur le site officiel)">GS <span class="ar"></span></button></th>
+        <th class="num"><button data-k="itemLevel" title="Gear Score (« Item Level » sur le site officiel)">GS <span class="ar"></span></button></th>
         <th class="num"><button data-k="d7" title="Progression du GS sur 7 jours">GS 7 j <span class="ar"></span></button></th>
         <th class="num"><button data-k="cp" title="Combat Power">CP <span class="ar"></span></button></th>
-        <th class="num"><button data-k="cp7" title="Progression du CP sur 7 jours">CP 7 j <span class="ar"></span></button></th>
+        <th class="num col-cp7"><button data-k="cp7" title="Progression du CP sur 7 jours">CP 7 j <span class="ar"></span></button></th>
       </tr></thead>
-      <tbody id="rows"><tr><td colspan="7" class="empty">Chargement des données…</td></tr></tbody>
+      <tbody id="rows"><tr><td colspan="6" class="empty">Chargement des données…</td></tr></tbody>
     </table>
   </div>
 
   <footer>
-    Données récupérées une fois par jour sur le site officiel d'Aion 2 (page Character Info). Un perso marqué « Introuvable » a peut-être changé de pseudo ou de serveur, ou son nom contient un accent (ex. Phénix) : écris-le exactement comme en jeu dans la liste des membres.
+    Données relevées automatiquement sur le site officiel d'Aion 2 deux fois par jour, et après chaque changement dans la liste des membres. Clique sur un pseudo pour ouvrir sa fiche officielle.
   </footer>
 </div>
 
+<script src="assets/common.js"></script>
 <script>
-const $ = id => document.getElementById(id);
-const fmt = n => n == null ? "–" : Number(n).toLocaleString("fr-FR");
-const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const STATUS = { not_found: "Introuvable", unknown_server: "Serveur inconnu", error: "Échec de mise à jour" };
+const { $, esc, fmt, ROLES, roleBadge, flags, profileUrl, ago, dateTime, loadDb } = G;
+const PUBLIC_FLAGS = ["not_found", "unknown_server", "error", "left_guild"];
+const STALE_HOURS = 36;
 
-// Liens GitHub déduits de l'adresse du site (utilisateur.github.io/depot)
+let DB = null, DATA = [], sortKey = "itemLevel", sortDir = -1, multiServer = false;
 
-// Valeur de `field` environ `days` jours avant le dernier point (ou le plus ancien point connu)
-function valueDaysAgo(h, days, field) {
-  const pts = (h || []).filter(p => p[field] != null);
-  if (pts.length < 2) return null;
-  const last = new Date(pts[pts.length - 1].d);
-  const target = new Date(last); target.setDate(target.getDate() - days);
-  let ref = null;
-  for (const p of pts) { if (new Date(p.d) <= target) ref = p; }
-  if (!ref) ref = pts[0];
-  return ref === pts[pts.length - 1] ? null : ref[field];
-}
-
-
-function roleBadge(r) {
-  const k = (r || "").toLowerCase();
-  return k === "chef" || k === "officier" ? `<span class="role ${k}">${esc(r)}</span>` : "";
-}
-
+const initials = name => (String(name).match(/\p{L}|\p{N}/u) || ["?"])[0].toUpperCase();
 function delta(d) {
   if (d == null) return '<span class="d flat">–</span>';
-  const cls = d > 0 ? "up" : d < 0 ? "down" : "flat";
-  return `<span class="d ${cls}">${d > 0 ? "+" : d < 0 ? "−" : ""}${fmt(Math.abs(d))}</span>`;
+  return `<span class="d ${d > 0 ? "up" : d < 0 ? "down" : "flat"}">${d > 0 ? "+" : d < 0 ? "−" : ""}${fmt(Math.abs(d))}</span>`;
 }
 
-const CLASS_FR = { Gladiator: "Gladiateur", Templar: "Templier", Cleric: "Clerc", Chanter: "Aède",
-  Assassin: "Assassin", Ranger: "Ranger", Sorcerer: "Sorcier", Spiritmaster: "Spiritualiste" };
-const ROLES = [
-  { name: "Tank", color: "var(--tank)", classes: ["Gladiateur", "Templier"] },
-  { name: "Heal", color: "var(--heal)", classes: ["Clerc"] },
-  { name: "Aède", color: "var(--aede)", classes: ["Aède"] },
-  { name: "DPS", color: "var(--dps)", classes: ["Assassin", "Ranger", "Sorcier", "Spiritualiste"] },
-];
-
-function composition() {
+function renderComposition(q) {
   const count = {};
   DATA.forEach(m => { if (m.classFr) count[m.classFr] = (count[m.classFr] || 0) + 1; });
-  const q = $("q").value.trim().toLowerCase();
   const totals = ROLES.map(r => r.classes.reduce((t, c) => t + (count[c] || 0), 0));
   const all = totals.reduce((a, b) => a + b, 0);
   $("compoN").textContent = all ? `· ${all} persos` : "";
   $("mix").innerHTML = ROLES.map((r, i) => totals[i] ? `<span style="flex:${totals[i]};background:${r.color}" title="${r.name} : ${totals[i]}"></span>` : "").join("");
-  $("roles").innerHTML = ROLES.map((r, i) => {
-    const chips = r.classes.map(c => `<button type="button" class="chip ${count[c] ? "" : "zero"}" data-class="${esc(c)}" aria-pressed="${q === c.toLowerCase()}">${esc(c)}<b>${count[c] || 0}</b></button>`).join("");
-    return `<div class="rl"><span class="n"><span class="dot" style="background:${r.color}"></span>${r.name}</span><span class="c">${totals[i]}</span><div class="chips">${chips}</div></div>`;
+  $("roles").innerHTML = ROLES.map((r, i) => `
+    <div class="rl">
+      <span class="n"><span class="dot" style="background:${r.color}"></span>${r.name}</span>
+      <span class="c">${totals[i]}</span>
+      <div class="chips">${r.classes.map(c => `<button type="button" class="chip ${count[c] ? "" : "zero"}" data-class="${esc(c)}" aria-pressed="${q === c.toLowerCase()}">${esc(c)}<b>${count[c] || 0}</b></button>`).join("")}</div>
+    </div>`).join("");
+}
+
+function render() {
+  const q = $("q").value.trim().toLowerCase();
+  renderComposition(q);
+
+  const list = DATA.filter(m => !q || m.classFr.toLowerCase() === q
+    || [m.name, m.server, m.classFr, m.role, m.legion].join(" ").toLowerCase().includes(q));
+  list.sort((a, b) => {
+    const va = a[sortKey], vb = b[sortKey];
+    if (va == null || vb == null) return va == null ? (vb == null ? 0 : 1) : -1;
+    return (typeof va === "string" ? va.localeCompare(vb, "fr") : va - vb) * sortDir;
+  });
+  $("count").textContent = q ? `${list.length} sur ${DATA.length}` : "";
+
+  document.querySelectorAll("th button").forEach(b => {
+    const on = b.dataset.k === sortKey;
+    if (on) b.setAttribute("aria-sort", sortDir < 0 ? "descending" : "ascending"); else b.removeAttribute("aria-sort");
+    b.querySelector(".ar").textContent = on ? (sortDir < 0 ? "▼" : "▲") : "";
+  });
+
+  if (!DATA.length) {
+    $("rows").innerHTML = `<tr><td colspan="6" class="empty"><strong>Aucun membre suivi pour l'instant</strong>Ajoute des persos depuis la page Admin : le classement apparaît ici quelques minutes après.</td></tr>`;
+    return;
+  }
+  if (!list.length) {
+    $("rows").innerHTML = `<tr><td colspan="6" class="empty">Aucun perso ne correspond à « ${esc($("q").value)} ».</td></tr>`;
+    return;
+  }
+  const ranked = sortKey === "itemLevel" && sortDir < 0 && !q;
+  $("rows").innerHTML = list.map((m, i) => {
+    const rank = ranked && m.itemLevel != null ? i + 1 : "";
+    const sub = [m.classFr, m.level ? "niv. " + m.level : "", multiServer ? m.server : ""].filter(Boolean).map(esc).join(" · ");
+    const img = m.image ? `<img src="${esc(m.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : "";
+    return `<tr class="${rank && rank <= 3 ? "top" : ""}">
+      <td class="rank">${rank}</td>
+      <td><div class="who"><span class="av" aria-hidden="true">${esc(initials(m.name))}${img}</span>
+        <div><div class="nm"><a class="pl" href="${esc(profileUrl(m, DB.region))}" target="_blank" rel="noopener" title="Fiche officielle de ${esc(m.name)}">${esc(m.name)}</a>${roleBadge(m.role)}${flags(m.issues, PUBLIC_FLAGS)}</div>
+        <div class="sub">${sub || "&nbsp;"}</div></div></div></td>
+      <td class="num gs">${fmt(m.itemLevel)}</td>
+      <td class="num">${delta(m.d7)}</td>
+      <td class="num">${fmt(m.cp)}</td>
+      <td class="num col-cp7">${delta(m.cp7)}</td>
+    </tr>`;
   }).join("");
 }
+
+function renderSummary() {
+  const withGs = DATA.filter(m => m.itemLevel != null);
+  const flagged = DATA.filter(m => m.issues.some(i => PUBLIC_FLAGS.includes(i.type))).length;
+  $("s-count").textContent = DATA.length;
+  $("s-count-sub").textContent = flagged ? `${flagged} à vérifier` : "Tous trouvés au dernier relevé";
+  if (withGs.length) {
+    $("s-avg").textContent = fmt(Math.round(withGs.reduce((s, m) => s + m.itemLevel, 0) / withGs.length));
+    const top = withGs.reduce((a, b) => b.itemLevel > a.itemLevel ? b : a);
+    $("s-avg-sub").textContent = `Max : ${top.name} (${fmt(top.itemLevel)})`;
+  }
+  const best = DATA.filter(m => m.d7 > 0).sort((a, b) => b.d7 - a.d7)[0];
+  $("s-best").textContent = best ? "+" + fmt(best.d7) : "–";
+  $("s-best-sub").textContent = best ? best.name : "Il faut quelques jours d'historique";
+}
+
+function renderHeader() {
+  if (DB.guild) { $("guild").textContent = DB.guild; document.title = `${DB.guild} · Aion 2`; }
+  $("eyebrow").textContent = `Aion 2 · Global · ${String(DB.region || "eu").toUpperCase()}`;
+  if (!DB.updatedAt) { $("meta").textContent = "Pas encore de relevé"; return; }
+  $("meta").innerHTML = `Dernier relevé <strong>${esc(ago(DB.updatedAt))}</strong><br>${esc(dateTime(DB.updatedAt))}`;
+  const hours = (Date.now() - new Date(DB.updatedAt)) / 36e5;
+  if (hours > STALE_HOURS) {
+    $("staleText").textContent = `Les données datent du ${dateTime(DB.updatedAt)}. La mise à jour automatique a peut-être un problème : un gérant peut la relancer depuis la page Admin.`;
+    $("stale").hidden = false;
+  }
+}
+
+document.querySelectorAll("th button").forEach(b => b.addEventListener("click", () => {
+  const k = b.dataset.k;
+  if (sortKey === k) sortDir = -sortDir; else { sortKey = k; sortDir = k === "name" ? 1 : -1; }
+  render();
+}));
+$("q").addEventListener("input", render);
 $("roles").addEventListener("click", e => {
   const b = e.target.closest("button[data-class]"); if (!b) return;
   const c = b.dataset.class;
@@ -209,99 +242,15 @@ $("roles").addEventListener("click", e => {
   render();
 });
 
-const OFFICIAL = "https://aion2.plaync.com/en-us/characters";
-function profileUrl(m) {
-  const region = m.region || REGION;
-  if (m.serverId && m.characterId) return `${OFFICIAL}/${m.serverId}/${m.characterId}?region=${encodeURIComponent(region)}`;
-  const q = new URLSearchParams({ keyword: m.name, region });
-  if (m.serverId) q.set("serverId", m.serverId);
-  return `${OFFICIAL}/index?${q}`;
-}
-
-let REGION = "eu", GUILD = "", DATA = [], sortKey = "itemLevel", sortDir = -1;
-
-function render() {
-  const q = $("q").value.trim().toLowerCase();
-  composition();
-  const list = DATA.filter(m => !q || (m.classFr || "").toLowerCase() === q || [m.name, m.server, m.className, m.classFr, m.role, m.legion].join(" ").toLowerCase().includes(q));
-  list.sort((a, b) => {
-    const va = a[sortKey], vb = b[sortKey];
-    if (va == null && vb == null) return 0;
-    if (va == null) return 1; if (vb == null) return -1;
-    return (typeof va === "string" ? va.localeCompare(vb, "fr") : va - vb) * sortDir;
-  });
-  document.querySelectorAll("th button").forEach(b => {
-    const on = b.dataset.k === sortKey;
-    b.toggleAttribute("aria-sort", on);
-    if (on) b.setAttribute("aria-sort", sortDir < 0 ? "descending" : "ascending");
-    b.querySelector(".ar").textContent = on ? (sortDir < 0 ? "▼" : "▲") : "";
-  });
-  if (!DATA.length) {
-    $("rows").innerHTML = `<tr><td colspan="7" class="empty"><strong>Aucun membre suivi pour l'instant</strong>Ajoute des lignes « pseudo,serveur » dans la liste des membres : le classement apparaît ici quelques minutes après.</td></tr>`;
-    return;
-  }
-  if (!list.length) { $("rows").innerHTML = `<tr><td colspan="7" class="empty">Aucun perso ne correspond à « ${esc(q)} ».</td></tr>`; return; }
-  $("rows").innerHTML = list.map((m, i) => {
-    const status = m.status && m.status !== "ok" ? ` <span class="pill" title="${m.lastOk ? "Dernière mise à jour réussie : " + esc(new Date(m.lastOk).toLocaleString("fr-FR")) : ""}">${STATUS[m.status] || m.status}</span>` : "";
-    const legion = m.legion && m.legion.toLowerCase() !== GUILD.toLowerCase() ? m.legion : "";
-    const sub = [m.classFr || m.className, m.level ? "niv. " + m.level : "", legion].filter(Boolean).map(esc).join(" · ");
-    const rank = sortKey === "itemLevel" && sortDir < 0 && !q && m.itemLevel != null ? i + 1 : "";
-    return `<tr class="${rank && rank <= 3 ? "top" : ""}">
-      <td class="rank">${rank}</td>
-      <td><div class="who">${m.image ? `<img class="av" src="${esc(m.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">` : `<span class="av"></span>`}<div><div class="nm"><a class="pl" href="${esc(profileUrl(m))}" target="_blank" rel="noopener" title="Voir la fiche officielle">${esc(m.name)}</a>${roleBadge(m.role)}${status}</div><div class="sub">${sub || "&nbsp;"}</div></div></div></td>
-      <td>${esc(m.server)}${m.race ? `<div class="sub">${esc(m.race)}</div>` : ""}</td>
-      <td class="num cp">${fmt(m.itemLevel)}</td>
-      <td class="num">${delta(m.d7)}</td>
-      <td class="num">${fmt(m.cp)}</td>
-      <td class="num">${delta(m.cp7)}</td>
-    </tr>`;
-  }).join("");
-}
-
-function summary(db) {
-  const withGs = DATA.filter(m => m.itemLevel != null);
-  $("s-count").textContent = DATA.length;
-  const bad = DATA.length - (db.counts?.ok ?? withGs.length);
-  $("s-count-sub").textContent = bad > 0 ? `${bad} non mis à jour au dernier passage` : "Tous à jour";
-  if (withGs.length) {
-    const avg = withGs.reduce((s, m) => s + m.itemLevel, 0) / withGs.length;
-    $("s-avg").textContent = fmt(Math.round(avg));
-    const top = withGs.reduce((a, b) => b.itemLevel > a.itemLevel ? b : a);
-    $("s-avg-sub").textContent = `Max : ${top.name} (${fmt(top.itemLevel)})`;
-  }
-  const prog = DATA.filter(m => m.d7 != null && m.d7 > 0).sort((a, b) => b.d7 - a.d7)[0];
-  if (prog) { $("s-best").textContent = "+" + fmt(prog.d7); $("s-best-sub").textContent = prog.name; }
-  else { $("s-best").textContent = "–"; $("s-best-sub").textContent = "Il faut quelques jours d'historique"; }
-}
-
-document.querySelectorAll("th button").forEach(b => b.addEventListener("click", () => {
-  const k = b.dataset.k;
-  if (sortKey === k) sortDir = -sortDir; else { sortKey = k; sortDir = (k === "name" || k === "server") ? 1 : -1; }
+loadDb().then(db => {
+  DB = db; DATA = db.members;
+  multiServer = new Set(DATA.map(m => m.server)).size > 1;
+  renderHeader(); renderSummary(); render();
+}).catch(() => {
+  DB = { region: "eu" };
+  $("meta").textContent = "Données indisponibles pour le moment";
   render();
-}));
-$("q").addEventListener("input", render);
-
-fetch("data/db.json?t=" + Date.now(), { cache: "no-store" })
-  .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
-  .then(db => {
-    DATA = (db.members || []).map(m => {
-      const gs0 = valueDaysAgo(m.history, 7, "il"), cp0 = valueDaysAgo(m.history, 7, "cp");
-      return { ...m, classFr: CLASS_FR[m.className] || m.className || "",
-        d7: gs0 != null && m.itemLevel != null ? m.itemLevel - gs0 : null,
-        cp7: cp0 != null && m.cp != null ? m.cp - cp0 : null };
-    });
-    GUILD = db.guild || ""; REGION = db.region || "eu";
-    if (db.guild) { $("guild").textContent = db.guild; document.title = db.guild + " · Aion 2"; }
-    $("eyebrow").textContent = `Aion 2 · Global · ${String(db.region || "eu").toUpperCase()}`;
-    $("meta").innerHTML = db.updatedAt
-      ? `Mis à jour le <strong>${esc(new Date(db.updatedAt).toLocaleString("fr-FR", { dateStyle: "long", timeStyle: "short" }))}</strong><br>Prochaine mise à jour vers 6 h`
-      : "Pas encore de mise à jour";
-    summary(db); render();
-  })
-  .catch(() => {
-    $("meta").textContent = "Pas encore de données";
-    DATA = []; render();
-  });
+});
 </script>
 </body>
 </html>
