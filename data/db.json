@@ -1,13 +1,13 @@
 {
  "guild": "Ivalys",
  "region": "eu",
- "updatedAt": "2026-10-07T23:25:47+00:00",
+ "updatedAt": "2026-10-07T23:32:14+00:00",
  "counts": {
   "total": 20,
   "ok": 20
  },
  "run": {
-  "at": "2026-10-07T23:25:47+00:00",
+  "at": "2026-10-07T23:32:14+00:00",
   "ok": 20,
   "total": 20,
   "issues": []
@@ -49,7 +49,7 @@
    "itemLevel": 2302,
    "legion": "Ivalys",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364854038",
-   "lastOk": "2026-10-07T23:25:47+00:00",
+   "lastOk": "2026-10-07T23:32:14+00:00",
    "status": "ok"
   },
   {
@@ -88,7 +88,7 @@
    "itemLevel": 2274,
    "legion": "Ivalys",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364852934",
-   "lastOk": "2026-10-07T23:25:47+00:00",
+   "lastOk": "2026-10-07T23:32:14+00:00",
    "status": "ok"
   },
   {
@@ -127,7 +127,7 @@
    "itemLevel": 2346,
    "legion": "Ivalys",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364857316",
-   "lastOk": "2026-10-07T23:25:47+00:00",
+   "lastOk": "2026-10-07T23:32:14+00:00",
    "status": "ok"
   },
   {
@@ -166,7 +166,7 @@
    "itemLevel": 2225,
    "legion": "Ivalys",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364853638",
-   "lastOk": "2026-10-07T23:25:47+00:00",
+   "lastOk": "2026-10-07T23:32:14+00:00",
    "status": "ok"
   },
   {
@@ -205,7 +205,7 @@
    "itemLevel": 2286,
    "legion": "Ivalys",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364853809",
-   "lastOk": "2026-10-07T23:25:47+00:00",
+   "lastOk": "2026-10-07T23:32:14+00:00",
    "status": "ok"
   },
   {
@@ -244,7 +244,7 @@
    "itemLevel": 2300,
    "legion": "Ivalys",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364873470",
-   "lastOk": "2026-10-07T23:25:47+00:00",
+   "lastOk": "2026-10-07T23:32:14+00:00",
    "status": "ok"
   },
   {
@@ -283,7 +283,7 @@
    "itemLevel": 2393,
    "legion": "Ivalys",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364861183",
-   "lastOk": "2026-10-07T23:25:47+00:00",
+   "lastOk": "2026-10-07T23:32:14+00:00",
    "status": "ok"
   },
   {
@@ -322,7 +322,7 @@
    "itemLevel": 2304,
    "legion": "Ivalys",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364868604",
-   "lastOk": "2026-10-07T23:25:47+00:00",
+   "lastOk": "2026-10-07T23:32:14+00:00",
    "status": "ok"
   },
   {
@@ -361,7 +361,7 @@
    "itemLevel": 2239,
    "legion": "Ivalys",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364872980",
-   "lastOk": "2026-10-07T23:25:47+00:00",
+   "lastOk": "2026-10-07T23:32:14+00:00",
    "status": "ok"
   },
   {
@@ -400,7 +400,7 @@
    "itemLevel": 2119,
    "legion": "Ivalys",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364860070",
-   "lastOk": "2026-10-07T23:25:47+00:00",
+   "lastOk": "2026-10-07T23:32:14+00:00",
    "status": "ok"
   },
   {
@@ -426,7 +426,7 @@
     },
     {
      "d": "2026-10-07",
-     "cp": 99946,
+     "cp": 99792,
      "il": 2253
     }
    ],
@@ -435,11 +435,11 @@
    "region": "eu",
    "className": "Cleric",
    "level": 45,
-   "cp": 99946,
+   "cp": 99792,
    "itemLevel": 2253,
    "legion": "Ivalys",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364866724",
-   "lastOk": "2026-10-07T23:25:47+00:00",
+   "lastOk": "2026-10-07T23:32:14+00:00",
    "status": "ok"
   },
   {
@@ -478,7 +478,7 @@
    "itemLevel": 2100,
    "legion": "Ivalys",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364858581",
-   "lastOk": "2026-10-07T23:25:47+00:00",
+   "lastOk": "2026-10-07T23:32:14+00:00",
    "status": "ok"
   },
   {
@@ -517,7 +517,7 @@
    "itemLevel": 2237,
    "legion": "Ivalys",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364854629",
-   "lastOk": "2026-10-07T23:25:47+00:00",
+   "lastOk": "2026-10-07T23:32:14+00:00",
    "status": "ok"
   },
   {
@@ -556,7 +556,7 @@
    "itemLevel": 2182,
    "legion": "Ivalys",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364860931",
-   "lastOk": "2026-10-07T23:25:47+00:00",
+   "lastOk": "2026-10-07T23:32:14+00:00",
    "status": "ok"
   },
   {
@@ -595,7 +595,7 @@
    "itemLevel": 1851,
    "legion": "Ivalys",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364862167",
-   "lastOk": "2026-10-07T23:25:47+00:00",
+   "lastOk": "2026-10-07T23:32:14+00:00",
    "status": "ok"
   },
   {
@@ -634,7 +634,7 @@
    "itemLevel": 2138,
    "legion": "Ivalys",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364858470",
-   "lastOk": "2026-10-07T23:25:47+00:00",
+   "lastOk": "2026-10-07T23:32:14+00:00",
    "status": "ok"
   },
   {
@@ -673,7 +673,7 @@
    "itemLevel": 2154,
    "legion": "Ivalys",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364864166",
-   "lastOk": "2026-10-07T23:25:47+00:00",
+   "lastOk": "2026-10-07T23:32:14+00:00",
    "status": "ok"
   },
   {
@@ -712,7 +712,7 @@
    "itemLevel": 1914,
    "legion": "Ivalys",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364871825",
-   "lastOk": "2026-10-07T23:25:47+00:00",
+   "lastOk": "2026-10-07T23:32:14+00:00",
    "status": "ok"
   },
   {
@@ -738,7 +738,7 @@
     },
     {
      "d": "2026-10-07",
-     "cp": 80000,
+     "cp": 80030,
      "il": 1960
     }
    ],
@@ -747,11 +747,11 @@
    "region": "eu",
    "className": "Gladiator",
    "level": 45,
-   "cp": 80000,
+   "cp": 80030,
    "itemLevel": 1960,
    "legion": "Ivalys",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364873432",
-   "lastOk": "2026-10-07T23:25:47+00:00",
+   "lastOk": "2026-10-07T23:32:14+00:00",
    "status": "ok"
   },
   {
@@ -785,8 +785,190 @@
    "itemLevel": 1681,
    "legion": "Ivalys",
    "image": "https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=2303&charKey=648236871364882045",
-   "lastOk": "2026-10-07T23:25:47+00:00",
+   "lastOk": "2026-10-07T23:32:14+00:00",
    "status": "ok"
+  }
+ ],
+ "manual": [
+  {
+   "name": "Doc",
+   "d": "2026-10-03",
+   "il": 2049,
+   "cp": 96800
+  },
+  {
+   "name": "FERA",
+   "d": "2026-10-03",
+   "il": 1535,
+   "cp": 73200
+  },
+  {
+   "name": "Mikio",
+   "d": "2026-10-03",
+   "il": 1400,
+   "cp": 57520
+  },
+  {
+   "name": "KodaySod",
+   "d": "2026-10-03",
+   "il": 1615,
+   "cp": 79670
+  },
+  {
+   "name": "Yunalska",
+   "d": "2026-10-03",
+   "il": 1915,
+   "cp": 90260
+  },
+  {
+   "name": "Miaiphónos",
+   "d": "2026-10-03",
+   "il": 1829,
+   "cp": 83440
+  },
+  {
+   "name": "Nayko",
+   "d": "2026-10-03",
+   "il": 1442,
+   "cp": null
+  },
+  {
+   "name": "Nioky",
+   "d": "2026-10-03",
+   "il": 2101,
+   "cp": 88140
+  },
+  {
+   "name": "Shineiki",
+   "d": "2026-10-03",
+   "il": 1487,
+   "cp": 74150
+  },
+  {
+   "name": "Harrg",
+   "d": "2026-10-03",
+   "il": 1346,
+   "cp": 66390
+  },
+  {
+   "name": "Kinysse",
+   "d": "2026-10-03",
+   "il": 2001,
+   "cp": 89750
+  },
+  {
+   "name": "CØRÐE",
+   "d": "2026-10-03",
+   "il": 1909,
+   "cp": 81160
+  },
+  {
+   "name": "BakaViolet",
+   "d": "2026-10-03",
+   "il": 1894,
+   "cp": 84790
+  },
+  {
+   "name": "Celestal",
+   "d": "2026-10-03",
+   "il": 1518,
+   "cp": 77610
+  },
+  {
+   "name": "Phénix",
+   "d": "2026-10-03",
+   "il": 1341,
+   "cp": 64270
+  },
+  {
+   "name": "CaptaiinJump",
+   "d": "2026-10-03",
+   "il": 2093,
+   "cp": 89580
+  },
+  {
+   "name": "Slawn",
+   "d": "2026-10-03",
+   "il": 1812,
+   "cp": 74070
+  },
+  {
+   "name": "OrGaniZ",
+   "d": "2026-10-03",
+   "il": 1912,
+   "cp": 89490
+  },
+  {
+   "name": "Slynn",
+   "d": "2026-10-03",
+   "il": 1760,
+   "cp": 83940
+  },
+  {
+   "name": "Lumeka",
+   "d": "2026-10-03",
+   "il": 1773,
+   "cp": 83720
+  },
+  {
+   "name": "Hymia",
+   "d": "2026-10-03",
+   "il": 1843,
+   "cp": 78380
+  },
+  {
+   "name": "Jamick",
+   "d": "2026-10-03",
+   "il": 1321,
+   "cp": 67980
+  },
+  {
+   "name": "Gatss01",
+   "d": "2026-10-03",
+   "il": 1651,
+   "cp": 71000
+  },
+  {
+   "name": "Lyric",
+   "d": "2026-10-03",
+   "il": 2036,
+   "cp": 92450
+  },
+  {
+   "name": "LeMick",
+   "d": "2026-10-03",
+   "il": 1570,
+   "cp": 72740
+  },
+  {
+   "name": "Phiona",
+   "d": "2026-10-03",
+   "il": 1608,
+   "cp": 76250
+  },
+  {
+   "name": "Zhin.Gao",
+   "d": "2026-10-03",
+   "il": 1744,
+   "cp": 81450
+  },
+  {
+   "name": "Sorcerino",
+   "d": "2026-10-03",
+   "il": 1436,
+   "cp": 67930
+  },
+  {
+   "name": "Alex",
+   "d": "2026-10-03",
+   "il": 1400,
+   "cp": 68330
+  },
+  {
+   "name": "RezeMaFemme",
+   "d": "2026-10-03",
+   "il": 1617,
+   "cp": 75650
   }
  ]
 }
