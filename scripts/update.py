@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
 """
-Met à jour data/db.json : GS (Item Level) et CP de chaque membre listé dans
-members.csv, récupérés sur le site officiel d'Aion 2 (global).
+Met à jour les données du site : GS (Item Level) et CP de chaque membre listé
+dans members.csv, récupérés sur le site officiel d'Aion 2 (global).
+
+Les données sont chiffrées avec le mot de passe du site (secret GitHub
+SITE_PASSWORD) dans data/db.enc.json : le dépôt et les journaux GitHub étant
+publics, ils n'affichent aucune valeur. Sans ce secret, elles sont écrites en
+clair dans data/db.json (avec un avertissement).
 
 Lancé par GitHub Actions (.github/workflows/update.yml) deux fois par jour, à
 chaque modification de la liste des membres, ou à la main.
-Aucune dépendance : bibliothèque standard Python 3.9+.
+Dépendance : « cryptography » (chiffrement), installée par le workflow.
 
 Les adresses utilisées sont celles de la page officielle « Character Info »
 (aion2.plaync.com). Elles ne sont pas documentées par NCSoft et peuvent changer :
@@ -26,11 +31,14 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
+import vault
+
 ROOT = Path(__file__).resolve().parent.parent
 MEMBERS = ROOT / "members.csv"
 CONFIG = ROOT / "config.json"
-DB = ROOT / "data" / "db.json"
-MANUAL = ROOT / "data" / "historique-manuel.csv"
+DB = ROOT / "data" / "db.json"            # version en clair (seulement sans mot de passe)
+DB_ENC = ROOT / "data" / "db.enc.json"    # version chiffrée
+MANUAL = ROOT / "data" / "historique-manuel.csv"  # importé une fois dans les données chiffrées, puis supprimé
 
 SITE = "https://aion2.plaync.com"
 SEARCH = "https://api-search.plaync.com/aion2global/search/v2/character"
@@ -182,18 +190,24 @@ def to_int(v):
         return None
 
 
-def read_manual_history():
-    """data/historique-manuel.csv : relevés faits à la main avant le suivi automatique (pseudo,date,gs,cp)."""
+def read_manual_csv():
+    """data/historique-manuel.csv : relevés faits à la main (pseudo,date,gs,cp) → liste de lignes."""
+    rows = []
+    if MANUAL.exists():
+        with MANUAL.open(encoding="utf-8-sig", newline="") as f:
+            for row in csv.reader(f):
+                if len(row) < 3 or row[0].strip().startswith("#") or norm(row[0]) == "pseudo":
+                    continue
+                gs, cp = to_int(row[2]), (to_int(row[3]) if len(row) > 3 else None)
+                if gs is not None or cp is not None:
+                    rows.append({"name": row[0].strip(), "d": row[1].strip(), "il": gs, "cp": cp})
+    return rows
+
+
+def index_manual(rows):
     out = {}
-    if not MANUAL.exists():
-        return out
-    with MANUAL.open(encoding="utf-8-sig", newline="") as f:
-        for row in csv.reader(f):
-            if len(row) < 3 or row[0].strip().startswith("#") or norm(row[0]) == "pseudo":
-                continue
-            gs, cp = to_int(row[2]), (to_int(row[3]) if len(row) > 3 else None)
-            if gs is not None or cp is not None:
-                out.setdefault(norm(row[0]), []).append({"d": row[1].strip(), "cp": cp, "il": gs})
+    for r in rows:
+        out.setdefault(norm(r["name"]), []).append({"d": r["d"], "cp": r.get("cp"), "il": r.get("il")})
     return out
 
 
@@ -270,24 +284,55 @@ def update_member(m, prev, servers, manual, now, guild):
 # ---------------------------------------------------------------- passage complet
 
 def step_summary(db, removed):
-    """Résumé lisible affiché sur la page du passage dans GitHub Actions."""
+    """Résumé affiché sur la page du passage dans GitHub Actions. Ces pages sont
+    publiques : on n'y met que des comptes, ni pseudos ni valeurs."""
     path = os.environ.get("GITHUB_STEP_SUMMARY")
     if not path:
         return
     run = db["run"]
-    lines = [f"## {db['guild'] or 'Guilde'} : {run['ok']}/{run['total']} persos à jour", ""]
-    if run["issues"]:
-        lines += ["| Perso | Signalement | Détail |", "|---|---|---|"]
-        lines += [f"| {i['name']} | {ISSUE_LABEL.get(i['type'], i['type'])} | {i['detail']} |" for i in run["issues"]]
-    else:
-        lines.append("Aucun signalement.")
+    by_type = {}
+    for i in run["issues"]:
+        by_type[i["type"]] = by_type.get(i["type"], 0) + 1
+    lines = [f"## {run['ok']}/{run['total']} persos à jour", ""]
+    lines += [f"- {ISSUE_LABEL.get(t, t)} : {n}" for t, n in by_type.items()] or ["Aucun signalement."]
     if removed:
-        lines += ["", "Retirés du suivi depuis le passage précédent : " + ", ".join(removed)]
-    top = sorted((m for m in db["members"] if m.get("itemLevel")), key=lambda m: -m["itemLevel"])[:5]
-    if top:
-        lines += ["", "Top GS : " + " · ".join(f"{m['name']} {m['itemLevel']}" for m in top)]
+        lines.append(f"- Retirés du suivi depuis le passage précédent : {len(removed)}")
+    lines += ["", "Le détail est visible dans la page Admin du site (« État du suivi »)."]
     with open(path, "a", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
+
+
+def load_previous():
+    """Données du passage précédent → (db, sel). Lit la version chiffrée si elle existe
+    (avec SITE_PASSWORD, ou SITE_PASSWORD_PREVIOUS juste après un changement de mot de passe)."""
+    password = os.environ.get("SITE_PASSWORD", "")
+    if DB_ENC.exists():
+        box = json.loads(DB_ENC.read_text(encoding="utf-8"))
+        for i, pw in enumerate(p for p in (password, os.environ.get("SITE_PASSWORD_PREVIOUS", "")) if p):
+            try:
+                db, salt = vault.decrypt(box, pw)
+                if i:
+                    log("Mot de passe précédent utilisé : les données seront rechiffrées avec le nouveau.")
+                return db, (salt if i == 0 else None)
+            except vault.WrongPassword:
+                continue
+        sys.exit("Impossible de déchiffrer data/db.enc.json : vérifie le secret SITE_PASSWORD "
+                 "(après un changement de mot de passe, mets l'ancien dans SITE_PASSWORD_PREVIOUS).")
+    if DB.exists():
+        return json.loads(DB.read_text(encoding="utf-8")), None
+    return {}, None
+
+
+def save(db, salt):
+    DB.parent.mkdir(parents=True, exist_ok=True)
+    password = os.environ.get("SITE_PASSWORD", "")
+    if password:
+        DB_ENC.write_text(json.dumps(vault.encrypt(db, password, salt)) + "\n", encoding="utf-8")
+        DB.unlink(missing_ok=True)
+        MANUAL.unlink(missing_ok=True)  # son contenu est désormais dans les données chiffrées
+    else:
+        log("::warning::Secret SITE_PASSWORD absent : données écrites EN CLAIR dans data/db.json.")
+        DB.write_text(json.dumps(db, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
 
 
 def main():
@@ -295,25 +340,25 @@ def main():
     guild, region = cfg.get("guild", ""), cfg.get("region", "eu")
     now = datetime.now(timezone.utc)
 
-    old = {}
-    if DB.exists():
-        old = {m["key"]: m for m in json.loads(DB.read_text(encoding="utf-8")).get("members", [])}
+    prev_db, salt = load_previous()
+    old = {m["key"]: m for m in prev_db.get("members", [])}
+    manual_rows = prev_db.get("manual") or read_manual_csv()
+    manual = index_manual(manual_rows)
 
     members = read_members()
-    manual = read_manual_history()
     servers = Servers(region)
     log(f"{len(members)} membres suivis · région {region} · {servers.count()} serveurs chargés")
 
     result, issues = [], []
-    for m in members:
+    for n, m in enumerate(members, 1):
         key = f"{norm(m['server'])}:{norm(m['name'])}"
         entry, found = update_member(m, old.get(key, {}), servers, manual, now, guild)
         result.append(entry)
         for t, detail in found:
             issues.append({"name": entry["name"], "type": t, "detail": detail})
-        mark = "✓" if entry["status"] == "ok" else "✗"
-        extra = "".join(f" [{ISSUE_LABEL[t]}: {d}]" for t, d in found)
-        log(f"  {mark} {entry['name']} ({entry['server']}) : GS {entry.get('itemLevel')}, CP {entry.get('cp')}{extra}")
+        # Journal public : ni pseudo ni valeur, seulement le résultat
+        log(f"  {n:>3}. {'ok' if entry['status'] == 'ok' else ISSUE_LABEL.get(entry['status'], entry['status'])}"
+            + (f" (+{len(found)} signalement)" if found and entry["status"] == "ok" else ""))
 
     ok = sum(1 for e in result if e["status"] == "ok")
     removed = sorted(m["name"] for k, m in old.items() if k not in {e["key"] for e in result})
@@ -324,9 +369,9 @@ def main():
         "counts": {"total": len(result), "ok": ok},
         "run": {"at": now.isoformat(timespec="seconds"), "ok": ok, "total": len(result), "issues": issues},
         "members": result,
+        "manual": manual_rows,
     }
-    DB.parent.mkdir(parents=True, exist_ok=True)
-    DB.write_text(json.dumps(db, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    save(db, salt)
     step_summary(db, removed)
     log(f"Terminé : {ok}/{len(result)} à jour, {len(issues)} signalement(s)")
 

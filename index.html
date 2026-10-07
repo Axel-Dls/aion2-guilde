@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
 <title>Guilde · Aion 2</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -107,6 +108,7 @@ footer{margin-top:20px;font-size:13px;color:var(--muted);max-width:80ch}
     <input type="search" id="q" placeholder="Filtrer par pseudo, classe, statut…" aria-label="Filtrer le classement">
     <span class="count" id="count"></span>
     <a class="admin-link" href="admin.html" title="Gérer les membres (réservé aux gérants de la guilde)">Admin</a>
+    <button type="button" class="quiet" id="lock" title="Oublier le mot de passe sur cet appareil" hidden>Verrouiller</button>
   </div>
 
   <div class="tbl">
@@ -130,7 +132,7 @@ footer{margin-top:20px;font-size:13px;color:var(--muted);max-width:80ch}
 
 <script src="assets/common.js"></script>
 <script>
-const { $, esc, fmt, ROLES, roleBadge, flags, profileUrl, ago, dateTime, loadDb } = G;
+const { $, esc, fmt, ROLES, roleBadge, flags, profileUrl, ago, dateTime, loadDb, lock, isProtected } = G;
 const PUBLIC_FLAGS = ["not_found", "unknown_server", "error", "left_guild"];
 const STALE_HOURS = 36;
 
@@ -242,8 +244,11 @@ $("roles").addEventListener("click", e => {
   render();
 });
 
+$("lock").addEventListener("click", lock);
+
 loadDb().then(db => {
   DB = db; DATA = db.members;
+  $("lock").hidden = !isProtected();
   multiServer = new Set(DATA.map(m => m.server)).size > 1;
   renderHeader(); renderSummary(); render();
 }).catch(() => {

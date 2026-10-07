@@ -9,7 +9,7 @@ on:
   workflow_dispatch:           # bouton « Relancer la mise à jour » de l'admin
   push:
     branches: [main]
-    paths: [members.csv, config.json, scripts/update.py, data/historique-manuel.csv]
+    paths: [members.csv, config.json, scripts/**]
 
 permissions:
   contents: write
@@ -35,7 +35,15 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Installer le chiffrement
+        run: pip install --quiet "cryptography>=43,<51"
+
       - name: Récupérer les GS et CP
+        env:
+          # Mot de passe du site (Settings → Secrets and variables → Actions).
+          # Pour en changer : mettre l'ancien dans SITE_PASSWORD_PREVIOUS le temps d'un passage.
+          SITE_PASSWORD: ${{ secrets.SITE_PASSWORD }}
+          SITE_PASSWORD_PREVIOUS: ${{ secrets.SITE_PASSWORD_PREVIOUS }}
         run: python scripts/update.py
 
       - name: Enregistrer les données
@@ -43,16 +51,16 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/db.json
+          git add -A data
           if git diff --cached --quiet; then
             echo "Aucun changement."
             exit 0
           fi
           git commit -q -m "Mise à jour des CP ($(date -u +%Y-%m-%d))"
           for i in 1 2 3; do
-            # En cas de modification concurrente, notre db.json (le plus récent) l'emporte.
+            # En cas de modification concurrente, nos données (les plus récentes) l'emportent.
             git pull -q --rebase -X theirs origin main && git push -q && exit 0
             sleep $((i * 5))
           done
-          echo "::error::Impossible d'enregistrer data/db.json après 3 tentatives."
+          echo "::error::Impossible d'enregistrer les données après 3 tentatives."
           exit 1

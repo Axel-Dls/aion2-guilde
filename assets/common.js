@@ -70,12 +70,97 @@
     return ref === pts[pts.length - 1] ? null : ref[field];
   }
 
-  // Charge data/db.json et ajoute à chaque membre : classe en français, progressions 7 j, signalements
-  async function loadDb() {
-    const db = await fetch("data/db.json?t=" + Date.now(), { cache: "no-store" }).then(r => {
-      if (!r.ok) throw new Error("HTTP " + r.status);
-      return r.json();
+  // ------------------------------------------------------------ données chiffrées
+  // data/db.enc.json est chiffré (AES-256-GCM, clé PBKDF2-SHA256) avec le mot de passe du site,
+  // par scripts/vault.py. La clé dérivée (pas le mot de passe) peut être gardée sur l'appareil.
+  const KEY_STORE = "aion2-guilde-site-key";
+  const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+  const b64e = buf => btoa(String.fromCharCode(...new Uint8Array(buf)));
+  const getJson = async url => {
+    const r = await fetch(url + "?t=" + Date.now(), { cache: "no-store" });
+    if (!r.ok) throw Object.assign(new Error("HTTP " + r.status), { status: r.status });
+    return r.json();
+  };
+
+  async function deriveKey(password, box) {
+    const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveKey"]);
+    return crypto.subtle.deriveKey({ name: "PBKDF2", hash: "SHA-256", salt: b64(box.kdf.salt), iterations: box.kdf.iterations },
+      base, { name: "AES-GCM", length: 256 }, true, ["decrypt"]);
+  }
+  async function open(box, key) {
+    const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv: b64(box.iv) }, key, b64(box.ct));
+    return JSON.parse(new TextDecoder().decode(plain));
+  }
+  function storedKey(box) {
+    try {
+      const s = JSON.parse(localStorage.getItem(KEY_STORE) || sessionStorage.getItem(KEY_STORE) || "null");
+      return s && s.salt === box.kdf.salt ? s.key : null;
+    } catch { return null; }
+  }
+  async function storeKey(box, key, remember) {
+    const raw = b64e(await crypto.subtle.exportKey("raw", key));
+    try { (remember ? localStorage : sessionStorage).setItem(KEY_STORE, JSON.stringify({ salt: box.kdf.salt, key: raw })); } catch {}
+  }
+  function lock() {
+    try { localStorage.removeItem(KEY_STORE); sessionStorage.removeItem(KEY_STORE); } catch {}
+    location.reload();
+  }
+
+  // Écran de déverrouillage : résout avec les données une fois le bon mot de passe saisi
+  function askPassword(box) {
+    document.documentElement.classList.add("locked");
+    const gate = document.createElement("div");
+    gate.className = "gate";
+    gate.innerHTML = `<form class="gate-card" autocomplete="on">
+      <p class="eyebrow">Accès réservé</p>
+      <h1>Guilde</h1>
+      <p class="muted">Ce site est réservé aux gérants de la guilde. Entre le mot de passe pour continuer.</p>
+      <input type="text" name="username" value="guilde" autocomplete="username" hidden>
+      <input type="password" id="gatePw" autocomplete="current-password" placeholder="Mot de passe" aria-label="Mot de passe" required>
+      <label class="gate-chk"><input type="checkbox" id="gateRemember" checked> Se souvenir de cet appareil</label>
+      <button class="primary" type="submit">Entrer</button>
+      <p class="gate-err" id="gateErr" role="alert"></p>
+    </form>`;
+    document.body.append(gate);
+    const pw = gate.querySelector("#gatePw"), err = gate.querySelector("#gateErr"), btn = gate.querySelector("button");
+    pw.focus();
+    return new Promise(resolve => {
+      gate.querySelector("form").addEventListener("submit", async e => {
+        e.preventDefault();
+        btn.disabled = true; err.textContent = "";
+        try {
+          const key = await deriveKey(pw.value, box);
+          const db = await open(box, key);
+          await storeKey(box, key, gate.querySelector("#gateRemember").checked);
+          gate.remove(); document.documentElement.classList.remove("locked");
+          resolve(db);
+        } catch {
+          err.textContent = "Mot de passe incorrect.";
+          pw.select();
+        } finally { btn.disabled = false; }
+      });
     });
+  }
+
+  // Données du site : version chiffrée si elle existe, sinon version en clair (avant activation)
+  async function fetchData() {
+    let box;
+    try { box = await getJson("data/db.enc.json"); }
+    catch (e) { if (e.status === 404) return getJson("data/db.json"); throw e; }
+    const saved = storedKey(box);
+    if (saved) {
+      try {
+        const key = await crypto.subtle.importKey("raw", b64(saved), "AES-GCM", true, ["decrypt"]);
+        return await open(box, key);
+      } catch { /* mot de passe changé : on redemande */ }
+    }
+    return askPassword(box);
+  }
+  const isProtected = () => { try { return !!(localStorage.getItem(KEY_STORE) || sessionStorage.getItem(KEY_STORE)); } catch { return false; } };
+
+  // Charge les données et ajoute à chaque membre : classe en français, progressions 7 j, signalements
+  async function loadDb() {
+    const db = await fetchData();
     const issues = {};
     (db.run?.issues || []).forEach(i => (issues[norm(i.name)] ||= []).push(i));
     db.members = (db.members || []).map(m => {
@@ -101,5 +186,5 @@
   }
 
   window.G = { $, esc, fmt, norm, CLASS_FR, ROLES, RANKS, ISSUE, SERVER_ID, REPO, profileUrl, ago, dateTime,
-    valueDaysAgo, loadDb, roleBadge, flags, toast };
+    valueDaysAgo, loadDb, roleBadge, flags, toast, lock, isProtected };
 })();
