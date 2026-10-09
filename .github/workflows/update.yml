@@ -27,11 +27,11 @@ jobs:
       # Toujours partir de la dernière version de main (et non du commit qui a
       # déclenché le passage) : un passage qui a attendu son tour voit ainsi les
       # données du précédent.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: main
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
