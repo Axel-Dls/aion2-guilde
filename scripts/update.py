@@ -227,7 +227,7 @@ def merge_history(history, today_point, manual):
 
 # ---------------------------------------------------------------- un membre
 
-def update_member(m, prev, servers, manual, now, guild):
+def update_member(m, prev, servers, manual, now, guild, aliases=()):
     """Renvoie l'entrée à jour du membre et ses signalements [(type, détail)]."""
     entry = {
         "key": f"{norm(m['server'])}:{norm(m['name'])}",
@@ -271,7 +271,7 @@ def update_member(m, prev, servers, manual, now, guild):
         "lastOk": now.isoformat(timespec="seconds"),
     })
     entry["history"] = merge_history(entry["history"], {"d": now.date().isoformat(), "cp": entry["cp"], "il": il},
-                                     manual.get(norm(entry["name"]), []))
+                                     [p for n in (entry["name"], *aliases) for p in manual.get(norm(n), [])])
 
     issues = []
     if guild and entry["legion"] and norm(entry["legion"]) != norm(guild):
@@ -338,6 +338,7 @@ def save(db, salt):
 def main():
     cfg = json.loads(CONFIG.read_text(encoding="utf-8"))
     guild, region = cfg.get("guild", ""), cfg.get("region", "eu")
+    aliases = {norm(k): v for k, v in cfg.get("anciens_noms", {}).items() if isinstance(v, list)}
     now = datetime.now(timezone.utc)
 
     prev_db, salt = load_previous()
@@ -352,7 +353,7 @@ def main():
     result, issues = [], []
     for n, m in enumerate(members, 1):
         key = f"{norm(m['server'])}:{norm(m['name'])}"
-        entry, found = update_member(m, old.get(key, {}), servers, manual, now, guild)
+        entry, found = update_member(m, old.get(key, {}), servers, manual, now, guild, aliases.get(norm(m["name"]), ()))
         result.append(entry)
         for t, detail in found:
             issues.append({"name": entry["name"], "type": t, "detail": detail})

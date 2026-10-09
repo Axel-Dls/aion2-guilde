@@ -1,4 +1,11 @@
 {
   "guild": "Ivalys",
-  "region": "eu"
+  "region": "eu",
+  "anciens_noms": {
+    "_": "Pseudo actuel → anciens noms, pour retrouver l'historique d'un perso renommé",
+    "CORDE": ["CØRÐE"],
+    "ZhinGao": ["Zhin.Gao"],
+    "Gatss": ["Gatss01"],
+    "LeMickk": ["LeMick"]
+  }
 }
