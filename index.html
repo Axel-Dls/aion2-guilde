@@ -11,17 +11,24 @@
 <link rel="stylesheet" href="assets/common.css">
 <style>
 /* Classement : en-tête, 3 chiffres clés, composition, tableau triable */
-.wrap{max-width:1040px;margin:0 auto;padding-block:40px 56px}
+.wrap{max-width:1080px;margin:0 auto;padding-block:40px 56px}
+.head-r{display:grid;gap:8px;justify-items:end}
 .meta{color:var(--muted);font-size:14px;text-align:right}
 .meta strong{color:var(--ink);font-weight:600}
+.nav{display:flex;gap:4px;align-items:center}
+.nav a,.nav button{font-size:14px;font-weight:700;padding:6px 10px;border-radius:8px;text-decoration:none;background:none;border:1px solid var(--line);color:var(--ink)}
+.nav a:hover,.nav button:hover{border-color:var(--gold);color:var(--gold)}
+.nav button{color:var(--muted);border-color:transparent;font-weight:600}
+.layout{display:grid;gap:16px}
+.side,.main{min-width:0}
 
 .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px}
 .stat{min-width:0}
 .stat .v{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .stat .s{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-.compo{margin-bottom:24px}
-.compo-h{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:10px}
+.compo{margin-bottom:8px}
+.compo-h{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:10px}
 .compo-h .s{font-size:13px;color:var(--muted)}
 .mix{display:flex;height:8px;border-radius:999px;overflow:hidden;background:var(--line);margin-bottom:14px;gap:2px}
 .roles{display:grid;gap:8px}
@@ -37,9 +44,10 @@
 .chip.zero{color:var(--muted)} .chip.zero b{background:none;color:var(--down)}
 
 .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:10px}
-.toolbar input{width:280px;max-width:100%;background:var(--surface)}
+.toolbar input{width:300px;max-width:100%;background:var(--surface)}
 .count{font-size:13px;color:var(--muted);margin-right:auto}
-.admin-link{font-weight:600;color:var(--gold)}
+kbd{font:12px var(--mono);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 5px;color:var(--muted)}
+.kbd-hint{font-size:12px;color:var(--muted)}
 
 .tbl{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px}
 table{width:100%;border-collapse:collapse;min-width:640px}
@@ -66,20 +74,55 @@ tr.top .rank{color:var(--gold);font-weight:800}
 .seg{display:inline-flex;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:2px;gap:2px}
 .seg button{border:0;background:none;color:var(--muted);font-size:12px;font-weight:700;padding:4px 10px;border-radius:6px}
 .seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgb(0 0 0 / .15)}
-.alts-btn{all:unset;cursor:pointer;font-size:12px;font-weight:700;color:var(--gold);margin-left:6px;white-space:nowrap}
-.alts-btn:hover{text-decoration:underline}
+.alts-btn{all:unset;cursor:pointer;font-size:11.5px;font-weight:700;color:var(--gold);margin-left:8px;padding:1px 8px;border-radius:999px;background:var(--gold-soft);white-space:nowrap;vertical-align:1px}
+.alts-btn:hover{background:var(--gold);color:var(--bg)}
 .alts-btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 tr.alt td{background:var(--surface-2)}
 tr.alt .who{padding-left:22px}
 tr.alt .nm{font-weight:600}
 tr.alt .gs{font-size:14px;font-weight:700}
 tr.alt .av{width:26px;height:26px;font-size:11px}
-.alt-of{font-size:12px;color:var(--muted);font-weight:400}
+.alt-of{font-size:12px;color:var(--muted);font-weight:400;margin-left:6px}
+/* Colonne Classe et barre de GS : écrans larges seulement */
+.col-class,.gsbar{display:none}
+.cls{display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.cls .dot{width:8px;height:8px;border-radius:50%;flex:none}
+.cls small{color:var(--muted);font-size:12px}
+.gsbar{width:64px;height:5px;border-radius:999px;background:var(--line);overflow:hidden;margin-right:12px;vertical-align:middle}
+.gsbar i{display:block;height:100%;border-radius:inherit;background:var(--gold-strong)}
 .empty{padding:40px 20px;text-align:center;color:var(--muted)}
 .empty strong{color:var(--ink);display:block;font-size:17px;margin-bottom:6px}
 footer{margin-top:20px;font-size:13px;color:var(--muted);max-width:80ch}
 
+@media (min-width:900px){
+  .col-class{display:table-cell}
+  .gsbar{display:inline-block}
+  .sub-class{display:none}
+  .who{gap:12px}
+  td{padding-block:8px}
+  .av{width:30px;height:30px;font-size:12px}
+}
+/* PC : chiffres clés et composition dans une colonne à gauche, classement à droite */
+@media (min-width:1180px){
+  .wrap{max-width:1500px;padding-inline:12px}
+  .layout{grid-template-columns:330px minmax(0,1fr);gap:24px;align-items:start}
+  .side{position:sticky;top:20px}
+  .stats{grid-template-columns:minmax(0,1fr);gap:10px;margin-bottom:10px}
+  .stat{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;column-gap:12px;padding:12px 16px}
+  .stat .label{grid-column:1/-1}
+  .stat .v{grid-row:2;grid-column:2;font-size:24px}
+  .stat .s{grid-row:2;grid-column:1;white-space:normal}
+  .rl{grid-template-columns:minmax(0,1fr) auto;gap:6px 10px}
+  .rl .chips{grid-column:1/-1}
+  .tbl{overflow:visible}
+  table{min-width:0}
+  thead th{position:sticky;top:0;z-index:2;box-shadow:inset 0 -1px var(--line)}
+  thead th:first-child{border-top-left-radius:12px} thead th:last-child{border-top-right-radius:12px}
+  footer{font-size:12.5px}
+}
+@media (max-width:899px){.kbd-hint{display:none}}
 @media (max-width:640px){
+  .head-r{justify-items:start}
   .meta{text-align:left}
   .stats{grid-template-columns:minmax(0,1fr)}
   .rl{grid-template-columns:64px 22px minmax(0,1fr);gap:8px;align-items:start}.rl .n,.rl .c{line-height:30px}.compo-h .s{display:none}
@@ -96,7 +139,13 @@ footer{margin-top:20px;font-size:13px;color:var(--muted);max-width:80ch}
       <p class="eyebrow" id="eyebrow">Aion 2 · Global</p>
       <h1 id="guild">Guilde</h1>
     </div>
-    <div class="meta" id="meta">Chargement…</div>
+    <div class="head-r">
+      <div class="meta" id="meta">Chargement…</div>
+      <nav class="nav" aria-label="Pages">
+        <a href="admin.html" title="Gérer les membres et les évaluations">Admin</a>
+        <button type="button" id="lock" title="Oublier le mot de passe sur cet appareil" hidden>Verrouiller</button>
+      </nav>
+    </div>
   </header>
 
   <div class="notice" id="stale" hidden>
@@ -104,6 +153,8 @@ footer{margin-top:20px;font-size:13px;color:var(--muted);max-width:80ch}
     <span id="staleText"></span>
   </div>
 
+  <div class="layout">
+  <aside class="side">
   <section class="stats" aria-label="Chiffres clés">
     <div class="card stat"><div class="label">Joueurs suivis</div><div class="v" id="s-count">–</div><div class="s" id="s-count-sub">&nbsp;</div></div>
     <div class="card stat"><div class="label">GS moyen</div><div class="v" id="s-avg">–</div><div class="s" id="s-avg-sub">&nbsp;</div></div>
@@ -116,13 +167,15 @@ footer{margin-top:20px;font-size:13px;color:var(--muted);max-width:80ch}
     <div class="mix" id="mix" aria-hidden="true"></div>
     <div class="roles" id="roles"></div>
   </section>
+  </aside>
+
+  <main class="main">
 
   <div class="toolbar">
-    <input type="search" id="q" placeholder="Filtrer par pseudo, classe, statut…" aria-label="Filtrer le classement">
+    <input type="search" id="q" placeholder="Filtrer par pseudo, classe, statut…" aria-label="Filtrer le classement" aria-keyshortcuts="/">
+    <span class="kbd-hint"><kbd>/</kbd> pour chercher</span>
     <span class="count" id="count"></span>
     <button type="button" class="quiet" id="toggleAlts" hidden>Déplier les alts</button>
-    <a class="admin-link" href="admin.html" title="Gérer les membres (réservé aux gérants de la guilde)">Admin</a>
-    <button type="button" class="quiet" id="lock" title="Oublier le mot de passe sur cet appareil" hidden>Verrouiller</button>
   </div>
 
   <div class="tbl">
@@ -130,18 +183,21 @@ footer{margin-top:20px;font-size:13px;color:var(--muted);max-width:80ch}
       <thead><tr>
         <th>#</th>
         <th><button data-k="name">Perso <span class="ar"></span></button></th>
+        <th class="col-class"><button data-k="classFr">Classe <span class="ar"></span></button></th>
         <th class="num"><button data-k="itemLevel" title="Gear Score (« Item Level » sur le site officiel)">GS <span class="ar"></span></button></th>
         <th class="num"><button data-k="d7" title="Progression du GS sur 7 jours">GS 7 j <span class="ar"></span></button></th>
         <th class="num"><button data-k="cp" title="Combat Power">CP <span class="ar"></span></button></th>
         <th class="num col-cp7"><button data-k="cp7" title="Progression du CP sur 7 jours">CP 7 j <span class="ar"></span></button></th>
       </tr></thead>
-      <tbody id="rows"><tr><td colspan="6" class="empty">Chargement des données…</td></tr></tbody>
+      <tbody id="rows"><tr><td colspan="7" class="empty">Chargement des données…</td></tr></tbody>
     </table>
   </div>
 
   <footer>
     Données relevées automatiquement sur le site officiel d'Aion 2 deux fois par jour, et après chaque changement dans la liste des membres. Clique sur un pseudo pour ouvrir sa fiche officielle, et sur « alts » pour voir les persos secondaires d'un joueur. Seuls les persos principaux sont classés.
   </footer>
+  </main>
+  </div>
 </div>
 
 <script src="assets/common.js"></script>
@@ -150,6 +206,8 @@ const { $, esc, fmt, ROLES, roleBadge, flags, profileUrl, ago, dateTime, loadDb,
 const PUBLIC_FLAGS = ["not_found", "unknown_server", "error", "left_guild"];
 const STALE_HOURS = 36;
 
+let GS_MIN = 0, GS_MAX = 0;     // bornes des barres de GS
+const roleColor = c => (ROLES.find(r => r.classes.includes(c)) || {}).color || "var(--muted)";
 let DB = null, ALL = [], MAINS = [], sortKey = "itemLevel", sortDir = -1, multiServer = false;
 let compoAll = false;          // composition : mains seulement, ou mains + alts
 const OPEN = new Set();        // mains dont les alts sont dépliés
@@ -183,6 +241,8 @@ function sorter(a, b) {
 
 function row(m, { rank = "", alt = false } = {}) {
   const sub = [m.classFr, m.level ? "niv. " + m.level : "", multiServer ? m.server : ""].filter(Boolean).map(esc).join(" · ");
+  const pct = m.itemLevel != null && GS_MAX > GS_MIN ? Math.max(4, Math.min(100, 12 + 88 * (m.itemLevel - GS_MIN) / (GS_MAX - GS_MIN))) : 0;
+  const cls = m.classFr ? `<span class="cls"><span class="dot" style="background:${roleColor(m.classFr)}"></span>${esc(m.classFr)}${m.level ? ` <small>niv. ${esc(m.level)}</small>` : ""}${multiServer ? ` <small>${esc(m.server)}</small>` : ""}</span>` : "–";
   const img = m.image ? `<img src="${esc(m.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : "";
   const altsBtn = !alt && m.alts?.length
     ? `<button type="button" class="alts-btn" data-main="${esc(m.name)}" aria-expanded="${OPEN.has(m.name)}">${OPEN.has(m.name) ? "▾" : "▸"} ${m.alts.length} alt${m.alts.length > 1 ? "s" : ""}</button>` : "";
@@ -190,9 +250,10 @@ function row(m, { rank = "", alt = false } = {}) {
   return `<tr class="${alt === true ? "alt" : ""} ${rank && rank <= 3 ? "top" : ""}">
     <td class="rank">${rank}</td>
     <td><div class="who"><span class="av" aria-hidden="true">${esc(initials(m.name))}${img}</span>
-      <div><div class="nm"><a class="pl" href="${esc(profileUrl(m, DB.region))}" target="_blank" rel="noopener" title="Fiche officielle de ${esc(m.name)}">${esc(m.name)}</a>${roleBadge(m.role)}${flags(m.issues, PUBLIC_FLAGS)}${altOf}</div>
-      <div class="sub">${sub || "&nbsp;"}${altsBtn}</div></div></div></td>
-    <td class="num gs">${fmt(m.itemLevel)}</td>
+      <div><div class="nm"><a class="pl" href="${esc(profileUrl(m, DB.region))}" target="_blank" rel="noopener" title="Fiche officielle de ${esc(m.name)}">${esc(m.name)}</a>${roleBadge(m.role)}${flags(m.issues, PUBLIC_FLAGS)}${altOf}${altsBtn}</div>
+      <div class="sub sub-class">${sub || "&nbsp;"}</div></div></div></td>
+    <td class="col-class">${cls}</td>
+    <td class="num gs">${pct ? `<span class="gsbar" aria-hidden="true"><i style="width:${pct.toFixed(1)}%"></i></span>` : ""}${fmt(m.itemLevel)}</td>
     <td class="num">${delta(m.d7)}</td>
     <td class="num">${fmt(m.cp)}</td>
     <td class="num col-cp7">${delta(m.cp7)}</td>
@@ -213,7 +274,7 @@ function render() {
   $("toggleAlts").textContent = MAINS.every(m => !m.alts.length || OPEN.has(m.name)) ? "Replier les alts" : "Déplier les alts";
 
   if (!ALL.length) {
-    $("rows").innerHTML = `<tr><td colspan="6" class="empty"><strong>Aucun membre suivi pour l'instant</strong>Ajoute des persos depuis la page Admin : le classement apparaît ici quelques minutes après.</td></tr>`;
+    $("rows").innerHTML = `<tr><td colspan="7" class="empty"><strong>Aucun membre suivi pour l'instant</strong>Ajoute des persos depuis la page Admin : le classement apparaît ici quelques minutes après.</td></tr>`;
     return;
   }
 
@@ -225,7 +286,7 @@ function render() {
       : [m.name, m.server, m.classFr, m.role, m.legion, m.mainName].join(" ").toLowerCase().includes(q)).sort(sorter);
     $("count").textContent = `${list.length} perso${list.length > 1 ? "s" : ""}`;
     $("rows").innerHTML = list.length ? list.map(m => row(m, { alt: "flat" })).join("")
-      : `<tr><td colspan="6" class="empty">Aucun perso ne correspond à « ${esc($("q").value)} ».</td></tr>`;
+      : `<tr><td colspan="7" class="empty">Aucun perso ne correspond à « ${esc($("q").value)} ».</td></tr>`;
     return;
   }
 
@@ -268,10 +329,15 @@ function renderHeader() {
 
 document.querySelectorAll("th button").forEach(b => b.addEventListener("click", () => {
   const k = b.dataset.k;
-  if (sortKey === k) sortDir = -sortDir; else { sortKey = k; sortDir = k === "name" ? 1 : -1; }
+  if (sortKey === k) sortDir = -sortDir; else { sortKey = k; sortDir = k === "name" || k === "classFr" ? 1 : -1; }
   render();
 }));
 $("q").addEventListener("input", render);
+// Raccourcis clavier : « / » pour chercher, Échap pour effacer
+document.addEventListener("keydown", e => {
+  if (e.key === "/" && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName)) { e.preventDefault(); $("q").focus(); $("q").select(); }
+  else if (e.key === "Escape" && document.activeElement === $("q") && $("q").value) { $("q").value = ""; render(); }
+});
 $("roles").addEventListener("click", e => {
   const b = e.target.closest("button[data-class]"); if (!b) return;
   const c = b.dataset.class;
@@ -304,6 +370,8 @@ loadDb().then(db => {
   DB = db; ALL = db.members; MAINS = db.mains;
   $("lock").hidden = !isProtected();
   multiServer = new Set(ALL.map(m => m.server)).size > 1;
+  const gs = MAINS.map(m => m.itemLevel).filter(v => v != null);
+  if (gs.length) { GS_MIN = Math.min(...gs); GS_MAX = Math.max(...gs); }
   renderHeader(); renderSummary(); render();
 }).catch(() => {
   DB = { region: "eu" };
