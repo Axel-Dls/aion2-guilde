@@ -63,6 +63,18 @@ tr.top .rank{color:var(--gold);font-weight:800}
 .gs{font-weight:800;font-size:16px}
 .d{font-weight:700;font-size:13px}
 .d.up{color:var(--up)} .d.down{color:var(--down)} .d.flat{color:var(--muted);font-weight:400}
+.seg{display:inline-flex;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:2px;gap:2px}
+.seg button{border:0;background:none;color:var(--muted);font-size:12px;font-weight:700;padding:4px 10px;border-radius:6px}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgb(0 0 0 / .15)}
+.alts-btn{all:unset;cursor:pointer;font-size:12px;font-weight:700;color:var(--gold);margin-left:6px;white-space:nowrap}
+.alts-btn:hover{text-decoration:underline}
+.alts-btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+tr.alt td{background:var(--surface-2)}
+tr.alt .who{padding-left:22px}
+tr.alt .nm{font-weight:600}
+tr.alt .gs{font-size:14px;font-weight:700}
+tr.alt .av{width:26px;height:26px;font-size:11px}
+.alt-of{font-size:12px;color:var(--muted);font-weight:400}
 .empty{padding:40px 20px;text-align:center;color:var(--muted)}
 .empty strong{color:var(--ink);display:block;font-size:17px;margin-bottom:6px}
 footer{margin-top:20px;font-size:13px;color:var(--muted);max-width:80ch}
@@ -93,13 +105,14 @@ footer{margin-top:20px;font-size:13px;color:var(--muted);max-width:80ch}
   </div>
 
   <section class="stats" aria-label="Chiffres clés">
-    <div class="card stat"><div class="label">Membres suivis</div><div class="v" id="s-count">–</div><div class="s" id="s-count-sub">&nbsp;</div></div>
+    <div class="card stat"><div class="label">Joueurs suivis</div><div class="v" id="s-count">–</div><div class="s" id="s-count-sub">&nbsp;</div></div>
     <div class="card stat"><div class="label">GS moyen</div><div class="v" id="s-avg">–</div><div class="s" id="s-avg-sub">&nbsp;</div></div>
     <div class="card stat"><div class="label">Meilleure progression GS · 7 j</div><div class="v" id="s-best">–</div><div class="s" id="s-best-sub">&nbsp;</div></div>
   </section>
 
   <section class="card compo" aria-label="Composition de la guilde">
-    <div class="compo-h"><span class="label">Composition <span id="compoN"></span></span><span class="s">Clique sur une classe pour filtrer le classement</span></div>
+    <div class="compo-h"><span class="label">Composition <span id="compoN"></span></span>
+      <span class="seg" role="group" aria-label="Persos comptés"><button type="button" id="cMains" aria-pressed="true">Mains</button><button type="button" id="cAll" aria-pressed="false">Mains + alts</button></span></div>
     <div class="mix" id="mix" aria-hidden="true"></div>
     <div class="roles" id="roles"></div>
   </section>
@@ -107,6 +120,7 @@ footer{margin-top:20px;font-size:13px;color:var(--muted);max-width:80ch}
   <div class="toolbar">
     <input type="search" id="q" placeholder="Filtrer par pseudo, classe, statut…" aria-label="Filtrer le classement">
     <span class="count" id="count"></span>
+    <button type="button" class="quiet" id="toggleAlts" hidden>Déplier les alts</button>
     <a class="admin-link" href="admin.html" title="Gérer les membres (réservé aux gérants de la guilde)">Admin</a>
     <button type="button" class="quiet" id="lock" title="Oublier le mot de passe sur cet appareil" hidden>Verrouiller</button>
   </div>
@@ -126,7 +140,7 @@ footer{margin-top:20px;font-size:13px;color:var(--muted);max-width:80ch}
   </div>
 
   <footer>
-    Données relevées automatiquement sur le site officiel d'Aion 2 deux fois par jour, et après chaque changement dans la liste des membres. Clique sur un pseudo pour ouvrir sa fiche officielle.
+    Données relevées automatiquement sur le site officiel d'Aion 2 deux fois par jour, et après chaque changement dans la liste des membres. Clique sur un pseudo pour ouvrir sa fiche officielle, et sur « alts » pour voir les persos secondaires d'un joueur. Seuls les persos principaux sont classés.
   </footer>
 </div>
 
@@ -136,7 +150,9 @@ const { $, esc, fmt, ROLES, roleBadge, flags, profileUrl, ago, dateTime, loadDb,
 const PUBLIC_FLAGS = ["not_found", "unknown_server", "error", "left_guild"];
 const STALE_HOURS = 36;
 
-let DB = null, DATA = [], sortKey = "itemLevel", sortDir = -1, multiServer = false;
+let DB = null, ALL = [], MAINS = [], sortKey = "itemLevel", sortDir = -1, multiServer = false;
+let compoAll = false;          // composition : mains seulement, ou mains + alts
+const OPEN = new Set();        // mains dont les alts sont dépliés
 
 const initials = name => (String(name).match(/\p{L}|\p{N}/u) || ["?"])[0].toUpperCase();
 function delta(d) {
@@ -146,7 +162,7 @@ function delta(d) {
 
 function renderComposition(q) {
   const count = {};
-  DATA.forEach(m => { if (m.classFr) count[m.classFr] = (count[m.classFr] || 0) + 1; });
+  (compoAll ? ALL : MAINS).forEach(m => { if (m.classFr) count[m.classFr] = (count[m.classFr] || 0) + 1; });
   const totals = ROLES.map(r => r.classes.reduce((t, c) => t + (count[c] || 0), 0));
   const all = totals.reduce((a, b) => a + b, 0);
   $("compoN").textContent = all ? `· ${all} persos` : "";
@@ -159,62 +175,81 @@ function renderComposition(q) {
     </div>`).join("");
 }
 
+function sorter(a, b) {
+  const va = a[sortKey], vb = b[sortKey];
+  if (va == null || vb == null) return va == null ? (vb == null ? 0 : 1) : -1;
+  return (typeof va === "string" ? va.localeCompare(vb, "fr") : va - vb) * sortDir;
+}
+
+function row(m, { rank = "", alt = false } = {}) {
+  const sub = [m.classFr, m.level ? "niv. " + m.level : "", multiServer ? m.server : ""].filter(Boolean).map(esc).join(" · ");
+  const img = m.image ? `<img src="${esc(m.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : "";
+  const altsBtn = !alt && m.alts?.length
+    ? `<button type="button" class="alts-btn" data-main="${esc(m.name)}" aria-expanded="${OPEN.has(m.name)}">${OPEN.has(m.name) ? "▾" : "▸"} ${m.alts.length} alt${m.alts.length > 1 ? "s" : ""}</button>` : "";
+  const altOf = alt === "flat" && m.isAlt ? ` <span class="alt-of">alt de ${esc(m.mainName)}</span>` : "";
+  return `<tr class="${alt === true ? "alt" : ""} ${rank && rank <= 3 ? "top" : ""}">
+    <td class="rank">${rank}</td>
+    <td><div class="who"><span class="av" aria-hidden="true">${esc(initials(m.name))}${img}</span>
+      <div><div class="nm"><a class="pl" href="${esc(profileUrl(m, DB.region))}" target="_blank" rel="noopener" title="Fiche officielle de ${esc(m.name)}">${esc(m.name)}</a>${roleBadge(m.role)}${flags(m.issues, PUBLIC_FLAGS)}${altOf}</div>
+      <div class="sub">${sub || "&nbsp;"}${altsBtn}</div></div></div></td>
+    <td class="num gs">${fmt(m.itemLevel)}</td>
+    <td class="num">${delta(m.d7)}</td>
+    <td class="num">${fmt(m.cp)}</td>
+    <td class="num col-cp7">${delta(m.cp7)}</td>
+  </tr>`;
+}
+
 function render() {
   const q = $("q").value.trim().toLowerCase();
   renderComposition(q);
-
-  const list = DATA.filter(m => !q || m.classFr.toLowerCase() === q
-    || [m.name, m.server, m.classFr, m.role, m.legion].join(" ").toLowerCase().includes(q));
-  list.sort((a, b) => {
-    const va = a[sortKey], vb = b[sortKey];
-    if (va == null || vb == null) return va == null ? (vb == null ? 0 : 1) : -1;
-    return (typeof va === "string" ? va.localeCompare(vb, "fr") : va - vb) * sortDir;
-  });
-  $("count").textContent = q ? `${list.length} sur ${DATA.length}` : "";
 
   document.querySelectorAll("th button").forEach(b => {
     const on = b.dataset.k === sortKey;
     if (on) b.setAttribute("aria-sort", sortDir < 0 ? "descending" : "ascending"); else b.removeAttribute("aria-sort");
     b.querySelector(".ar").textContent = on ? (sortDir < 0 ? "▼" : "▲") : "";
   });
+  const anyAlts = MAINS.some(m => m.alts.length);
+  $("toggleAlts").hidden = !anyAlts || !!q;
+  $("toggleAlts").textContent = MAINS.every(m => !m.alts.length || OPEN.has(m.name)) ? "Replier les alts" : "Déplier les alts";
 
-  if (!DATA.length) {
+  if (!ALL.length) {
     $("rows").innerHTML = `<tr><td colspan="6" class="empty"><strong>Aucun membre suivi pour l'instant</strong>Ajoute des persos depuis la page Admin : le classement apparaît ici quelques minutes après.</td></tr>`;
     return;
   }
-  if (!list.length) {
-    $("rows").innerHTML = `<tr><td colspan="6" class="empty">Aucun perso ne correspond à « ${esc($("q").value)} ».</td></tr>`;
+
+  // Recherche : liste à plat. Filtre par classe = mêmes persos que la composition affichée.
+  if (q) {
+    const byClass = ALL.some(m => m.classFr.toLowerCase() === q);
+    const pool = byClass ? (compoAll ? ALL : MAINS) : ALL;
+    const list = pool.filter(m => byClass ? m.classFr.toLowerCase() === q
+      : [m.name, m.server, m.classFr, m.role, m.legion, m.mainName].join(" ").toLowerCase().includes(q)).sort(sorter);
+    $("count").textContent = `${list.length} perso${list.length > 1 ? "s" : ""}`;
+    $("rows").innerHTML = list.length ? list.map(m => row(m, { alt: "flat" })).join("")
+      : `<tr><td colspan="6" class="empty">Aucun perso ne correspond à « ${esc($("q").value)} ».</td></tr>`;
     return;
   }
-  const ranked = sortKey === "itemLevel" && sortDir < 0 && !q;
-  $("rows").innerHTML = list.map((m, i) => {
-    const rank = ranked && m.itemLevel != null ? i + 1 : "";
-    const sub = [m.classFr, m.level ? "niv. " + m.level : "", multiServer ? m.server : ""].filter(Boolean).map(esc).join(" · ");
-    const img = m.image ? `<img src="${esc(m.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : "";
-    return `<tr class="${rank && rank <= 3 ? "top" : ""}">
-      <td class="rank">${rank}</td>
-      <td><div class="who"><span class="av" aria-hidden="true">${esc(initials(m.name))}${img}</span>
-        <div><div class="nm"><a class="pl" href="${esc(profileUrl(m, DB.region))}" target="_blank" rel="noopener" title="Fiche officielle de ${esc(m.name)}">${esc(m.name)}</a>${roleBadge(m.role)}${flags(m.issues, PUBLIC_FLAGS)}</div>
-        <div class="sub">${sub || "&nbsp;"}</div></div></div></td>
-      <td class="num gs">${fmt(m.itemLevel)}</td>
-      <td class="num">${delta(m.d7)}</td>
-      <td class="num">${fmt(m.cp)}</td>
-      <td class="num col-cp7">${delta(m.cp7)}</td>
-    </tr>`;
-  }).join("");
+
+  // Classement des mains, alts repliés dessous
+  $("count").textContent = "";
+  const ranked = sortKey === "itemLevel" && sortDir < 0;
+  $("rows").innerHTML = [...MAINS].sort(sorter).map((m, i) =>
+    row(m, { rank: ranked && m.itemLevel != null ? i + 1 : "" })
+    + (OPEN.has(m.name) ? [...m.alts].sort(sorter).map(a => row(a, { alt: true })).join("") : "")
+  ).join("");
 }
 
 function renderSummary() {
-  const withGs = DATA.filter(m => m.itemLevel != null);
-  const flagged = DATA.filter(m => m.issues.some(i => PUBLIC_FLAGS.includes(i.type))).length;
-  $("s-count").textContent = DATA.length;
-  $("s-count-sub").textContent = flagged ? `${flagged} à vérifier` : "Tous trouvés au dernier relevé";
+  const withGs = MAINS.filter(m => m.itemLevel != null);
+  const flagged = ALL.filter(m => m.issues.some(i => PUBLIC_FLAGS.includes(i.type))).length;
+  const alts = ALL.length - MAINS.length;
+  $("s-count").textContent = MAINS.length;
+  $("s-count-sub").textContent = [alts ? `+ ${alts} alts` : "", flagged ? `${flagged} à vérifier` : "tous trouvés au dernier relevé"].filter(Boolean).join(" · ");
   if (withGs.length) {
     $("s-avg").textContent = fmt(Math.round(withGs.reduce((s, m) => s + m.itemLevel, 0) / withGs.length));
     const top = withGs.reduce((a, b) => b.itemLevel > a.itemLevel ? b : a);
     $("s-avg-sub").textContent = `Max : ${top.name} (${fmt(top.itemLevel)})`;
   }
-  const best = DATA.filter(m => m.d7 > 0).sort((a, b) => b.d7 - a.d7)[0];
+  const best = MAINS.filter(m => m.d7 > 0).sort((a, b) => b.d7 - a.d7)[0];
   $("s-best").textContent = best ? "+" + fmt(best.d7) : "–";
   $("s-best-sub").textContent = best ? best.name : "Il faut quelques jours d'historique";
 }
@@ -245,11 +280,30 @@ $("roles").addEventListener("click", e => {
 });
 
 $("lock").addEventListener("click", lock);
+$("rows").addEventListener("click", e => {
+  const b = e.target.closest(".alts-btn"); if (!b) return;
+  const n = b.dataset.main;
+  OPEN.has(n) ? OPEN.delete(n) : OPEN.add(n);
+  render();
+});
+$("toggleAlts").addEventListener("click", () => {
+  const withAlts = MAINS.filter(m => m.alts.length);
+  const allOpen = withAlts.every(m => OPEN.has(m.name));
+  withAlts.forEach(m => allOpen ? OPEN.delete(m.name) : OPEN.add(m.name));
+  render();
+});
+function setCompo(all) {
+  compoAll = all;
+  $("cMains").setAttribute("aria-pressed", !all); $("cAll").setAttribute("aria-pressed", all);
+  render();
+}
+$("cMains").addEventListener("click", () => setCompo(false));
+$("cAll").addEventListener("click", () => setCompo(true));
 
 loadDb().then(db => {
-  DB = db; DATA = db.members;
+  DB = db; ALL = db.members; MAINS = db.mains;
   $("lock").hidden = !isProtected();
-  multiServer = new Set(DATA.map(m => m.server)).size > 1;
+  multiServer = new Set(ALL.map(m => m.server)).size > 1;
   renderHeader(); renderSummary(); render();
 }).catch(() => {
   DB = { region: "eu" };

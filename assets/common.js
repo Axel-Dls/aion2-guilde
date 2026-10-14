@@ -85,8 +85,10 @@
   async function deriveKey(password, box) {
     const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveKey"]);
     return crypto.subtle.deriveKey({ name: "PBKDF2", hash: "SHA-256", salt: b64(box.kdf.salt), iterations: box.kdf.iterations },
-      base, { name: "AES-GCM", length: 256 }, true, ["decrypt"]);
+      base, { name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]);
   }
+  // Clé du site une fois déverrouillé : sert aussi à chiffrer les évaluations (page admin)
+  let SITE = null;  // { key, kdf }
   async function open(box, key) {
     const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv: b64(box.iv) }, key, b64(box.ct));
     return JSON.parse(new TextDecoder().decode(plain));
@@ -132,6 +134,7 @@
           const key = await deriveKey(pw.value, box);
           const db = await open(box, key);
           await storeKey(box, key, gate.querySelector("#gateRemember").checked);
+          SITE = { key, kdf: box.kdf };
           gate.remove(); document.documentElement.classList.remove("locked");
           resolve(db);
         } catch {
@@ -150,12 +153,29 @@
     const saved = storedKey(box);
     if (saved) {
       try {
-        const key = await crypto.subtle.importKey("raw", b64(saved), "AES-GCM", true, ["decrypt"]);
-        return await open(box, key);
+        const key = await crypto.subtle.importKey("raw", b64(saved), "AES-GCM", true, ["encrypt", "decrypt"]);
+        const db = await open(box, key);
+        SITE = { key, kdf: box.kdf };
+        return db;
       } catch { /* mot de passe changé : on redemande */ }
     }
     return askPassword(box);
   }
+  // Chiffre un objet avec la clé du site, au même format que scripts/vault.py
+  async function seal(obj) {
+    if (!SITE) throw new Error("Site non déverrouillé");
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, SITE.key, new TextEncoder().encode(JSON.stringify(obj)));
+    return { v: 1, kdf: SITE.kdf, iv: b64e(iv), ct: b64e(ct) };
+  }
+  // Lit un autre fichier chiffré avec la clé du site (null s'il n'existe pas encore)
+  async function openFile(path) {
+    if (!SITE) return null;
+    try { return await open(await getJson(path), SITE.key); }
+    catch (e) { if (e.status === 404) return null; throw e; }
+  }
+  const canSeal = () => !!SITE;
+  const openBox = box => open(box, SITE.key);
   const isProtected = () => { try { return !!(localStorage.getItem(KEY_STORE) || sessionStorage.getItem(KEY_STORE)); } catch { return false; } };
 
   // Charge les données et ajoute à chaque membre : classe en français, progressions 7 j, signalements
@@ -171,6 +191,15 @@
         cp7: cp0 != null && m.cp != null ? m.cp - cp0 : null,
         issues: issues[norm(m.name)] || [] };
     });
+    // Alts : rattachés à leur main s'il est suivi, sinon traités comme des persos principaux
+    const byName = Object.fromEntries(db.members.map(m => [norm(m.name), m]));
+    db.members.forEach(m => { m.alts = []; });
+    db.members.forEach(m => {
+      const main = m.main && byName[norm(m.main)];
+      m.isAlt = !!main && main !== m;
+      if (m.isAlt) { m.mainName = main.name; main.alts.push(m); }
+    });
+    db.mains = db.members.filter(m => !m.isAlt);
     return db;
   }
 
@@ -186,5 +215,5 @@
   }
 
   window.G = { $, esc, fmt, norm, CLASS_FR, ROLES, RANKS, ISSUE, SERVER_ID, REPO, profileUrl, ago, dateTime,
-    valueDaysAgo, loadDb, roleBadge, flags, toast, lock, isProtected };
+    valueDaysAgo, loadDb, roleBadge, flags, toast, lock, isProtected, seal, openFile, openBox, canSeal };
 })();

@@ -10,22 +10,24 @@ Le plus simple : la page **Admin** du site (lien en haut du classement). Il faut
 
 Depuis l'admin, on peut :
 
-- ajouter un perso, changer son statut (Chef, Officier, Membre) ;
+- ajouter un perso, changer son statut (Chef, Officier, Membre) ou en faire l'**alt** d'un autre ;
 - le mettre **en attente** (il n'est plus suivi mais garde son historique), puis corriger son pseudo ou son serveur et le réactiver ;
 - voir l'**état du suivi** : date du dernier relevé, résultat du dernier passage GitHub, persos signalés ;
-- relancer une mise à jour à la main.
+- relancer une mise à jour à la main ;
+- **évaluer** chaque joueur (onglet Évaluations) : 7 critères notés bien / moyen / à surveiller, alerte et commentaire, à côté des signaux automatiques (GS qui stagne, sous la moyenne…). Le bouton « Importer le tableau Excel » reprend l'onglet « Suivi Global membres » ; le fichier est lu dans le navigateur, il n'est envoyé nulle part.
 
-À défaut, on peut modifier [`members.csv`](members.csv) directement sur GitHub : une ligne `pseudo,serveur,statut` par perso, et `# ` devant la ligne pour un perso en attente.
+À défaut, on peut modifier [`members.csv`](members.csv) directement sur GitHub : une ligne `pseudo,serveur,statut,main` par perso (`main` vide pour un perso principal, sinon le pseudo de son main), et `# ` devant la ligne pour un perso en attente.
 
 ## Fonctionnement
 
 | Fichier | Rôle |
 |---|---|
 | `members.csv` | Liste des persos suivis (et en attente) |
-| `config.json` | Nom de la guilde et région (`eu`) |
+| `config.json` | Nom de la guilde, région (`eu`) et anciens noms des persos renommés |
 | `scripts/update.py` | Interroge le site officiel pour chaque perso et écrit les données |
 | `scripts/vault.py` | Chiffrement des données avec le mot de passe du site |
 | `data/db.enc.json` | Données affichées, **chiffrées** : valeurs actuelles, historique (un point par jour), relevés manuels, signalements |
+| `data/evals.enc.json` | Évaluations des gérants, **chiffrées** par la page admin (le script les rechiffre seulement si le mot de passe change) |
 | `.github/workflows/update.yml` | Lance le script 2 fois par jour, après chaque modification de la liste, ou à la demande |
 | `index.html`, `admin.html`, `assets/` | Le site (GitHub Pages) |
 

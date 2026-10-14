@@ -76,6 +76,37 @@ label.chk{display:inline-flex;gap:8px;align-items:center;font-size:14px;color:va
 .item .acts{display:flex;gap:4px;justify-content:flex-end;align-items:center}
 .tag-new{font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;margin-left:6px;background:var(--gold-soft);color:var(--gold)}
 .ext{font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap}
+.item.alt{background:var(--surface-2);padding-left:40px}
+.item.alt .nm{font-weight:600}
+.item.alt::after{content:"↳";position:absolute;left:18px;top:50%;transform:translateY(-50%);color:var(--muted)}
+.altcount{font-size:12px;font-weight:600;color:var(--muted);margin-left:6px}
+
+/* Évaluations */
+.ev-tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin:0 0 10px}
+.ev-tools .l{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.legend{display:flex;gap:12px;font-size:12px;color:var(--muted);align-items:center;flex-wrap:wrap}
+.legend span{display:inline-flex;gap:5px;align-items:center}
+.ev{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;padding:14px 16px;border-bottom:1px solid var(--line);position:relative}
+.ev:last-child{border-bottom:0}
+.ev.changed::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:0 3px 3px 0;background:var(--gold-strong)}
+.ev.alerted{background:var(--down-soft)}
+.ev-top{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;justify-content:space-between}
+.ev-top .nm{white-space:normal}
+.ev-nums{display:flex;gap:14px;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.ev-nums b{color:var(--ink)}
+.auto{display:flex;flex-wrap:wrap;gap:6px}
+.auto .flag{margin-left:0}
+.crit{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.cr{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 4px;border-radius:8px;border:1px solid var(--line);background:var(--surface);font-size:11px;font-weight:600;color:var(--muted);text-align:center;min-width:0}
+.cr:hover{border-color:var(--gold)}
+.cr:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.cr span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.lvl{width:14px;height:14px;border-radius:50%;border:2px dashed var(--line)}
+.lvl.ok{background:var(--up);border:0} .lvl.moyen{background:var(--warn);border:0} .lvl.ko{background:var(--down);border:0}
+.ev-bot{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;align-items:center}
+.alert-btn[aria-pressed="true"]{background:var(--down);border-color:var(--down);color:#fff}
+.ev-bot input{width:100%}
+@media (max-width:640px){.crit{grid-template-columns:repeat(4,minmax(0,1fr))}.ev-bot{grid-template-columns:minmax(0,1fr)}}
 .empty{padding:28px 16px;text-align:center;color:var(--muted)}
 @media (max-width:640px){
   .list.on .item{grid-template-columns:auto minmax(0,1fr) auto}
@@ -147,7 +178,7 @@ label.chk{display:inline-flex;gap:8px;align-items:center;font-size:14px;color:va
       <div class="addrow">
         <input id="nName" placeholder="Pseudo exact (accents compris)" aria-label="Pseudo" required>
         <input id="nServer" list="servers" aria-label="Serveur" required>
-        <select id="nRole" aria-label="Statut"></select>
+        <select id="nRole" aria-label="Statut ou alt de"></select>
         <button class="primary" type="submit">Ajouter</button>
       </div>
     </form>
@@ -156,10 +187,21 @@ label.chk{display:inline-flex;gap:8px;align-items:center;font-size:14px;color:va
       <div class="tabs" role="tablist" aria-label="Listes">
         <button type="button" role="tab" id="tabOn" aria-selected="true">Suivis <span class="n" id="cntOn">0</span></button>
         <button type="button" role="tab" id="tabOff" aria-selected="false">En attente <span class="n" id="cntOff">0</span></button>
+        <button type="button" role="tab" id="tabEv" aria-selected="false">Évaluations <span class="n" id="cntEv">0</span></button>
       </div>
       <input type="search" id="q" placeholder="Rechercher un pseudo…" aria-label="Rechercher un pseudo">
     </div>
     <p class="hint" id="hint"></p>
+    <div class="ev-tools" id="evTools" hidden>
+      <span class="l">
+        <label class="chk" style="margin:0"><input type="checkbox" id="onlyAlerts"> Seulement les alertes et signaux</label>
+        <span class="legend" aria-hidden="true"><span><i class="lvl ok"></i>Bien</span><span><i class="lvl moyen"></i>Moyen</span><span><i class="lvl ko"></i>À surveiller</span><span><i class="lvl"></i>Non noté</span></span>
+      </span>
+      <span class="l">
+        <input type="file" id="xlsx" accept=".xlsx,.xls" hidden>
+        <button type="button" id="importBtn" title="Reprendre les évaluations de l'onglet « Suivi Global membres » du tableau Excel">Importer le tableau Excel</button>
+      </span>
+    </div>
     <div class="list on" id="list"></div>
   </div>
 </div>
@@ -191,9 +233,15 @@ const ICON = {
 $("repoName").textContent = REPO.name;
 $("repoLink").href = REPO.url;
 $("servers").innerHTML = Object.keys(SERVER_ID).sort().map(s => `<option value="${s}">`).join("");
-$("nRole").innerHTML = [...RANKS].reverse().map(r => `<option>${r}</option>`).join("");
+// Critères d'évaluation (colonnes de l'onglet « Suivi Global membres » du tableau Excel)
+const CRITERIA = [["progression", "Progression"], ["activite", "Activités"], ["presence", "Présence raids"], ["ponctualite", "Ponctualité"],
+  ["implication", "Implication"], ["comportement", "Comportement"], ["fiabilite", "Fiabilité"]];
+const LEVELS = ["", "ok", "moyen", "ko"];
+const LEVEL_LABEL = { "": "non noté", ok: "bien", moyen: "moyen", ko: "à surveiller" };
+const EVALS_PATH = "data/evals.enc.json";
 
 let TOKEN = "", SHA = "", HEAD = [], ROWS = [], REMOVED = [], LIVE = {}, DB = null;
+let EVALS = { by: {} }, EVALS_SHA = null, EVALS_O = "{}", ALIASES = {};
 let DEFAULT_SERVER = "Triniel", TAB = "on", CONFIRM = null;
 
 // ---------------------------------------------------------------- GitHub
@@ -212,8 +260,8 @@ const b64decode = s => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/
 const b64encode = s => { let bin = ""; new TextEncoder().encode(s).forEach(x => bin += String.fromCharCode(x)); return btoa(bin); };
 
 // ---------------------------------------------------------------- members.csv
-// Format : lignes d'en-tête « # … », puis « pseudo,serveur,statut », un perso par ligne.
-// Un perso en attente est une ligne commentée « # pseudo,serveur,statut ».
+// Format : lignes d'en-tête « # … », puis « pseudo,serveur,statut,main », un perso par ligne
+// (main vide pour un perso principal). Un perso en attente est une ligne commentée « # … ».
 function parseCsv(text) {
   const head = [], rows = [];
   let afterHeader = false;
@@ -228,31 +276,55 @@ function parseCsv(text) {
     const parts = (off ? line.replace(/^#+\s*/, "") : line).split(",").map(x => x.trim());
     // Une phrase de commentaire n'est pas un perso : un pseudo n'a pas plusieurs mots.
     if (parts.length < 2 || !parts[0] || parts[0].split(" ").length > 2 || /^pseudo$/i.test(parts[0])) continue;
-    rows.push({ name: parts[0], server: parts[1] || DEFAULT_SERVER, role: RANKS.includes(parts[2]) ? parts[2] : "Membre", on: !off });
+    rows.push({ name: parts[0], server: parts[1] || DEFAULT_SERVER, role: RANKS.includes(parts[2]) ? parts[2] : "Membre", main: parts[3] || "", on: !off });
   }
-  if (!head.length) head.push("# Membres suivis : une ligne par perso, au format « pseudo,serveur,statut » (statut : Chef, Officier ou Membre).");
+  if (!head.length) head.push("# Membres suivis : une ligne par perso, au format « pseudo,serveur,statut,main ».");
   return { head, rows };
 }
 function buildCsv() {
-  const line = r => `${r.name.trim()},${(r.server || DEFAULT_SERVER).trim()},${r.role}`;
-  const on = ROWS.filter(r => r.on), off = ROWS.filter(r => !r.on);
-  let out = HEAD.join("\n") + "\npseudo,serveur,statut\n" + on.map(line).join("\n") + "\n";
+  const line = r => `${r.name.trim()},${(r.server || DEFAULT_SERVER).trim()},${r.role},${r.main || ""}`;
+  const on = grouped(ROWS.filter(r => r.on)), off = ROWS.filter(r => !r.on);
+  let out = HEAD.join("\n") + "\npseudo,serveur,statut,main\n" + on.map(line).join("\n") + "\n";
   if (off.length) out += "\n# En attente (non suivis) : retire le « # » pour réactiver\n" + off.map(r => "# " + line(r)).join("\n") + "\n";
   return out;
 }
 
 // ---------------------------------------------------------------- modifications en cours
-const isChanged = r => r.isNew || ["name", "server", "role", "on"].some(k => r[k] !== r.o[k]);
+const isChanged = r => r.isNew || ["name", "server", "role", "main", "on"].some(k => (r[k] || "") !== (r.o[k] || ""));
+// Mains suivis (pour le menu « Alt de ») et liste triée main → ses alts
+const mainsOf = rows => rows.filter(r => r.on && !r.main);
+function grouped(rows, sortMains = (a, b) => 0) {
+  const names = new Set(rows.filter(r => !r.main).map(r => norm(r.name)));
+  const mains = rows.filter(r => !r.main || !names.has(norm(r.main))).sort(sortMains);
+  return mains.flatMap(m => [m, ...rows.filter(r => r.main && norm(r.main) === norm(m.name) && r !== m)]);
+}
+// Menu unique « Statut / Alt de »
+function roleSelect(r, attrs) {
+  const value = r.main ? "alt:" + r.main : r.role;
+  const mains = mainsOf(ROWS).filter(m => m !== r).map(m => m.name).sort((a, b) => a.localeCompare(b, "fr"));
+  if (r.main && !mains.some(n => norm(n) === norm(r.main))) mains.unshift(r.main);
+  return `<select ${attrs}>${RANKS.map(x => `<option${x === value ? " selected" : ""}>${x}</option>`).join("")}
+    <optgroup label="Alt de…">${mains.map(n => `<option value="alt:${esc(n)}"${"alt:" + n === value ? " selected" : ""}>Alt de ${esc(n)}</option>`).join("")}</optgroup></select>`;
+}
+function applyRole(r, v) {
+  if (v.startsWith("alt:")) { r.main = v.slice(4); r.role = "Membre"; }
+  else { r.main = ""; r.role = v; }
+}
 function changeList() {
   const out = [];
   for (const r of ROWS) {
     if (r.isNew) { out.push(`ajout de ${r.name}`); continue; }
     if (r.name !== r.o.name || r.server !== r.o.server) out.push(`${r.o.name} → ${r.name}${r.server !== r.o.server ? ` (${r.server})` : ""}`);
     if (r.role !== r.o.role) out.push(`${r.name} : ${r.role}`);
+    if ((r.main || "") !== (r.o.main || "")) out.push(r.main ? `${r.name} alt de ${r.main}` : `${r.name} devient un main`);
     if (r.on !== r.o.on) out.push(`${r.name} ${r.on ? "réactivé" : "mis en attente"}`);
   }
   REMOVED.forEach(r => out.push(`suppression de ${r.name}`));
   return out;
+}
+function evalChanges() {
+  const before = JSON.parse(EVALS_O).by || {};
+  return Object.keys({ ...before, ...EVALS.by }).filter(k => JSON.stringify(before[k] || null) !== JSON.stringify(EVALS.by[k] || null));
 }
 
 // ---------------------------------------------------------------- état du suivi
@@ -266,15 +338,16 @@ async function renderHealth() {
   }
 
   const issues = DB?.run?.issues || [];
+  const shown = HEALTH_ALL ? issues : issues.slice(0, 5);
   $("hIssues").innerHTML = issues.length
-    ? `<ul class="issues">${issues.map(i => {
+    ? `<ul class="issues">${shown.map(i => {
         const row = ROWS.find(r => norm(r.name) === norm(i.name) && r.on);
         const fixable = ["not_found", "unknown_server", "left_guild"].includes(i.type) && row;
         return `<li><span><span class="who">${esc(i.name)}</span>${flags([i])}</span>
           <span class="det">${esc(i.detail)}</span>
           <span class="acts"><a class="btn" href="${esc(profileUrl(LIVE[norm(i.name)] || { name: i.name, server: row?.server || DEFAULT_SERVER }))}" target="_blank" rel="noopener">Vérifier ↗</a>
           ${fixable ? `<button type="button" data-pause="${esc(i.name)}" title="Arrêter de suivre ce perso pour corriger son pseudo ou son serveur">${ICON.pause} En attente</button>` : ""}</span></li>`;
-      }).join("")}</ul>`
+      }).join("")}</ul>${issues.length > 5 ? `<button type="button" class="quiet" id="hMore">${HEALTH_ALL ? "Réduire" : `Voir les ${issues.length - 5} autres signalements`}</button>` : ""}`
     : `<p class="ok-line">Aucun signalement au dernier relevé.</p>`;
 
   try {
@@ -290,7 +363,9 @@ async function renderHealth() {
     $("hRunSub").textContent = "La clé n'a pas la permission Actions";
   }
 }
+let HEALTH_ALL = false;
 $("hIssues").addEventListener("click", e => {
+  if (e.target.closest("#hMore")) { HEALTH_ALL = !HEALTH_ALL; renderHealth(); return; }
   const b = e.target.closest("button[data-pause]"); if (!b) return;
   const r = ROWS.find(x => norm(x.name) === norm(b.dataset.pause) && x.on); if (!r) return;
   r.on = false; TAB = "off"; render(r);
@@ -300,11 +375,12 @@ $("hIssues").addEventListener("click", e => {
 // ---------------------------------------------------------------- liste
 function itemOn(r, i) {
   const live = LIVE[norm(r.name)];
+  const nAlts = !r.main ? ROWS.filter(x => x.on && norm(x.main) === norm(r.name)).length : 0;
   const sub = r.isNew ? "Vérifié au prochain relevé" : [live?.classFr, live?.level ? "niv. " + live.level : "", r.server].filter(Boolean).map(esc).join(" · ");
-  return `<div class="item ${isChanged(r) ? "changed" : ""}" data-i="${i}">
-    <div class="c1"><div class="nm">${esc(r.name)}${r.isNew ? '<span class="tag-new">Nouveau</span>' : ""}${live ? flags(live.issues) : ""}</div><div class="sub">${sub}</div></div>
+  return `<div class="item ${r.main ? "alt" : ""} ${isChanged(r) ? "changed" : ""}" data-i="${i}">
+    <div class="c1"><div class="nm">${esc(r.name)}${nAlts ? `<span class="altcount">${nAlts} alt${nAlts > 1 ? "s" : ""}</span>` : ""}${r.isNew ? '<span class="tag-new">Nouveau</span>' : ""}${live ? flags(live.issues) : ""}</div><div class="sub">${sub}</div></div>
     <div class="gs">${fmt(live?.itemLevel)}<small>GS</small></div>
-    <select data-f="role" aria-label="Statut de ${esc(r.name)}">${RANKS.map(x => `<option${x === r.role ? " selected" : ""}>${x}</option>`).join("")}</select>
+    ${roleSelect(r, `data-f="role" aria-label="Statut de ${esc(r.name)}"`)}
     <div class="acts">
       ${isChanged(r) && !r.isNew ? `<button type="button" class="icon" data-act="reset" title="Annuler les changements de ${esc(r.name)}" aria-label="Annuler les changements de ${esc(r.name)}">${ICON.undo}</button>` : ""}
       <button type="button" data-act="toggle" title="Ne plus suivre ce perso (son historique est conservé)">${ICON.pause} En attente</button>
@@ -316,7 +392,7 @@ function itemOff(r, i) {
   return `<div class="item ${isChanged(r) ? "changed" : ""}" data-i="${i}">
     <div class="c1"><input data-f="name" value="${esc(r.name)}" aria-label="Pseudo" placeholder="Pseudo exact"></div>
     <input data-f="server" list="servers" value="${esc(r.server)}" aria-label="Serveur de ${esc(r.name)}">
-    <select data-f="role" aria-label="Statut de ${esc(r.name)}">${RANKS.map(x => `<option${x === r.role ? " selected" : ""}>${x}</option>`).join("")}</select>
+    ${roleSelect(r, `data-f="role" aria-label="Statut de ${esc(r.name)}"`)}
     <div class="acts">
       <a class="ext" href="${esc(profileUrl({ name: r.name, server: r.server }))}" target="_blank" rel="noopener" title="Chercher ce pseudo sur le site officiel">Vérifier ↗</a>
       ${confirming
@@ -328,20 +404,26 @@ function itemOff(r, i) {
 }
 function render(focusRow) {
   const q = norm($("q").value);
-  const on = [], off = [];
-  ROWS.forEach((r, i) => (r.on ? on : off).push([r, i]));
+  const on = ROWS.filter(r => r.on), off = ROWS.filter(r => !r.on);
   $("cntOn").textContent = on.length; $("cntOff").textContent = off.length;
-  $("tabOn").setAttribute("aria-selected", TAB === "on"); $("tabOff").setAttribute("aria-selected", TAB === "off");
+  $("cntEv").textContent = mainsOf(ROWS).length;
+  ["on", "off", "ev"].forEach(t => $("tab" + t[0].toUpperCase() + t.slice(1)).setAttribute("aria-selected", TAB === t));
+  $("evTools").hidden = TAB !== "ev";
+  if (TAB === "ev") { renderEvals(q); updateBar(); return; }
 
   const gs = r => LIVE[norm(r.name)]?.itemLevel || 0;
-  let items = (TAB === "on" ? on : off).filter(([r]) => !q || norm(r.name).includes(q));
-  items.sort(TAB === "on"
-    ? (a, b) => (b[0].isNew - a[0].isNew) || (RANKS.indexOf(a[0].role) - RANKS.indexOf(b[0].role)) || (gs(b[0]) - gs(a[0]))
-    : (a, b) => a[0].name.localeCompare(b[0].name, "fr"));
+  let items;
+  if (TAB === "on") {
+    items = q ? on.filter(r => norm(r.name).includes(q) || norm(r.main).includes(q))
+      : grouped(on, (a, b) => (b.isNew - a.isNew) || (RANKS.indexOf(a.role) - RANKS.indexOf(b.role)) || (gs(b) - gs(a)));
+  } else {
+    items = off.filter(r => !q || norm(r.name).includes(q)).sort((a, b) => a.name.localeCompare(b.name, "fr"));
+  }
+  items = items.map(r => [r, ROWS.indexOf(r)]);
 
   $("list").className = "list " + TAB;
   $("hint").textContent = TAB === "on"
-    ? "Les persos suivis apparaissent dans le classement. « En attente » arrête le suivi sans perdre l'historique."
+    ? "Les persos suivis apparaissent dans le classement, chaque main suivi de ses alts. Le menu de droite donne le statut, ou fait d'un perso l'alt d'un autre. « En attente » arrête le suivi sans perdre l'historique."
     : "Persos non suivis : introuvables, à vérifier ou partis. Corrige le pseudo ou le serveur si besoin (« Vérifier » ouvre la recherche officielle), puis « Réactiver ».";
   $("list").innerHTML = items.length
     ? items.map(([r, i]) => TAB === "on" ? itemOn(r, i) : itemOff(r, i)).join("")
@@ -354,7 +436,8 @@ function render(focusRow) {
   updateBar();
 }
 function updateBar() {
-  const ch = changeList();
+  const ev = evalChanges();
+  const ch = [...changeList(), ...(ev.length ? [`évaluations de ${ev.length} joueur${ev.length > 1 ? "s" : ""}`] : [])];
   $("bar").hidden = !ch.length;
   if (!ch.length) return;
   const shown = ch.slice(0, 3).map(esc).join(" · ") + (ch.length > 3 ? ` · +${ch.length - 3}` : "");
@@ -369,7 +452,7 @@ $("list").addEventListener("input", e => {
 $("list").addEventListener("change", e => {
   const it = e.target.closest(".item"), f = e.target.dataset.f; if (!it || !f) return;
   const r = ROWS[+it.dataset.i];
-  r[f] = f === "role" ? e.target.value : e.target.value.trim();
+  if (f === "role") applyRole(r, e.target.value); else r[f] = e.target.value.trim();
   render();
 });
 $("list").addEventListener("click", e => {
@@ -387,6 +470,7 @@ $("list").addEventListener("click", e => {
 });
 $("tabOn").addEventListener("click", () => { TAB = "on"; CONFIRM = null; render(); });
 $("tabOff").addEventListener("click", () => { TAB = "off"; CONFIRM = null; render(); });
+$("tabEv").addEventListener("click", () => { TAB = "ev"; CONFIRM = null; render(); });
 $("q").addEventListener("input", () => render());
 
 $("addForm").addEventListener("submit", e => {
@@ -395,18 +479,167 @@ $("addForm").addEventListener("submit", e => {
   if (!name) return;
   const dup = ROWS.find(r => norm(r.name) === norm(name) && norm(r.server) === norm(server));
   if (dup) { TAB = dup.on ? "on" : "off"; render(dup); toast(`${dup.name} est déjà dans la liste${dup.on ? "" : " (en attente)"}`); return; }
-  const row = { name, server, role: $("nRole").value, on: true, isNew: true, o: {} };
+  const row = { name, server, role: "Membre", main: "", on: true, isNew: true, o: {} };
+  applyRole(row, $("nRole").value);
   ROWS.push(row);
-  $("nName").value = ""; $("nRole").value = "Membre"; $("nName").focus();
+  $("nName").value = ""; $("nName").focus();
   TAB = "on"; render(row); toast(`${name} ajouté : pense à enregistrer`);
 });
-$("discard").addEventListener("click", () => loadMembers().then(() => toast("Changements annulés")));
+$("discard").addEventListener("click", () => Promise.all([loadMembers(), loadEvals()]).then(() => { render(); toast("Changements annulés"); }));
+
+// ---------------------------------------------------------------- évaluations (chiffrées)
+// Une fiche par joueur (perso principal) : 7 critères, alerte, commentaire. Le fichier
+// data/evals.enc.json est chiffré ici, dans le navigateur, avec la clé du site.
+const evalOf = name => EVALS.by[norm(name)];
+function ensureEval(name) {
+  return EVALS.by[norm(name)] ||= { name, crit: {}, alerte: false, comment: "" };
+}
+function autoSignals(live, avg) {
+  const out = [];
+  if (!live) return out;
+  if (live.d7 != null && live.d7 <= 0 && (live.history || []).length >= 5) out.push({ type: "gs_flat", label: "GS stagne", detail: `GS ${live.d7 === 0 ? "identique" : "en baisse"} sur 7 jours` });
+  if (live.itemLevel && avg && live.itemLevel < avg * 0.9) out.push({ type: "gs_low", label: "Sous la moyenne", detail: `GS ${fmt(live.itemLevel)} pour une moyenne de ${fmt(Math.round(avg))}` });
+  return out;
+}
+function renderEvals(q) {
+  const mains = mainsOf(ROWS);
+  const lives = mains.map(r => LIVE[norm(r.name)]).filter(l => l?.itemLevel);
+  const avg = lives.length ? lives.reduce((t, l) => t + l.itemLevel, 0) / lives.length : 0;
+  const only = $("onlyAlerts").checked;
+  const before = JSON.parse(EVALS_O).by || {};
+  $("list").className = "list evs";
+  $("hint").textContent = "Une fiche par joueur. Clique sur un critère pour le noter (bien → moyen → à surveiller → non noté). Ces évaluations sont chiffrées et ne sont visibles que par ceux qui ont le mot de passe du site.";
+  if (!G.canSeal()) {
+    $("list").innerHTML = `<div class="empty">Les évaluations sont chiffrées avec le mot de passe du site, qui n'est pas encore activé (secret <code>SITE_PASSWORD</code>).</div>`;
+    return;
+  }
+  const rows = mains
+    .map(r => { const live = LIVE[norm(r.name)]; const ev = evalOf(r.name); const sig = [...autoSignals(live, avg), ...(live?.issues || [])]; return { r, live, ev, sig }; })
+    .filter(x => !q || norm(x.r.name).includes(q))
+    .filter(x => !only || x.ev?.alerte || x.sig.length || Object.values(x.ev?.crit || {}).includes("ko"))
+    .sort((a, b) => (b.ev?.alerte ? 1 : 0) - (a.ev?.alerte ? 1 : 0) || a.r.name.localeCompare(b.r.name, "fr"));
+  $("list").innerHTML = rows.length ? rows.map(({ r, live, ev, sig }) => {
+    const changed = JSON.stringify(before[norm(r.name)] || null) !== JSON.stringify(ev || null);
+    const alts = ROWS.filter(x => x.on && norm(x.main) === norm(r.name)).length;
+    return `<div class="ev ${ev?.alerte ? "alerted" : ""} ${changed ? "changed" : ""}" data-name="${esc(r.name)}">
+      <div class="ev-top">
+        <div><div class="nm">${esc(r.name)}${G.roleBadge(r.role)}${alts ? `<span class="altcount">${alts} alt${alts > 1 ? "s" : ""}</span>` : ""}</div>
+          <div class="sub">${esc([live?.classFr, live?.level ? "niv. " + live.level : ""].filter(Boolean).join(" · ") || "Pas encore relevé")}</div></div>
+        <div class="ev-nums"><span>GS <b>${fmt(live?.itemLevel)}</b></span><span>7 j <b>${live?.d7 == null ? "–" : (live.d7 > 0 ? "+" : "") + fmt(live.d7)}</b></span><span>CP <b>${fmt(live?.cp)}</b></span></div>
+      </div>
+      ${sig.length ? `<div class="auto">${sig.map(x => `<span class="flag ${ISSUE[x.type]?.bad ? "bad" : ""}" title="${esc(x.detail)}">${esc(x.label || ISSUE[x.type]?.label || x.type)}</span>`).join("")}</div>` : ""}
+      <div class="crit">${CRITERIA.map(([k, label]) => { const v = ev?.crit?.[k] || ""; return `<button type="button" class="cr" data-crit="${k}" title="${esc(label)} : ${LEVEL_LABEL[v]}" aria-label="${esc(label)} : ${LEVEL_LABEL[v]}"><i class="lvl ${v}"></i><span>${esc(label)}</span></button>`; }).join("")}</div>
+      <div class="ev-bot">
+        <button type="button" class="alert-btn" data-alert aria-pressed="${!!ev?.alerte}" title="Marquer ce joueur comme à surveiller">⚑ Alerte</button>
+        <input data-comment value="${esc(ev?.comment || "")}" placeholder="Commentaire (visible seulement par les gérants)" aria-label="Commentaire sur ${esc(r.name)}">
+      </div>
+    </div>`;
+  }).join("") : `<div class="empty">${only ? "Aucune alerte ni signal." : "Aucun joueur."}</div>`;
+}
+$("list").addEventListener("click", e => {
+  const card = e.target.closest(".ev"); if (!card) return;
+  const name = card.dataset.name;
+  const c = e.target.closest("button[data-crit]");
+  if (c) {
+    const ev = ensureEval(name), k = c.dataset.crit;
+    ev.crit[k] = LEVELS[(LEVELS.indexOf(ev.crit[k] || "") + 1) % LEVELS.length];
+    if (!ev.crit[k]) delete ev.crit[k];
+    render(); return;
+  }
+  if (e.target.closest("button[data-alert]")) { const ev = ensureEval(name); ev.alerte = !ev.alerte; render(); }
+});
+$("list").addEventListener("input", e => {
+  if (!e.target.matches("input[data-comment]")) return;
+  const card = e.target.closest(".ev"), ev = ensureEval(card.dataset.name);
+  ev.comment = e.target.value;
+  card.classList.toggle("changed", JSON.stringify((JSON.parse(EVALS_O).by || {})[norm(card.dataset.name)] || null) !== JSON.stringify(ev));
+  updateBar();
+});
+$("onlyAlerts").addEventListener("change", () => render());
+
+// Import du tableau Excel (onglet « Suivi Global membres »), lu dans le navigateur uniquement
+$("importBtn").addEventListener("click", () => $("xlsx").click());
+$("xlsx").addEventListener("change", async e => {
+  const file = e.target.files[0]; e.target.value = "";
+  if (!file) return;
+  try {
+    if (!window.XLSX) await new Promise((ok, ko) => {
+      const sc = document.createElement("script");
+      sc.src = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+      sc.onload = ok; sc.onerror = () => ko(new Error("lecteur Excel indisponible"));
+      document.head.append(sc);
+    });
+    const wb = XLSX.read(await file.arrayBuffer(), { type: "array" });
+    const sheetName = wb.SheetNames.find(n => /suivi global/i.test(n))
+      || wb.SheetNames.find(n => XLSX.utils.sheet_to_json(wb.Sheets[n], { header: 1 })[0]?.some(h => /comportement/i.test(h)));
+    if (!sheetName) throw new Error("onglet « Suivi Global membres » introuvable");
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { defval: "" });
+    const col = (row, re) => { const k = Object.keys(row).find(h => re.test(h)); return k ? row[k] : ""; };
+    const lvl = v => /🟢/.test(v) ? "ok" : /🟡/.test(v) ? "moyen" : /🔴/.test(v) ? "ko" : "";
+    // Pseudo du tableau → perso suivi (même nom, ou ancien nom déclaré dans config.json)
+    const mains = mainsOf(ROWS);
+    const target = name => mains.find(m => norm(m.name) === norm(name)
+      || (ALIASES[norm(m.name)] || []).some(a => norm(a) === norm(name)));
+    const done = [], unknown = [];
+    for (const row of rows) {
+      const who = String(col(row, /^joueur|^nom|pseudo/i)).trim();
+      if (!who) continue;
+      const m = target(who);
+      if (!m) { unknown.push(who); continue; }
+      const ev = ensureEval(m.name);
+      CRITERIA.forEach(([k, label]) => {
+        const v = lvl(String(col(row, new RegExp("^" + label.split(" ")[0], "i"))));
+        if (v) ev.crit[k] = v;
+      });
+      const al = col(row, /^alerte/i);
+      if (al === true || /^(true|vrai|oui|x)$/i.test(String(al))) ev.alerte = true;
+      const cm = String(col(row, /^comment/i)).trim();
+      if (cm && !ev.comment) ev.comment = cm;
+      done.push(m.name);
+    }
+    TAB = "ev"; render();
+    toast(`${done.length} fiches importées${unknown.length ? ` · non reconnus : ${unknown.join(", ")}` : ""} — pense à enregistrer`);
+  } catch (err) {
+    toast("Import impossible : " + err.message);
+  }
+});
+
+async function loadEvals() {
+  EVALS = { by: {} }; EVALS_SHA = null;
+  if (G.canSeal()) {
+    try {
+      const f = await gh(`/contents/${EVALS_PATH}?ref=main&t=${Date.now()}`);
+      EVALS_SHA = f.sha;
+      EVALS = await G.openBox(JSON.parse(b64decode(f.content)));
+      EVALS.by ||= {};
+    } catch (e) {
+      if (e.status !== 404) toast("Évaluations illisibles : " + (e.message || "mot de passe changé ?"));
+    }
+  }
+  EVALS_O = JSON.stringify(EVALS);
+}
+async function saveEvals() {
+  // Fiches vides retirées, puis chiffrement dans le navigateur
+  for (const [k, ev] of Object.entries(EVALS.by)) {
+    if (!Object.keys(ev.crit || {}).length && !ev.alerte && !ev.comment?.trim()) delete EVALS.by[k];
+  }
+  EVALS.updatedAt = new Date().toISOString();
+  const box = await G.seal(EVALS);
+  const res = await gh(`/contents/${EVALS_PATH}`, {
+    method: "PUT",
+    body: JSON.stringify({ message: "Admin : évaluations mises à jour", content: b64encode(JSON.stringify(box) + "\n"), branch: "main", ...(EVALS_SHA ? { sha: EVALS_SHA } : {}) }),
+  });
+  EVALS_SHA = res.content.sha;
+  EVALS_O = JSON.stringify(EVALS);
+}
 
 // ---------------------------------------------------------------- chargement / enregistrement
 async function loadLive() {
   try {
     DB = await loadDb();
     LIVE = Object.fromEntries(DB.members.map(m => [norm(m.name), m]));
+    const cfg = await fetch("config.json?t=" + Date.now()).then(r => r.json()).catch(() => ({}));
+    ALIASES = Object.fromEntries(Object.entries(cfg.anciens_noms || {}).filter(([, v]) => Array.isArray(v)).map(([k, v]) => [norm(k), v]));
     if (DB.guild) { $("eyebrow").textContent = `${DB.guild} · Administration`; document.title = `Admin · ${DB.guild}`; }
   } catch { DB = null; LIVE = {}; }
 }
@@ -418,26 +651,37 @@ async function loadMembers() {
   DEFAULT_SERVER = p.rows.find(r => r.on)?.server || DEFAULT_SERVER;
   $("nServer").value = DEFAULT_SERVER;
   ROWS = p.rows.map(r => ({ ...r, o: { ...r } }));
+  refreshAddRole();
   render();
+}
+function refreshAddRole() {
+  const keep = $("nRole").value || "Membre";
+  $("nRole").outerHTML = roleSelect({ role: "Membre", main: "" }, `id="nRole" aria-label="Statut ou alt de"`);
+  if ([...$("nRole").options].some(o => o.value === keep)) $("nRole").value = keep;
 }
 $("save").addEventListener("click", async () => {
   ROWS = ROWS.filter(r => r.name.trim());
   const keys = ROWS.map(r => norm(r.name) + "|" + norm(r.server));
   const dup = keys.find((k, i) => keys.indexOf(k) !== i);
   if (dup) { $("barText").innerHTML = `<span style="color:var(--down)">${esc(dup.split("|")[0])} apparaît deux fois dans la liste.</span>`; return; }
-  const ch = changeList();
+  const ch = changeList(), evCh = evalChanges();
   $("save").disabled = true; $("barText").textContent = "Enregistrement…";
   try {
-    await gh("/contents/members.csv", {
-      method: "PUT",
-      body: JSON.stringify({ message: `Admin : ${ch.slice(0, 5).join(", ")}${ch.length > 5 ? "…" : ""}`, content: b64encode(buildCsv()), sha: SHA, branch: "main" }),
-    });
-    await loadMembers();
-    showRunMsg(true, "Enregistré. Les GS et CP se mettent à jour tout seuls : le classement sera à jour dans 1 à 2 minutes.");
+    if (ch.length) {
+      await gh("/contents/members.csv", {
+        method: "PUT",
+        body: JSON.stringify({ message: `Admin : ${ch.slice(0, 5).join(", ")}${ch.length > 5 ? "…" : ""}`, content: b64encode(buildCsv()), sha: SHA, branch: "main" }),
+      });
+    }
+    if (evCh.length) await saveEvals();
+    if (ch.length) {
+      await loadMembers();
+      showRunMsg(true, "Enregistré. Les GS et CP se mettent à jour tout seuls : le classement sera à jour dans 1 à 2 minutes.");
+      setTimeout(renderHealth, 4000);
+    } else render();
     toast("Enregistré");
-    setTimeout(renderHealth, 4000);
   } catch (e) {
-    const why = e.status === 409 ? "La liste a été modifiée ailleurs entre-temps. Clique sur « Tout annuler » pour recharger, puis refais tes changements."
+    const why = e.status === 409 ? "Les données ont été modifiées ailleurs entre-temps. Clique sur « Tout annuler » pour recharger, puis refais tes changements."
       : e.status === 403 || e.status === 404 ? "GitHub refuse l'écriture : la clé doit avoir « Contents : Read and write » sur ce dépôt (github.com → Settings → Personal access tokens → Edit)."
       : "Échec de l'enregistrement : " + e.message;
     $("barText").innerHTML = `<span style="color:var(--down)">${esc(why)}</span>`;
@@ -468,6 +712,7 @@ async function connect(tok, remember) {
     const me = await gh("https://api.github.com/user").catch(() => null);
     $("who").textContent = me ? me.login : "GitHub";
     try { remember ? localStorage.setItem(KEY, TOKEN) : localStorage.removeItem(KEY); } catch {}
+    await loadEvals();
     await loadMembers();
     $("login").hidden = true; $("editor").hidden = false; $("loginMsg").textContent = "";
     renderHealth();
@@ -487,7 +732,7 @@ $("logout").addEventListener("click", () => {
   TOKEN = ""; $("token").value = ""; $("editor").hidden = true; $("bar").hidden = true; $("login").hidden = false;
   lock();
 });
-window.addEventListener("beforeunload", e => { if (TOKEN && changeList().length) { e.preventDefault(); e.returnValue = ""; } });
+window.addEventListener("beforeunload", e => { if (TOKEN && (changeList().length || evalChanges().length)) { e.preventDefault(); e.returnValue = ""; } });
 
 // D'abord le mot de passe du site (données chiffrées), puis la connexion GitHub
 loadLive().then(() => {

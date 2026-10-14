@@ -18,6 +18,7 @@ si moins de la moitié des persos sont trouvés, le passage échoue et GitHub
 prévient par e-mail.
 """
 
+import base64
 import csv
 import difflib
 import json
@@ -39,6 +40,7 @@ CONFIG = ROOT / "config.json"
 DB = ROOT / "data" / "db.json"            # version en clair (seulement sans mot de passe)
 DB_ENC = ROOT / "data" / "db.enc.json"    # version chiffrée
 MANUAL = ROOT / "data" / "historique-manuel.csv"  # importé une fois dans les données chiffrées, puis supprimé
+EVALS_ENC = ROOT / "data" / "evals.enc.json"      # évaluations des officiers, chiffrées par la page admin
 
 SITE = "https://aion2.plaync.com"
 SEARCH = "https://api-search.plaync.com/aion2global/search/v2/character"
@@ -163,7 +165,8 @@ def item_level(info):
 # ---------------------------------------------------------------- fichiers du dépôt
 
 def read_members():
-    """members.csv : « pseudo,serveur,statut » par ligne. Les lignes # (persos en attente) sont ignorées."""
+    """members.csv : « pseudo,serveur,statut,main » par ligne (main vide pour un perso principal,
+    sinon le pseudo du perso principal dont c'est un alt). Les lignes # (persos en attente) sont ignorées."""
     out, seen = [], set()
     with MEMBERS.open(encoding="utf-8-sig", newline="") as f:
         for row in csv.reader(f):
@@ -172,9 +175,11 @@ def read_members():
             name = row[0].strip()
             server = row[1].strip() if len(row) > 1 else ""
             role = row[2].strip() if len(row) > 2 else ""
+            main = row[3].strip() if len(row) > 3 else ""
             if (norm(name), norm(server)) not in seen:
                 seen.add((norm(name), norm(server)))
-                out.append({"name": name, "server": server, "role": role or "Membre"})
+                out.append({"name": name, "server": server, "role": role or "Membre",
+                            "main": main if norm(main) != norm(name) else ""})
     return out
 
 
@@ -234,6 +239,7 @@ def update_member(m, prev, servers, manual, now, guild, aliases=()):
         "name": prev.get("name", m["name"]),
         "server": m["server"],
         "role": m["role"],
+        "main": m.get("main", ""),
         "history": prev.get("history", []),
         **{k: prev[k] for k in KEEP if k in prev},
     }
@@ -335,6 +341,32 @@ def save(db, salt):
         DB.write_text(json.dumps(db, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
 
 
+def rekey_evals():
+    """Les évaluations (data/evals.enc.json) sont chiffrées par la page admin avec la même clé
+    que les données. Après un changement de mot de passe, on les rechiffre avec le nouveau."""
+    password, previous = os.environ.get("SITE_PASSWORD", ""), os.environ.get("SITE_PASSWORD_PREVIOUS", "")
+    if not (password and EVALS_ENC.exists() and DB_ENC.exists()):
+        return
+    box = json.loads(EVALS_ENC.read_text(encoding="utf-8"))
+    salt = json.loads(DB_ENC.read_text(encoding="utf-8"))["kdf"]["salt"]
+    try:
+        vault.decrypt(box, password)
+        if box["kdf"]["salt"] == salt:
+            return  # déjà avec la bonne clé
+        obj = vault.decrypt(box, password)[0]
+    except vault.WrongPassword:
+        if not previous:
+            log("::warning::Évaluations illisibles avec SITE_PASSWORD : mets l'ancien mot de passe dans SITE_PASSWORD_PREVIOUS.")
+            return
+        try:
+            obj = vault.decrypt(box, previous)[0]
+        except vault.WrongPassword:
+            log("::warning::Évaluations illisibles avec les deux mots de passe : elles ne sont pas modifiées.")
+            return
+    EVALS_ENC.write_text(json.dumps(vault.encrypt(obj, password, base64.b64decode(salt))) + "\n", encoding="utf-8")
+    log("Évaluations rechiffrées avec le nouveau mot de passe.")
+
+
 def main():
     cfg = json.loads(CONFIG.read_text(encoding="utf-8"))
     guild, region = cfg.get("guild", ""), cfg.get("region", "eu")
@@ -373,6 +405,7 @@ def main():
         "manual": manual_rows,
     }
     save(db, salt)
+    rekey_evals()
     step_summary(db, removed)
     log(f"Terminé : {ok}/{len(result)} à jour, {len(issues)} signalement(s)")
 
