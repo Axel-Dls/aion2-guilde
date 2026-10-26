@@ -160,6 +160,8 @@ begin
   return json_build_object(
     'discord_id', did,
     'role', r,
+    -- vrai tant qu'aucun admin n'existe : le site montre alors comment devenir le premier
+    'premier_admin', not exists (select 1 from public.acces a where a.role = 'admin'),
     'nom', coalesce(infos #>> '{custom_claims,global_name}', infos ->> 'full_name', infos ->> 'name'),
     'avatar', infos ->> 'avatar_url');
 end
@@ -185,6 +187,32 @@ create trigger membres_demande_releve
   after insert or update on public.membres
   for each row execute function public.demander_releve_auto();
 
+-- « Qui » et « quand » sont écrits par la base, pas par le navigateur (impossible à falsifier).
+-- Le relevé automatique (clé secrète, sans compte Discord) garde ce qu'il envoie.
+create or replace function public.signer_modification()
+returns trigger language plpgsql security definer set search_path = '' as $$
+declare qui text := (select a.pseudo from public.acces a where a.discord_id = public.discord_id());
+begin
+  if public.discord_id() is null then
+    return new;
+  end if;
+  if tg_table_name = 'evaluations' then
+    new.maj_par := coalesce(qui, public.discord_id());
+    new.maj_le := now();
+  elsif tg_table_name = 'demandes_maj' then
+    new.par := coalesce(qui, public.discord_id());
+    new.demande_le := now();
+  end if;
+  return new;
+end
+$$;
+drop trigger if exists evaluations_signature on public.evaluations;
+create trigger evaluations_signature before insert or update on public.evaluations
+  for each row execute function public.signer_modification();
+drop trigger if exists demandes_maj_signature on public.demandes_maj;
+create trigger demandes_maj_signature before insert on public.demandes_maj
+  for each row execute function public.signer_modification();
+
 
 -- -----------------------------------------------------------------------------
 -- Droits : rien pour les visiteurs anonymes, tout passe par les règles ci-dessous
@@ -201,7 +229,11 @@ grant usage, select on all sequences in schema public to service_role;
 
 grant select, insert, update, delete on public.acces          to authenticated;
 grant select, delete                 on public.demandes_acces to authenticated;
-grant select, insert, update, delete on public.membres        to authenticated;
+-- Membres : les gérants ne touchent qu'à la liste (pseudo, serveur, statut, alt, suivi).
+-- GS, CP, classe… ne sont écrits que par le relevé automatique.
+grant select, delete                 on public.membres        to authenticated;
+grant insert (pseudo, serveur, statut, main, suivi, anciens_noms) on public.membres to authenticated;
+grant update (pseudo, serveur, statut, main, suivi, anciens_noms) on public.membres to authenticated;
 grant select                         on public.releves        to authenticated;
 grant select                         on public.passages       to authenticated;
 grant select, insert                 on public.demandes_maj   to authenticated;
@@ -209,7 +241,7 @@ grant select, insert, update, delete on public.evaluations    to authenticated;
 grant select                         on public.reglages       to authenticated;
 
 revoke execute on function public.discord_id(), public.mon_role(), public.a_le_role(text[]),
-                           public.mon_acces(), public.demander_releve_auto() from public, anon;
+                           public.mon_acces(), public.demander_releve_auto(), public.signer_modification() from public, anon, authenticated;
 grant execute on function public.mon_acces() to authenticated;
 grant execute on function public.discord_id(), public.mon_role(), public.a_le_role(text[]) to authenticated;
 

@@ -80,6 +80,8 @@
     auth: { flowType: "pkce", persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
   });
   const ROLE_LABEL = { admin: "Admin", gerant: "Gérant", lecteur: "Lecteur" };
+  // Restes de l'ancien site (clé GitHub et clé du mot de passe) : effacés de l'appareil
+  try { ["aion2-guilde-token", "aion2-guilde-site-key"].forEach(k => { localStorage.removeItem(k); sessionStorage.removeItem(k); }); } catch {}
   let ME = null;  // { discord_id, role, nom, avatar }
 
   // Lève l'erreur renvoyée par Supabase, sinon renvoie les données
@@ -130,10 +132,10 @@
       return gate(`<p class="eyebrow">Accès en attente</p><h1>Ivalys</h1>${who}
         <p class="muted">Ton compte n'a pas encore accès au site. Ta demande est enregistrée : un administrateur doit l'accepter.</p>
         <button type="button" data-logout>Se déconnecter</button>
-        <details><summary>Tu es l'administrateur du site ?</summary>
+        ${!ME.premier_admin ? "" : `<details><summary>Tu es l'administrateur du site ?</summary>
           Pour te donner l'accès la première fois, colle cette ligne dans Supabase → SQL Editor :
           <code>insert into public.acces (discord_id, pseudo, role) values ('${esc(ME.discord_id)}', '${esc((ME.nom || "Admin").replace(/'/g, ""))}', 'admin');</code>
-          puis recharge cette page.</details>`);
+          puis recharge cette page.</details>`}`);
     }
     if (!need.includes(ME.role)) {
       return gate(`<p class="eyebrow">Accès limité</p><h1>Ivalys</h1>${who}

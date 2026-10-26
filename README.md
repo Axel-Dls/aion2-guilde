@@ -16,7 +16,9 @@ On se connecte avec son compte **Discord**. Seuls les comptes autorisés voient 
 
 Quelqu'un qui se connecte sans être autorisé voit « Accès en attente » ; sa demande apparaît dans l'onglet Accès de l'admin.
 
-**Premier admin** : se connecter une fois sur le site, ouvrir « Tu es l'administrateur du site ? » sur l'écran d'attente, et coller la ligne SQL affichée dans Supabase → SQL Editor.
+**Premier admin** : tant qu'il n'y a aucun admin, l'écran d'attente propose « Tu es l'administrateur du site ? » avec la ligne SQL à coller dans Supabase → SQL Editor.
+
+**Sécurité** : seuls l'admin et les gérants peuvent modifier la liste ; les GS, CP et classes ne sont écrits que par le relevé automatique, et l'auteur d'une évaluation ou d'une demande est enregistré par la base elle-même. Le site refuse les bibliothèques modifiées (contrôle d'intégrité) et ne peut envoyer de données qu'à la base Supabase.
 
 ## Gérer les membres
 
@@ -35,7 +37,6 @@ Depuis la page **Admin** :
 | `supabase/schema.sql` | Tables et règles d'accès de la base (à coller dans Supabase → SQL Editor) |
 | `scripts/update.py` | Relevé : interroge le site officiel pour chaque perso suivi et enregistre GS, CP et signalements |
 | `scripts/supa.py` | Accès à la base depuis les scripts (clé secrète) |
-| `scripts/migrate.py` | Reprise unique des anciennes données chiffrées du dépôt |
 | `.github/workflows/update.yml` | Lance le relevé quand il le faut (voir ci-dessous) |
 | `config.json` | Nom de la guilde, adresse et clé publique du projet Supabase |
 | `index.html`, `admin.html`, `assets/` | Le site (GitHub Pages) |

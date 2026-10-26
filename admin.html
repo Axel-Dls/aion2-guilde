@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src https://cvsrncwbferhkwsfajzf.supabase.co; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <title>Admin · Guilde</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -248,7 +250,7 @@ kbd{font:12px var(--mono);border:1px solid var(--line);border-bottom-width:2px;b
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js" integrity="sha384-Rj26LVGvoeRVR6+mwQmFfcR3QOBEwT+ZmuCWpuiqeTzJpCs0ER4ITAWGb4Hiy3Ok" crossorigin="anonymous"></script>
 <script src="assets/common.js"></script>
 <script>
 const { $, esc, fmt, norm, RANKS, ISSUE, SERVER_ID, REPO, profileUrl, ago, dateTime, loadDb, flags, toast, logout, sb, ok, auth, ROLE_LABEL } = G;
@@ -567,6 +569,8 @@ $("xlsx").addEventListener("change", async e => {
     if (!window.XLSX) await new Promise((ok, ko) => {
       const sc = document.createElement("script");
       sc.src = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+      sc.integrity = "sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw";
+      sc.crossOrigin = "anonymous";
       sc.onload = ok; sc.onerror = () => ko(new Error("lecteur Excel indisponible"));
       document.head.append(sc);
     });
