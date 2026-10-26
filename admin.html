@@ -24,6 +24,22 @@ code{font:13px var(--mono);background:var(--surface-2);border:1px solid var(--li
 .msg{margin:10px 0 0;font-size:14px}
 .msg.err{color:var(--down)} .msg.ok{color:var(--up)}
 
+/* Capture du jeu */
+#captureCard p{font-size:14px;color:var(--muted)}
+#captureCard .acts{display:grid;gap:8px;margin-top:10px}
+#captureCard .acts button{justify-content:center}
+#captureCard .acts a{font-size:13px;font-weight:600;text-align:center}
+#captureCard.focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-soft)}
+.list.cap .item{grid-template-columns:auto minmax(0,1fr) minmax(0,190px) 90px}
+.list.cap .item.off{opacity:.55}
+.list.cap input[type=checkbox]{width:18px;height:18px;accent-color:var(--gold-strong)}
+.cap-sum{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--line)}
+.cap-sum strong{font-size:16px}
+.cap-sum .acts{display:flex;gap:8px}
+.cap-note{padding:10px 16px;font-size:13px;color:var(--muted)}
+.chg{font-size:13px;font-weight:700;white-space:nowrap}
+@media (max-width:640px){.list.cap .item{grid-template-columns:auto minmax(0,1fr)}.list.cap .item > :nth-child(n+3){grid-column:2}}
+
 /* Accès */
 .list.acc .item{grid-template-columns:minmax(0,1fr) minmax(0,150px) 130px auto}
 .list.acc .item.req{background:var(--gold-soft)}
@@ -199,6 +215,16 @@ kbd{font:12px var(--mono);border:1px solid var(--line);border-bottom-width:2px;b
       <p class="msg" id="runMsg" role="status" hidden></p>
     </section>
 
+    <section class="card" id="captureCard" aria-label="Capture du jeu">
+      <h2>Capture du jeu</h2>
+      <p>Une fois par jour : lance IvalysCapture, ouvre la fenêtre de légion en jeu, puis importe le fichier créé. GS, CP, classes, statuts et dernières connexions sont mis à jour d'un coup.</p>
+      <div class="acts">
+        <input type="file" id="capFile" accept=".json,application/json" hidden>
+        <button type="button" class="primary" id="capBtn">Importer une capture du jeu</button>
+        <a href="https://github.com/Axel-Dls/aion2-guilde/releases/download/capture/IvalysCapture.exe" rel="noopener">Télécharger l'outil (Windows)</a>
+      </div>
+    </section>
+
     <form class="card" id="addForm" autocomplete="off">
       <h2>Ajouter un perso</h2>
       <div class="addrow">
@@ -319,7 +345,7 @@ async function renderHealth() {
   if (DB?.updatedAt) {
     const late = (Date.now() - new Date(DB.updatedAt)) / 36e5 > 36;
     $("hData").innerHTML = `<span class="dot ${late ? "bad" : "ok"}"></span>${esc(ago(DB.updatedAt))}`;
-    $("hDataSub").textContent = `${dateTime(DB.updatedAt)} · ${DB.counts?.ok ?? "?"}/${DB.counts?.total ?? "?"} persos lus`;
+    $("hDataSub").textContent = `${dateTime(DB.updatedAt)} · ${DB.counts?.ok ?? "?"}/${DB.counts?.total ?? "?"} persos lus · ${DB.run?.source === "capture" ? "capture du jeu" : "site officiel"}`;
   } else {
     $("hData").textContent = "Aucun"; $("hDataSub").textContent = "";
   }
@@ -372,7 +398,7 @@ $("hIssues").addEventListener("click", e => {
 function itemOn(r, i) {
   const live = LIVE[norm(r.name)];
   const nAlts = !r.main ? ROWS.filter(x => x.on && norm(x.main) === norm(r.name)).length : 0;
-  const sub = r.isNew ? "Vérifié au prochain relevé" : [live?.classFr, live?.level ? "niv. " + live.level : "", r.server].filter(Boolean).map(esc).join(" · ");
+  const sub = r.isNew ? "Vérifié au prochain relevé" : [live?.classFr, live?.level ? "niv. " + live.level : "", r.server, live?.lastSeen ? "vu " + ago(live.lastSeen) : ""].filter(Boolean).map(esc).join(" · ");
   return `<div class="item ${r.main ? "alt" : ""} ${isChanged(r) ? "changed" : ""}" data-i="${i}">
     <div class="c1"><div class="nm">${esc(r.name)}${nAlts ? `<span class="altcount">${nAlts} alt${nAlts > 1 ? "s" : ""}</span>` : ""}${r.isNew ? '<span class="tag-new">Nouveau</span>' : ""}${live ? flags(live.issues) : ""}</div><div class="sub">${sub}</div></div>
     <div class="gs">${fmt(live?.itemLevel)}<small>GS</small></div>
@@ -408,6 +434,7 @@ function render(focusRow) {
   $("evTools").hidden = TAB !== "ev";
   if (TAB === "ev") { renderEvals(q); updateBar(); return; }
   if (TAB === "acc") { renderAccess(q); updateBar(); return; }
+  if (TAB === "cap") { renderCapture(); updateBar(); return; }
 
   const gs = r => LIVE[norm(r.name)]?.itemLevel || 0;
   let items;
@@ -504,6 +531,8 @@ function autoSignals(live, avg) {
   const out = [];
   if (!live) return out;
   if (live.d7 != null && live.d7 <= 0 && (live.history || []).length >= 5) out.push({ type: "gs_flat", label: "GS stagne", detail: `GS ${live.d7 === 0 ? "identique" : "en baisse"} sur 7 jours` });
+  const absent = live.lastSeen ? (Date.now() - new Date(live.lastSeen)) / 864e5 : 0;
+  if (absent > 7) out.push({ type: "inactif", label: "Inactif", detail: `Dernière connexion ${ago(live.lastSeen)}` });
   if (live.itemLevel && avg && live.itemLevel < avg * 0.9) out.push({ type: "gs_low", label: "Sous la moyenne", detail: `GS ${fmt(live.itemLevel)} pour une moyenne de ${fmt(Math.round(avg))}` });
   return out;
 }
@@ -705,6 +734,100 @@ $("list").addEventListener("change", async e => {
   } catch (err) { toast("Échec : " + err.message); }
 });
 
+// ---------------------------------------------------------------- capture du jeu
+// Fichier de l'outil IvalysCapture → aperçu des changements (cochables) → importer_capture (base)
+let CAP = null;
+const deaccent = x => norm(x).normalize("NFD").replace(/[̀-ͯ]/g, "");
+const matchRow = name => ROWS.find(r => norm(r.name) === norm(name)) || ROWS.find(r => (r.aliases || []).some(a => norm(a) === norm(name)));
+// Reroll probable : son pseudo commence par celui d'un main (Niokyy → Nioky, CORDE2 → CORDE)
+function guessMain(name, mains) {
+  const n = deaccent(name);
+  return mains.filter(m => { const k = deaccent(m); return k.length >= 4 && k !== n && n.startsWith(k); })
+    .sort((a, b) => b.length - a.length)[0] || "";
+}
+function prepareCapture(data) {
+  if (data?.type !== "ivalys-capture" || !Array.isArray(data.membres) || !data.membres.length) throw new Error("ce fichier n'est pas une capture IvalysCapture");
+  if (DB.guild && data.legion && norm(data.legion) !== norm(DB.guild)) throw new Error(`cette capture concerne la légion « ${data.legion} », pas ${DB.guild}`);
+  if (Date.now() - new Date(data.capture_le) > 7 * 864e5) throw new Error("cette capture date de plus de 7 jours");
+  const inCap = new Set(data.membres.map(m => norm(m.pseudo)));
+  const arrivals = [], ranks = [];
+  for (const m of data.membres) {
+    const r = matchRow(m.pseudo);
+    if (!r || !r.on) arrivals.push({ m, back: !!r, on: true, main: r ? r.main : null });
+    else if (RANKS.includes(m.statut) && m.statut !== r.role) ranks.push({ m, r, on: !r.main });
+  }
+  const mains = [...ROWS.filter(r => r.on && !r.main).map(r => r.name), ...arrivals.map(a => a.m.pseudo)];
+  arrivals.forEach(a => { if (a.main == null) a.main = guessMain(a.m.pseudo, mains); });
+  const leaves = ROWS.filter(r => r.on && !inCap.has(norm(r.name)) && !(r.aliases || []).some(x => inCap.has(norm(x)))).map(r => ({ r, on: true }));
+  CAP = { data, arrivals, leaves, ranks, mains, matched: data.membres.length - arrivals.length };
+}
+function renderCapture() {
+  const { data, arrivals, leaves, ranks, mains, matched } = CAP;
+  $("list").className = "list cap";
+  $("hint").textContent = "Vérifie les changements proposés, décoche ce que tu ne veux pas appliquer, puis « Appliquer ». GS, CP, classe, niveau et dernière connexion sont mis à jour pour tous les persos de la liste.";
+  const cls = m => G.CLASS_FR[m.classe] || m.classe;
+  const box = (k, on) => `<input type="checkbox" data-cap="${k}" ${on ? "checked" : ""} aria-label="Appliquer">`;
+  const mainSel = (a, i) => `<select data-cap-main="${i}" aria-label="Main ou alt de ${esc(a.m.pseudo)}"><option value="">Perso principal</option>${mains.filter(n => n !== a.m.pseudo).sort((x, y) => x.localeCompare(y, "fr")).map(n => `<option value="${esc(n)}"${n === a.main ? " selected" : ""}>Alt de ${esc(n)}</option>`).join("")}</select>`;
+  const section = (title, rows) => rows.length ? `<div class="acc-h">${title} · ${rows.length}</div>${rows.join("")}` : "";
+  const n = arrivals.filter(a => a.on).length + leaves.filter(l => l.on).length + ranks.filter(x => x.on).length;
+  $("list").innerHTML = `<div class="cap-sum"><div><strong>Capture du ${esc(dateTime(data.capture_le))}</strong>
+      <div class="sub">${esc(data.legion || "?")} · ${data.membres.length} membres en jeu · ${matched} déjà suivis</div></div>
+      <div class="acts"><button type="button" class="quiet" data-cap-act="cancel">Annuler</button>
+      <button type="button" class="primary" data-cap-act="apply">Appliquer${n ? ` (${n} changement${n > 1 ? "s" : ""})` : ""}</button></div></div>`
+    + section("Arrivées", arrivals.map((a, i) => `<div class="item ${a.on ? "" : "off"}">${box("a" + i, a.on)}
+        <div class="c1"><div class="nm">${esc(a.m.pseudo)}${G.roleBadge(a.m.statut)}${a.back ? '<span class="tag-new">déjà connu</span>' : ""}</div>
+        <div class="sub">${esc(cls(a.m))} · niv. ${esc(a.m.niveau)} · vu ${esc(ago(a.m.derniere_connexion))}</div></div>
+        ${mainSel(a, i)}<div class="gs">${fmt(a.m.gs)}<small>GS</small></div></div>`))
+    + section("Départs (absents du jeu)", leaves.map((l, i) => `<div class="item ${l.on ? "" : "off"}">${box("l" + i, l.on)}
+        <div class="c1"><div class="nm">${esc(l.r.name)}</div><div class="sub">${l.r.main ? `alt de ${esc(l.r.main)} · ` : ""}mis en attente (historique conservé)</div></div>
+        <span></span><span></span></div>`))
+    + section("Statuts", ranks.map((x, i) => `<div class="item ${x.on ? "" : "off"}">${box("r" + i, x.on)}
+        <div class="c1"><div class="nm">${esc(x.r.name)}</div><div class="sub">${x.r.main ? `alt de ${esc(x.r.main)} · ` : ""}grade en jeu</div></div>
+        <span class="chg">${esc(x.r.role)} → ${esc(x.m.statut)}</span><span></span></div>`))
+    + (!n && !arrivals.length && !leaves.length && !ranks.length ? `<div class="empty">Aucun changement dans la liste : seuls les GS, CP et connexions seront mis à jour.</div>` : "")
+    + `<p class="cap-note">Les statuts des alts sont décochés par défaut : en jeu, un reroll peut avoir un grade différent de celui affiché sur le site.</p>`;
+}
+$("capBtn").addEventListener("click", () => $("capFile").click());
+$("capFile").addEventListener("change", async e => {
+  const f = e.target.files[0]; e.target.value = "";
+  if (!f) return;
+  if (changeList().length || evalChanges().length) { toast("Enregistre ou annule d'abord les changements en cours"); return; }
+  try {
+    if (f.size > 2e6) throw new Error("fichier trop gros");
+    prepareCapture(JSON.parse(await f.text()));
+    TAB = "cap"; render();
+    $("list").scrollIntoView({ block: "start" });
+  } catch (err) { toast("Import impossible : " + err.message); }
+});
+$("list").addEventListener("change", e => {
+  if (TAB !== "cap" || !CAP) return;
+  const c = e.target.dataset.cap, sel = e.target.dataset.capMain;
+  if (c) { const list = { a: CAP.arrivals, l: CAP.leaves, r: CAP.ranks }[c[0]]; list[+c.slice(1)].on = e.target.checked; renderCapture(); }
+  if (sel != null) CAP.arrivals[+sel].main = e.target.value;
+});
+$("list").addEventListener("click", async e => {
+  const b = e.target.closest("button[data-cap-act]"); if (!b || TAB !== "cap") return;
+  if (b.dataset.capAct === "cancel") { CAP = null; TAB = "on"; render(); return; }
+  b.disabled = true; b.textContent = "Import…";
+  try {
+    const on = x => x.filter(y => y.on);
+    const res = await sb.rpc("importer_capture", {
+      capture: CAP.data,
+      ajouter: on(CAP.arrivals).map(a => a.m.pseudo),
+      alts: Object.fromEntries(on(CAP.arrivals).filter(a => a.main).map(a => [a.m.pseudo, a.main])),
+      retirer: on(CAP.leaves).map(l => l.r.name),
+      statuts: Object.fromEntries(on(CAP.ranks).map(x => [x.r.name, x.m.statut])),
+    }).then(ok);
+    CAP = null; TAB = "on";
+    await reloadAll();
+    showRunMsg(true, `Capture importée : ${res.mis_a_jour} persos mis à jour sur ${res.total} suivis.`);
+    toast("Capture importée");
+  } catch (err) {
+    b.disabled = false; b.textContent = "Appliquer";
+    toast("Import refusé : " + (err.message || err));
+  }
+});
+
 // ---------------------------------------------------------------- chargement / enregistrement
 async function reloadAll() {
   DB = await loadDb();
@@ -784,6 +907,7 @@ auth(["admin", "gerant"]).then(async me => {
   $("tabAcc").hidden = me.role !== "admin";
   $("editor").hidden = false;
   await reloadAll();
+  if (location.hash === "#capture") { $("captureCard").classList.add("focus"); $("captureCard").scrollIntoView({ block: "center" }); }
 }).catch(e => {
   $("editor").hidden = false;
   showRunMsg(false, "Chargement impossible : " + (e.message || e));

@@ -156,7 +156,7 @@
     id: r.id, key: r.cle, name: r.pseudo, server: r.serveur, role: r.statut, main: r.main || "", on: r.suivi,
     aliases: r.anciens_noms || [], className: r.classe, level: r.niveau, cp: r.cp, itemLevel: r.gs, legion: r.legion,
     image: r.image, characterId: r.character_id, serverId: r.server_id, region: r.region, status: r.etat,
-    lastOk: r.dernier_ok, history: hist,
+    lastOk: r.dernier_ok, lastSeen: r.derniere_connexion, history: hist,
   });
 
   // Charge les données et ajoute à chaque membre : classe en français, progressions 7 j, signalements.
@@ -177,7 +177,7 @@
       guild: cfg.guilde || "", region: cfg.region || "eu",
       updatedAt: run?.fin || null,
       counts: run ? { ok: run.ok, total: run.total } : null,
-      run: run ? { at: run.fin, issues: run.signalements || [] } : { issues: [] },
+      run: run ? { at: run.fin, issues: run.signalements || [], source: run.declencheur } : { issues: [] },
     };
     const issues = {};
     db.run.issues.forEach(i => (issues[norm(i.name)] ||= []).push(i));

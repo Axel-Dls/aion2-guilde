@@ -1,3 +1,10 @@
 __pycache__/
 *.pyc
 .DS_Store
+# Fichiers créés par l'outil de capture (données de la guilde) : jamais dans le dépôt public
+legion-*.json
+*.pcap
+*.pcapng
+build/
+dist/
+*.spec

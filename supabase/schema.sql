@@ -60,6 +60,9 @@ create table if not exists public.membres (
   cle           text generated always as (lower(trim(serveur)) || ':' || lower(trim(pseudo))) stored unique
 );
 
+-- Ajouts après la première version (sans effet si déjà là)
+alter table public.membres add column if not exists derniere_connexion timestamptz;  -- lue dans la capture du jeu
+
 -- Un relevé par perso et par jour (historique des GS et CP)
 create table if not exists public.releves (
   membre_id  bigint not null references public.membres (id) on delete cascade,
@@ -171,6 +174,9 @@ $$;
 create or replace function public.demander_releve_auto()
 returns trigger language plpgsql security definer set search_path = '' as $$
 begin
+  if current_setting('ivalys.import', true) = '1' then
+    return new;  -- import d'une capture du jeu : les valeurs arrivent avec, inutile d'interroger le site
+  end if;
   if tg_op = 'INSERT'
      or new.pseudo is distinct from old.pseudo
      or new.serveur is distinct from old.serveur
@@ -215,6 +221,128 @@ create trigger demandes_maj_signature before insert on public.demandes_maj
 
 
 -- -----------------------------------------------------------------------------
+-- Import d'une capture du jeu (outil IvalysCapture, bouton de la page Admin)
+--   capture  : le fichier JSON de l'outil
+--   ajouter  : pseudos à ajouter (ou réactiver) dans la liste
+--   retirer  : pseudos suivis à mettre en attente (partis de la légion)
+--   statuts  : {pseudo: "Chef" | "Officier" | "Membre"} à appliquer
+--   alts     : {pseudo ajouté: pseudo de son main} pour les rerolls
+-- Tout est fait en une fois : si une étape échoue, rien n'est enregistré.
+-- -----------------------------------------------------------------------------
+drop function if exists public.importer_capture(jsonb, text[], text[], jsonb);
+create or replace function public.importer_capture(
+  capture jsonb, ajouter text[] default '{}', retirer text[] default '{}', statuts jsonb default '{}',
+  alts jsonb default '{}')
+returns json language plpgsql volatile security definer set search_path = '' as $$
+declare
+  m         jsonb;
+  mid       bigint;
+  g         int;
+  c         int;
+  nv        int;
+  prev      record;
+  v_quand     timestamptz;
+  v_jour      date;
+  vu        timestamptz;
+  n_ok      int := 0;
+  v_total     int;
+  sig       jsonb := '[]';
+  inconnus  text[] := '{}';
+  v_guilde    text := (select r.valeur from public.reglages r where r.cle = 'guilde');
+  v_serveur   text := coalesce((select mb.serveur from public.membres mb where mb.suivi
+                              group by mb.serveur order by count(*) desc limit 1), 'Triniel');
+  classes   text[] := array['Gladiator', 'Templar', 'Ranger', 'Assassin', 'Spiritmaster', 'Sorcerer', 'Cleric', 'Chanter'];
+begin
+  if not public.a_le_role('admin', 'gerant') then
+    raise exception 'Accès refusé' using errcode = '42501';
+  end if;
+  if capture ->> 'type' is distinct from 'ivalys-capture' or jsonb_typeof(capture -> 'membres') is distinct from 'array'
+     or jsonb_array_length(capture -> 'membres') = 0 or jsonb_array_length(capture -> 'membres') > 500 then
+    raise exception 'Ce fichier n''est pas une capture de légion valide' using errcode = '22023';
+  end if;
+  if v_guilde is not null and lower(coalesce(capture ->> 'legion', '')) <> lower(v_guilde) then
+    raise exception 'Cette capture concerne la légion « % », pas « % »', capture ->> 'legion', v_guilde using errcode = '22023';
+  end if;
+  v_quand := now();
+  if coalesce(capture ->> 'capture_le', '') ~ '^\d{4}-\d{2}-\d{2}T' then
+    v_quand := least((capture ->> 'capture_le')::timestamptz, now());
+  end if;
+  if v_quand < now() - interval '7 days' then
+    raise exception 'Cette capture date de plus de 7 jours' using errcode = '22023';
+  end if;
+  v_jour := (v_quand at time zone 'Europe/Paris')::date;
+  perform set_config('ivalys.import', '1', true);
+
+  -- 1. Liste : départs, statuts, arrivées
+  update public.membres mb set suivi = false
+   where mb.suivi and lower(mb.pseudo) in (select lower(x) from unnest(retirer) x);
+  update public.membres mb set statut = s.value
+    from jsonb_each_text(statuts) s
+   where lower(mb.pseudo) = lower(s.key) and s.value in ('Chef', 'Officier', 'Membre');
+  insert into public.membres (pseudo, serveur, main, statut)
+  select x, v_serveur, coalesce(left(alts ->> x, 40), ''),
+         coalesce((select e ->> 'statut' from jsonb_array_elements(capture -> 'membres') e
+                   where lower(e ->> 'pseudo') = lower(x) and e ->> 'statut' in ('Chef', 'Officier', 'Membre') limit 1), 'Membre')
+    from unnest(ajouter) x
+   where length(trim(x)) between 1 and 40
+  on conflict (cle) do update set suivi = true, main = excluded.main;
+
+  -- 2. Valeurs de chaque perso suivi présent dans la capture
+  for m in select * from jsonb_array_elements(capture -> 'membres') loop
+    select mb.id into mid from public.membres mb
+     where mb.suivi and (lower(mb.pseudo) = lower(m ->> 'pseudo')
+                         or lower(m ->> 'pseudo') in (select lower(a) from unnest(mb.anciens_noms) a))
+     order by (lower(mb.pseudo) = lower(m ->> 'pseudo')) desc limit 1;
+    if mid is null then
+      inconnus := inconnus || (m ->> 'pseudo');
+      continue;
+    end if;
+    if coalesce(m ->> 'gs', '') !~ '^\d{1,5}$' or coalesce(m ->> 'cp', '') !~ '^\d{1,7}$' then
+      continue;  -- valeur illisible : on n'écrit rien pour ce perso
+    end if;
+    g := (m ->> 'gs')::int;
+    c := (m ->> 'cp')::int;
+    nv := case when coalesce(m ->> 'niveau', '') ~ '^\d{1,2}$' then (m ->> 'niveau')::int end;
+    vu := case when coalesce(m ->> 'derniere_connexion', '') ~ '^\d{4}-\d{2}-\d{2}T' then (m ->> 'derniere_connexion')::timestamptz end;
+
+    select r.gs, r.jour into prev from public.releves r
+     where r.membre_id = mid and r.jour < v_jour and r.gs is not null order by r.jour desc limit 1;
+    if prev.gs is not null and g < prev.gs - 30 then
+      sig := sig || jsonb_build_object('name', m ->> 'pseudo', 'type', 'gs_drop',
+                                       'detail', format('GS %s → %s depuis le %s', prev.gs, g, prev.jour));
+    end if;
+
+    update public.membres mb set
+      classe = case when m ->> 'classe' = any (classes) then m ->> 'classe' else mb.classe end,
+      niveau = coalesce(nv, mb.niveau),
+      gs = g, cp = c,
+      legion = coalesce(capture ->> 'legion', mb.legion),
+      derniere_connexion = coalesce(vu, mb.derniere_connexion),
+      etat = 'ok', dernier_ok = v_quand
+     where mb.id = mid;
+    insert into public.releves (membre_id, jour, gs, cp, source) values (mid, v_jour, g, c, 'jeu')
+    on conflict (membre_id, jour) do update set gs = excluded.gs, cp = excluded.cp, source = 'jeu';
+    n_ok := n_ok + 1;
+  end loop;
+
+  -- 3. Persos suivis absents de la capture
+  sig := sig || coalesce((
+    select jsonb_agg(jsonb_build_object('name', mb.pseudo, 'type', 'left_guild', 'detail', 'absent de la liste de légion du jeu'))
+      from public.membres mb
+     where mb.suivi and not exists (
+       select 1 from jsonb_array_elements(capture -> 'membres') e
+        where lower(e ->> 'pseudo') = lower(mb.pseudo)
+           or lower(e ->> 'pseudo') in (select lower(a) from unnest(mb.anciens_noms) a))), '[]');
+  select count(*) into v_total from public.membres mb where mb.suivi;
+  insert into public.passages (debut, fin, ok, total, signalements, declencheur)
+  values (now(), now(), n_ok, v_total, sig, 'capture');
+
+  return json_build_object('mis_a_jour', n_ok, 'total', v_total, 'inconnus', inconnus, 'signalements', sig);
+end
+$$;
+
+
+-- -----------------------------------------------------------------------------
 -- Droits : rien pour les visiteurs anonymes, tout passe par les règles ci-dessous
 -- (le relevé automatique utilise la clé secrète, qui n'est pas concernée)
 -- -----------------------------------------------------------------------------
@@ -241,8 +369,9 @@ grant select, insert, update, delete on public.evaluations    to authenticated;
 grant select                         on public.reglages       to authenticated;
 
 revoke execute on function public.discord_id(), public.mon_role(), public.a_le_role(text[]),
-                           public.mon_acces(), public.demander_releve_auto(), public.signer_modification() from public, anon, authenticated;
-grant execute on function public.mon_acces() to authenticated;
+                           public.mon_acces(), public.demander_releve_auto(), public.signer_modification(),
+                           public.importer_capture(jsonb, text[], text[], jsonb, jsonb) from public, anon, authenticated;
+grant execute on function public.mon_acces(), public.importer_capture(jsonb, text[], text[], jsonb, jsonb) to authenticated;
 grant execute on function public.discord_id(), public.mon_role(), public.a_le_role(text[]) to authenticated;
 
 alter table public.acces          enable row level security;

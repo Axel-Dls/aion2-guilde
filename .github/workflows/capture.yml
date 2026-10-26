@@ -1,0 +1,61 @@
+name: Outil de capture (Windows)
+
+# Fabrique IvalysCapture.exe à chaque modification de l'outil, le teste sur une
+# fausse capture (pseudos inventés), puis le publie dans la page « Releases »
+# du dépôt, toujours à la même adresse :
+# https://github.com/Axel-Dls/aion2-guilde/releases/download/capture/IvalysCapture.exe
+
+on:
+  push:
+    branches: [main]
+    paths: [capture/**, .github/workflows/capture.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: capture-build
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Installer
+        run: pip install --quiet -r capture/requirements.txt "pyinstaller==6.21.0"
+
+      - name: Tester le code
+        run: python capture/test_capture.py
+
+      - name: Fabriquer le programme
+        run: >
+          pyinstaller --onefile --console --name IvalysCapture --distpath dist
+          --hidden-import scapy.layers.all --collect-submodules scapy.layers
+          --collect-submodules scapy.arch --collect-submodules scapy.libs
+          capture/ivalys_capture.py
+
+      - name: Tester le programme
+        run: python capture/test_capture.py dist/IvalysCapture.exe
+
+      - name: Publier
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          gh release delete capture --yes --cleanup-tag 2>/dev/null || true
+          gh release create capture dist/IvalysCapture.exe --title "Ivalys Capture" --latest=false --notes "Outil de capture de la liste de légion (version du $(date -u +%d/%m/%Y), commit ${GITHUB_SHA::7}).
+
+          1. Installer Npcap si ce n'est pas déjà fait (https://npcap.com, ou avec Wireshark).
+          2. Lancer IvalysCapture.exe, Aion 2 ouvert et perso connecté.
+          3. En jeu, ouvrir la fenêtre de légion (onglet des membres).
+          4. Dans la page Admin du site : « Importer une capture du jeu », et choisir le fichier créé à côté du programme.
+
+          Windows peut afficher « Windows a protégé votre ordinateur » (programme non signé) : « Informations complémentaires » puis « Exécuter quand même »."

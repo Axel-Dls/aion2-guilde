@@ -3,11 +3,15 @@
 Relevé automatique : GS (Item Level) et CP de chaque perso suivi, récupérés sur
 le site officiel d'Aion 2 (global) et enregistrés dans la base Supabase.
 
+La source normale des GS et CP est la capture du jeu (outil IvalysCapture, importée
+depuis l'admin). Ce script interroge le site officiel en secours.
+
 Lancé par GitHub Actions (.github/workflows/update.yml) :
   python scripts/update.py                 relevé complet (bouton « Run workflow »)
   python scripts/update.py --si-necessaire relevé seulement s'il est demandé (bouton
-                                           « Relancer » de l'admin, ajout d'un perso)
-                                           ou si le dernier date de plus de 11 h
+                                           « Relancer » de l'admin, ajout d'un perso),
+                                           ou si le dernier date de plus de 11 h et
+                                           qu'aucune capture n'a été importée depuis 48 h
 
 Les journaux GitHub sont publics : ils n'affichent que des comptes, ni pseudo ni
 valeur. Aucune dépendance en dehors de Python.
@@ -44,7 +48,8 @@ HEADERS = {
 PAUSE = 0.6            # secondes entre deux requêtes, pour rester discret
 GS_DROP_ALERT = 30     # baisse de GS (par rapport au relevé précédent) signalée
 MIN_SUCCESS = 0.5      # en dessous de cette part de persos trouvés, le passage échoue
-REFRESH_HOURS = 11     # en mode --si-necessaire : relevé si le dernier est plus ancien
+REFRESH_HOURS = 11     # en mode --si-necessaire : relevé si le dernier est plus ancien…
+CAPTURE_HOURS = 48     # … sauf si une capture du jeu a été importée depuis moins longtemps
 
 # Libellés des signalements (repris tels quels par le site et l'admin)
 ISSUE_LABEL = {
@@ -211,13 +216,19 @@ def step_summary(ok, total, issues):
 
 
 def needed(db, now):
-    """Mode --si-necessaire : (faut-il un relevé, déclencheur)."""
+    """Mode --si-necessaire : (faut-il un relevé, déclencheur).
+    Un relevé demandé (bouton « Relancer », perso ajouté à la main) part toujours.
+    Sinon, la capture du jeu est la source normale : le site officiel ne sert que
+    de secours quand aucune capture n'a été importée depuis CAPTURE_HOURS."""
     last = db.select("passages", select="debut", order="debut.desc", limit=1)
     since = last[0]["debut"] if last else None
     if since:
         asked = db.select("demandes_maj", select="id", demande_le=f"gt.{since}", limit=1)
         if asked:
             return True, "demande"
+    capture = db.select("passages", select="debut", declencheur="eq.capture", order="debut.desc", limit=1)
+    if capture and datetime.fromisoformat(capture[0]["debut"]) > now - timedelta(hours=CAPTURE_HOURS):
+        return False, None
     if not since or datetime.fromisoformat(since) < now - timedelta(hours=REFRESH_HOURS):
         return True, "planifié"
     return False, None

@@ -20,6 +20,19 @@ Quelqu'un qui se connecte sans être autorisé voit « Accès en attente » ; sa
 
 **Sécurité** : seuls l'admin et les gérants peuvent modifier la liste ; les GS, CP et classes ne sont écrits que par le relevé automatique, et l'auteur d'une évaluation ou d'une demande est enregistré par la base elle-même. Le site refuse les bibliothèques modifiées (contrôle d'intégrité) et ne peut envoyer de données qu'à la base Supabase.
 
+## Capture du jeu (mise à jour quotidienne)
+
+La source normale des GS et CP est la **liste de légion du jeu**, lue par l'outil **IvalysCapture** (Windows) :
+
+1. Installer [Npcap](https://npcap.com) une fois (il est déjà là si Wireshark est installé).
+2. Télécharger [IvalysCapture.exe](https://github.com/Axel-Dls/aion2-guilde/releases/download/capture/IvalysCapture.exe) et le lancer, Aion 2 ouvert et perso connecté.
+3. En jeu, ouvrir la fenêtre de légion (onglet des membres) : l'outil crée un fichier `legion-….json` à côté de lui et ouvre la page Admin.
+4. Admin → **Importer une capture du jeu** : l'aperçu propose les arrivées (avec « Alt de… » deviné pour les rerolls), les départs et les changements de grade ; on décoche ce qu'on ne veut pas, puis « Appliquer ».
+
+L'outil écoute seulement le trafic réseau, comme les compteurs de dégâts : il ne touche ni au jeu ni à ses fichiers, et n'envoie rien sur Internet. Le fichier est importé avec la connexion Discord du gérant ; aucune clé n'est stockée sur le PC. Le code est dans `capture/`, le programme est fabriqué et testé par GitHub (`.github/workflows/capture.yml`).
+
+Tant qu'une capture a été importée dans les 48 dernières heures, le site officiel d'Aion n'est plus interrogé automatiquement ; il reste en secours, et le bouton « Relancer » de l'admin le force.
+
 ## Gérer les membres
 
 Depuis la page **Admin** :
@@ -35,13 +48,14 @@ Depuis la page **Admin** :
 | Fichier | Rôle |
 |---|---|
 | `supabase/schema.sql` | Tables et règles d'accès de la base (à coller dans Supabase → SQL Editor) |
-| `scripts/update.py` | Relevé : interroge le site officiel pour chaque perso suivi et enregistre GS, CP et signalements |
+| `capture/` | Outil IvalysCapture : lecture de la liste de légion dans le trafic du jeu |
+| `scripts/update.py` | Relevé de secours : interroge le site officiel pour chaque perso suivi |
 | `scripts/supa.py` | Accès à la base depuis les scripts (clé secrète) |
 | `.github/workflows/update.yml` | Lance le relevé quand il le faut (voir ci-dessous) |
 | `config.json` | Nom de la guilde, adresse et clé publique du projet Supabase |
 | `index.html`, `admin.html`, `assets/` | Le site (GitHub Pages) |
 
-**Relevés** : toutes les 30 minutes, GitHub vérifie dans la base s'il y a quelque chose à faire. Un relevé complet part si un gérant l'a demandé (bouton « Relancer », ajout ou correction d'un perso) ou si le dernier date de plus de 11 heures. GitHub retarde parfois ces passages : compter jusqu'à une heure. Le bouton « Run workflow » de l'onglet Actions lance un relevé immédiat.
+**Relevés du site officiel** : toutes les 30 minutes, GitHub vérifie dans la base s'il y a quelque chose à faire. Un relevé part si un gérant l'a demandé (bouton « Relancer », ajout ou correction d'un perso à la main) ou si aucune capture n'a été importée depuis 48 h et que le dernier relevé date de plus de 11 heures. GitHub retarde parfois ces passages : compter jusqu'à une heure. Le bouton « Run workflow » de l'onglet Actions lance un relevé immédiat.
 
 **Secret GitHub** (*Settings → Secrets and variables → Actions*) : `SUPABASE_SECRET_KEY`, la clé secrète du projet (Supabase → Settings → API Keys → Secret keys). Elle donne tous les droits sur la base : elle ne doit jamais être écrite dans le dépôt ni dans le site.
 
