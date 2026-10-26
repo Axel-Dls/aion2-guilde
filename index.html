@@ -142,8 +142,8 @@ footer{margin-top:20px;font-size:13px;color:var(--muted);max-width:80ch}
     <div class="head-r">
       <div class="meta" id="meta">Chargement…</div>
       <nav class="nav" aria-label="Pages">
-        <a href="admin.html" title="Gérer les membres et les évaluations">Admin</a>
-        <button type="button" id="lock" title="Oublier le mot de passe sur cet appareil" hidden>Verrouiller</button>
+        <a href="admin.html" id="adminLink" title="Gérer les membres et les évaluations" hidden>Admin</a>
+        <button type="button" id="lock" title="Se déconnecter de ce site sur cet appareil">Se déconnecter</button>
       </nav>
     </div>
   </header>
@@ -194,15 +194,16 @@ footer{margin-top:20px;font-size:13px;color:var(--muted);max-width:80ch}
   </div>
 
   <footer>
-    Données relevées automatiquement sur le site officiel d'Aion 2 deux fois par jour, et après chaque changement dans la liste des membres. Clique sur un pseudo pour ouvrir sa fiche officielle, et sur « alts » pour voir les persos secondaires d'un joueur. Seuls les persos principaux sont classés.
+    Données relevées automatiquement sur le site officiel d'Aion 2 deux fois par jour, et peu après chaque changement dans la liste des membres. Clique sur un pseudo pour ouvrir sa fiche officielle, et sur « alts » pour voir les persos secondaires d'un joueur. Seuls les persos principaux sont classés.
   </footer>
   </main>
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
 <script src="assets/common.js"></script>
 <script>
-const { $, esc, fmt, ROLES, roleBadge, flags, profileUrl, ago, dateTime, loadDb, lock, isProtected } = G;
+const { $, esc, fmt, ROLES, roleBadge, flags, profileUrl, ago, dateTime, loadDb, lock, auth } = G;
 const PUBLIC_FLAGS = ["not_found", "unknown_server", "error", "left_guild"];
 const STALE_HOURS = 36;
 
@@ -366,9 +367,12 @@ function setCompo(all) {
 $("cMains").addEventListener("click", () => setCompo(false));
 $("cAll").addEventListener("click", () => setCompo(true));
 
-loadDb().then(db => {
+auth().then(me => {
+  $("adminLink").hidden = !["admin", "gerant"].includes(me.role);
+  $("lock").title = `Connecté en tant que ${me.nom || "?"} · se déconnecter`;
+  return loadDb();
+}).then(db => {
   DB = db; ALL = db.members; MAINS = db.mains;
-  $("lock").hidden = !isProtected();
   multiServer = new Set(ALL.map(m => m.server)).size > 1;
   const gs = MAINS.map(m => m.itemLevel).filter(v => v != null);
   if (gs.length) { GS_MIN = Math.min(...gs); GS_MAX = Math.max(...gs); }

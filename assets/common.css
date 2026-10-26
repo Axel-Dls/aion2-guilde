@@ -74,3 +74,12 @@ html.locked .wrap{visibility:hidden}
 .gate-card button{justify-content:center;padding:11px}
 .gate-chk{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--muted)}
 .gate-err{color:var(--down);font-size:14px;min-height:1.2em}
+/* Connexion Discord */
+.gate-card .discord{background:#5865f2;border-color:#5865f2;color:#fff;display:flex;gap:10px;align-items:center}
+.gate-card .discord:hover{background:#4752c4;border-color:#4752c4}
+.gate-card .discord svg{width:20px;height:20px}
+.gate-who{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line)}
+.gate-who img{width:32px;height:32px;border-radius:50%}
+.gate-who small{display:block;color:var(--muted);font:12px var(--mono)}
+.gate-card details{font-size:13px;color:var(--muted)}
+.gate-card details code{display:block;margin-top:6px;padding:8px;border-radius:6px;background:var(--surface-2);border:1px solid var(--line);font:12px var(--mono);white-space:pre-wrap;word-break:break-all;color:var(--ink)}

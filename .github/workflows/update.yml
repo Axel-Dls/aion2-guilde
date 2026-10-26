@@ -2,17 +2,15 @@ name: Mise à jour CP guilde
 
 on:
   schedule:
-    # Deux passages par jour (heures UTC). GitHub les retarde souvent de plusieurs
-    # heures : le second sert de filet de sécurité si le premier ne part pas.
-    - cron: "17 4 * * *"
-    - cron: "47 15 * * *"
-  workflow_dispatch:           # bouton « Relancer la mise à jour » de l'admin
-  push:
-    branches: [main]
-    paths: [members.csv, config.json, scripts/**]
+    # Toutes les 30 minutes, le script vérifie dans la base s'il y a quelque chose à faire :
+    # un relevé demandé depuis l'admin (ou après l'ajout d'un perso), ou un dernier
+    # relevé de plus de 11 h. Sinon il s'arrête en quelques secondes.
+    # GitHub retarde souvent ces passages : compter jusqu'à une heure environ.
+    - cron: "*/30 * * * *"
+  workflow_dispatch:           # « Run workflow » : relevé complet immédiat
 
 permissions:
-  contents: write
+  contents: write              # seulement pour le commit d'entretien ci-dessous
 
 # Un seul passage à la fois ; les suivants attendent leur tour.
 concurrency:
@@ -24,43 +22,28 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      # Toujours partir de la dernière version de main (et non du commit qui a
-      # déclenché le passage) : un passage qui a attendu son tour voit ainsi les
-      # données du précédent.
       - uses: actions/checkout@v5
-        with:
-          ref: main
 
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
-      - name: Installer le chiffrement
-        run: pip install --quiet "cryptography>=43,<51"
-
       - name: Récupérer les GS et CP
         env:
-          # Mot de passe du site (Settings → Secrets and variables → Actions).
-          # Pour en changer : mettre l'ancien dans SITE_PASSWORD_PREVIOUS le temps d'un passage.
-          SITE_PASSWORD: ${{ secrets.SITE_PASSWORD }}
-          SITE_PASSWORD_PREVIOUS: ${{ secrets.SITE_PASSWORD_PREVIOUS }}
-        run: python scripts/update.py
+          # Clé secrète Supabase (Settings → Secrets and variables → Actions)
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: python scripts/update.py ${{ github.event_name == 'schedule' && '--si-necessaire' || '' }}
 
-      - name: Enregistrer les données
-        if: always()
+      # GitHub coupe les passages planifiés d'un dépôt public sans commit depuis 60 jours.
+      # Les données n'étant plus dans le dépôt, un petit commit d'entretien par mois l'évite.
+      - name: Entretien du dépôt
+        if: github.event_name == 'schedule'
         run: |
+          last=$(git log -1 --format=%ct)
+          if [ $(( $(date +%s) - last )) -lt $(( 30 * 86400 )) ]; then exit 0; fi
+          date -u +%Y-%m-%d > .github/entretien.txt
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A data
-          if git diff --cached --quiet; then
-            echo "Aucun changement."
-            exit 0
-          fi
-          git commit -q -m "Mise à jour des CP ($(date -u +%Y-%m-%d))"
-          for i in 1 2 3; do
-            # En cas de modification concurrente, nos données (les plus récentes) l'emportent.
-            git pull -q --rebase -X theirs origin main && git push -q && exit 0
-            sleep $((i * 5))
-          done
-          echo "::error::Impossible d'enregistrer les données après 3 tentatives."
-          exit 1
+          git add .github/entretien.txt
+          git commit -q -m "Entretien : garde les relevés automatiques actifs"
+          git push -q || echo "::warning::Commit d'entretien impossible."

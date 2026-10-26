@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """
-Met à jour les données du site : GS (Item Level) et CP de chaque membre listé
-dans members.csv, récupérés sur le site officiel d'Aion 2 (global).
+Relevé automatique : GS (Item Level) et CP de chaque perso suivi, récupérés sur
+le site officiel d'Aion 2 (global) et enregistrés dans la base Supabase.
 
-Les données sont chiffrées avec le mot de passe du site (secret GitHub
-SITE_PASSWORD) dans data/db.enc.json : le dépôt et les journaux GitHub étant
-publics, ils n'affichent aucune valeur. Sans ce secret, elles sont écrites en
-clair dans data/db.json (avec un avertissement).
+Lancé par GitHub Actions (.github/workflows/update.yml) :
+  python scripts/update.py                 relevé complet (bouton « Run workflow »)
+  python scripts/update.py --si-necessaire relevé seulement s'il est demandé (bouton
+                                           « Relancer » de l'admin, ajout d'un perso)
+                                           ou si le dernier date de plus de 11 h
 
-Lancé par GitHub Actions (.github/workflows/update.yml) deux fois par jour, à
-chaque modification de la liste des membres, ou à la main.
-Dépendance : « cryptography » (chiffrement), installée par le workflow.
+Les journaux GitHub sont publics : ils n'affichent que des comptes, ni pseudo ni
+valeur. Aucune dépendance en dehors de Python.
 
 Les adresses utilisées sont celles de la page officielle « Character Info »
 (aion2.plaync.com). Elles ne sont pas documentées par NCSoft et peuvent changer :
@@ -18,8 +18,6 @@ si moins de la moitié des persos sont trouvés, le passage échoue et GitHub
 prévient par e-mail.
 """
 
-import base64
-import csv
 import difflib
 import json
 import os
@@ -29,18 +27,9 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
-from datetime import datetime, timezone
-from pathlib import Path
+from datetime import datetime, timedelta, timezone
 
-import vault
-
-ROOT = Path(__file__).resolve().parent.parent
-MEMBERS = ROOT / "members.csv"
-CONFIG = ROOT / "config.json"
-DB = ROOT / "data" / "db.json"            # version en clair (seulement sans mot de passe)
-DB_ENC = ROOT / "data" / "db.enc.json"    # version chiffrée
-MANUAL = ROOT / "data" / "historique-manuel.csv"  # importé une fois dans les données chiffrées, puis supprimé
-EVALS_ENC = ROOT / "data" / "evals.enc.json"      # évaluations des officiers, chiffrées par la page admin
+from supa import Supa
 
 SITE = "https://aion2.plaync.com"
 SEARCH = "https://api-search.plaync.com/aion2global/search/v2/character"
@@ -53,10 +42,9 @@ HEADERS = {
     "Origin": SITE,
 }
 PAUSE = 0.6            # secondes entre deux requêtes, pour rester discret
-MAX_HISTORY = 400      # jours d'historique conservés par membre
 GS_DROP_ALERT = 30     # baisse de GS (par rapport au relevé précédent) signalée
 MIN_SUCCESS = 0.5      # en dessous de cette part de persos trouvés, le passage échoue
-KEEP = ("serverId", "characterId", "region", "className", "level", "cp", "itemLevel", "legion", "image", "lastOk")
+REFRESH_HOURS = 11     # en mode --si-necessaire : relevé si le dernier est plus ancien
 
 # Libellés des signalements (repris tels quels par le site et l'admin)
 ISSUE_LABEL = {
@@ -162,256 +150,136 @@ def item_level(info):
     return None
 
 
-# ---------------------------------------------------------------- fichiers du dépôt
+# ---------------------------------------------------------------- un perso
 
-def read_members():
-    """members.csv : « pseudo,serveur,statut,main » par ligne (main vide pour un perso principal,
-    sinon le pseudo du perso principal dont c'est un alt). Les lignes # (persos en attente) sont ignorées."""
-    out, seen = [], set()
-    with MEMBERS.open(encoding="utf-8-sig", newline="") as f:
-        for row in csv.reader(f):
-            if not row or not row[0].strip() or row[0].strip().startswith("#") or norm(row[0]) == "pseudo":
-                continue
-            name = row[0].strip()
-            server = row[1].strip() if len(row) > 1 else ""
-            role = row[2].strip() if len(row) > 2 else ""
-            main = row[3].strip() if len(row) > 3 else ""
-            if (norm(name), norm(server)) not in seen:
-                seen.add((norm(name), norm(server)))
-                out.append({"name": name, "server": server, "role": role or "Membre",
-                            "main": main if norm(main) != norm(name) else ""})
-    return out
-
-
-def to_int(v):
-    """« 2049 », « 96,80K » ou « 96.8k » → entier."""
-    v = (v or "").strip().replace(" ", "").replace(",", ".")
-    if not v:
-        return None
-    mult = 1000 if v.lower().endswith("k") else 1
-    try:
-        return int(round(float(v.rstrip("kK")) * mult))
-    except ValueError:
-        return None
-
-
-def read_manual_csv():
-    """data/historique-manuel.csv : relevés faits à la main (pseudo,date,gs,cp) → liste de lignes."""
-    rows = []
-    if MANUAL.exists():
-        with MANUAL.open(encoding="utf-8-sig", newline="") as f:
-            for row in csv.reader(f):
-                if len(row) < 3 or row[0].strip().startswith("#") or norm(row[0]) == "pseudo":
-                    continue
-                gs, cp = to_int(row[2]), (to_int(row[3]) if len(row) > 3 else None)
-                if gs is not None or cp is not None:
-                    rows.append({"name": row[0].strip(), "d": row[1].strip(), "il": gs, "cp": cp})
-    return rows
-
-
-def index_manual(rows):
-    out = {}
-    for r in rows:
-        out.setdefault(norm(r["name"]), []).append({"d": r["d"], "cp": r.get("cp"), "il": r.get("il")})
-    return out
-
-
-def merge_history(history, today_point, manual):
-    """Un point par jour, trié par date : le point du jour remplace l'éventuel précédent,
-    les relevés manuels complètent les valeurs manquantes."""
-    by_date = {h["d"]: dict(h) for h in history if h.get("d")}
-    if today_point:
-        by_date[today_point["d"]] = today_point
-    for p in manual:
-        cur = by_date.setdefault(p["d"], dict(p))
-        for k in ("cp", "il"):
-            if cur.get(k) is None and p.get(k) is not None:
-                cur[k] = p[k]
-    return sorted(by_date.values(), key=lambda h: h["d"])[-MAX_HISTORY:]
-
-
-# ---------------------------------------------------------------- un membre
-
-def update_member(m, prev, servers, manual, now, guild, aliases=()):
-    """Renvoie l'entrée à jour du membre et ses signalements [(type, détail)]."""
-    entry = {
-        "key": f"{norm(m['server'])}:{norm(m['name'])}",
-        "name": prev.get("name", m["name"]),
-        "server": m["server"],
-        "role": m["role"],
-        "main": m.get("main", ""),
-        "history": prev.get("history", []),
-        **{k: prev[k] for k in KEEP if k in prev},
-    }
-
-    srv = servers.get(m["server"])
+def update_member(m, servers, guild, now):
+    """Interroge le site officiel pour un perso de la table membres.
+    Renvoie (valeurs à enregistrer, relevé du jour ou None, signalements [(type, détail)])."""
+    srv = servers.get(m["serveur"])
     if not srv:
-        hint = servers.suggest(m["server"])
-        entry["status"] = "unknown_server"
-        return entry, [("unknown_server", f"serveur « {m['server']} » inconnu" + (f", « {hint} » ?" if hint else ""))]
-    entry.update(server=srv["serverName"], serverId=srv["serverId"], region=srv["region"])
+        hint = servers.suggest(m["serveur"])
+        return {"etat": "unknown_server"}, None, [
+            ("unknown_server", f"serveur « {m['serveur']} » inconnu" + (f", « {hint} » ?" if hint else ""))]
 
     try:
-        char = find_character(m["name"], srv["serverId"], srv["region"])
+        char = find_character(m["pseudo"], srv["serverId"], srv["region"])
         if not char:
-            entry["status"] = "not_found"
-            return entry, [("not_found", f"introuvable sur {srv['serverName']} : pseudo changé ou mal orthographié ?")]
+            return {"etat": "not_found", "server_id": srv["serverId"], "region": srv["region"]}, None, [
+                ("not_found", f"introuvable sur {srv['serverName']} : pseudo changé ou mal orthographié ?")]
         info = get_info(char["characterId"], srv["serverId"], srv["region"])
         p = info["profile"]
     except Exception as e:  # réseau ou format inattendu : on garde les anciennes valeurs
-        entry["status"] = "error"
-        return entry, [("error", str(e)[:200])]
+        return {"etat": "error"}, None, [("error", str(e)[:200])]
 
-    previous = [h for h in entry["history"] if h.get("il") is not None and h["d"] < now.date().isoformat()]
     il = item_level(info)
-    entry.update({
-        "name": p.get("characterName") or m["name"],
-        "className": p.get("className"),
-        "level": p.get("characterLevel"),
+    values = {
+        "classe": p.get("className"),
+        "niveau": p.get("characterLevel"),
         "cp": p.get("combatPower"),
-        "itemLevel": il,
+        "gs": il,
         "legion": p.get("regionName") or "",
         "image": p.get("profileImage") or "",
-        "characterId": char["characterId"],
-        "status": "ok",
-        "lastOk": now.isoformat(timespec="seconds"),
-    })
-    entry["history"] = merge_history(entry["history"], {"d": now.date().isoformat(), "cp": entry["cp"], "il": il},
-                                     [p for n in (entry["name"], *aliases) for p in manual.get(norm(n), [])])
-
+        "character_id": char["characterId"],
+        "server_id": srv["serverId"],
+        "region": srv["region"],
+        "etat": "ok",
+        "dernier_ok": now.isoformat(timespec="seconds"),
+    }
     issues = []
-    if guild and entry["legion"] and norm(entry["legion"]) != norm(guild):
-        issues.append(("left_guild", f"dans la légion « {entry['legion']} »"))
-    if il is not None and previous and il < previous[-1]["il"] - GS_DROP_ALERT:
-        issues.append(("gs_drop", f"GS {previous[-1]['il']} → {il} depuis le {previous[-1]['d']}"))
-    return entry, issues
+    if guild and values["legion"] and norm(values["legion"]) != norm(guild):
+        issues.append(("left_guild", f"dans la légion « {values['legion']} »"))
+    point = {"membre_id": m["id"], "jour": now.date().isoformat(), "gs": il, "cp": values["cp"], "source": "site"}
+    return values, point, issues
 
 
 # ---------------------------------------------------------------- passage complet
 
-def step_summary(db, removed):
+def step_summary(ok, total, issues):
     """Résumé affiché sur la page du passage dans GitHub Actions. Ces pages sont
     publiques : on n'y met que des comptes, ni pseudos ni valeurs."""
     path = os.environ.get("GITHUB_STEP_SUMMARY")
     if not path:
         return
-    run = db["run"]
     by_type = {}
-    for i in run["issues"]:
+    for i in issues:
         by_type[i["type"]] = by_type.get(i["type"], 0) + 1
-    lines = [f"## {run['ok']}/{run['total']} persos à jour", ""]
+    lines = [f"## {ok}/{total} persos à jour", ""]
     lines += [f"- {ISSUE_LABEL.get(t, t)} : {n}" for t, n in by_type.items()] or ["Aucun signalement."]
-    if removed:
-        lines.append(f"- Retirés du suivi depuis le passage précédent : {len(removed)}")
     lines += ["", "Le détail est visible dans la page Admin du site (« État du suivi »)."]
     with open(path, "a", encoding="utf-8") as f:
         f.write("\n".join(lines) + "\n")
 
 
-def load_previous():
-    """Données du passage précédent → (db, sel). Lit la version chiffrée si elle existe
-    (avec SITE_PASSWORD, ou SITE_PASSWORD_PREVIOUS juste après un changement de mot de passe)."""
-    password = os.environ.get("SITE_PASSWORD", "")
-    if DB_ENC.exists():
-        box = json.loads(DB_ENC.read_text(encoding="utf-8"))
-        for i, pw in enumerate(p for p in (password, os.environ.get("SITE_PASSWORD_PREVIOUS", "")) if p):
-            try:
-                db, salt = vault.decrypt(box, pw)
-                if i:
-                    log("Mot de passe précédent utilisé : les données seront rechiffrées avec le nouveau.")
-                return db, (salt if i == 0 else None)
-            except vault.WrongPassword:
-                continue
-        sys.exit("Impossible de déchiffrer data/db.enc.json : vérifie le secret SITE_PASSWORD "
-                 "(après un changement de mot de passe, mets l'ancien dans SITE_PASSWORD_PREVIOUS).")
-    if DB.exists():
-        return json.loads(DB.read_text(encoding="utf-8")), None
-    return {}, None
+def needed(db, now):
+    """Mode --si-necessaire : (faut-il un relevé, déclencheur)."""
+    last = db.select("passages", select="debut", order="debut.desc", limit=1)
+    since = last[0]["debut"] if last else None
+    if since:
+        asked = db.select("demandes_maj", select="id", demande_le=f"gt.{since}", limit=1)
+        if asked:
+            return True, "demande"
+    if not since or datetime.fromisoformat(since) < now - timedelta(hours=REFRESH_HOURS):
+        return True, "planifié"
+    return False, None
 
 
-def save(db, salt):
-    DB.parent.mkdir(parents=True, exist_ok=True)
-    password = os.environ.get("SITE_PASSWORD", "")
-    if password:
-        DB_ENC.write_text(json.dumps(vault.encrypt(db, password, salt)) + "\n", encoding="utf-8")
-        DB.unlink(missing_ok=True)
-        MANUAL.unlink(missing_ok=True)  # son contenu est désormais dans les données chiffrées
-    else:
-        log("::warning::Secret SITE_PASSWORD absent : données écrites EN CLAIR dans data/db.json.")
-        DB.write_text(json.dumps(db, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
-
-
-def rekey_evals():
-    """Les évaluations (data/evals.enc.json) sont chiffrées par la page admin avec la même clé
-    que les données. Après un changement de mot de passe, on les rechiffre avec le nouveau."""
-    password, previous = os.environ.get("SITE_PASSWORD", ""), os.environ.get("SITE_PASSWORD_PREVIOUS", "")
-    if not (password and EVALS_ENC.exists() and DB_ENC.exists()):
-        return
-    box = json.loads(EVALS_ENC.read_text(encoding="utf-8"))
-    salt = json.loads(DB_ENC.read_text(encoding="utf-8"))["kdf"]["salt"]
-    try:
-        vault.decrypt(box, password)
-        if box["kdf"]["salt"] == salt:
-            return  # déjà avec la bonne clé
-        obj = vault.decrypt(box, password)[0]
-    except vault.WrongPassword:
-        if not previous:
-            log("::warning::Évaluations illisibles avec SITE_PASSWORD : mets l'ancien mot de passe dans SITE_PASSWORD_PREVIOUS.")
-            return
-        try:
-            obj = vault.decrypt(box, previous)[0]
-        except vault.WrongPassword:
-            log("::warning::Évaluations illisibles avec les deux mots de passe : elles ne sont pas modifiées.")
-            return
-    EVALS_ENC.write_text(json.dumps(vault.encrypt(obj, password, base64.b64decode(salt))) + "\n", encoding="utf-8")
-    log("Évaluations rechiffrées avec le nouveau mot de passe.")
+def previous_gs(db, ids, today):
+    """Dernier GS connu avant aujourd'hui pour chaque perso (sur 30 jours)."""
+    since = (today - timedelta(days=30)).isoformat()
+    rows = db.select("releves", select="membre_id,jour,gs", jour=f"gte.{since}", gs="not.is.null", order="jour.asc")
+    out = {}
+    for r in rows:
+        if r["membre_id"] in ids and r["jour"] < today.isoformat():
+            out[r["membre_id"]] = r
+    return out
 
 
 def main():
-    cfg = json.loads(CONFIG.read_text(encoding="utf-8"))
-    guild, region = cfg.get("guild", ""), cfg.get("region", "eu")
-    aliases = {norm(k): v for k, v in cfg.get("anciens_noms", {}).items() if isinstance(v, list)}
     now = datetime.now(timezone.utc)
+    db = Supa()
+    trigger = "manuel" if os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch" else "planifié"
+    if "--si-necessaire" in sys.argv:
+        go, trigger = needed(db, now)
+        if not go:
+            log("Pas de relevé nécessaire pour l'instant.")
+            return
 
-    prev_db, salt = load_previous()
-    old = {m["key"]: m for m in prev_db.get("members", [])}
-    manual_rows = prev_db.get("manual") or read_manual_csv()
-    manual = index_manual(manual_rows)
-
-    members = read_members()
+    settings = {r["cle"]: r["valeur"] for r in db.select("reglages")}
+    guild, region = settings.get("guilde", ""), settings.get("region", "eu")
+    members = db.select("membres", select="id,pseudo,serveur", suivi="is.true", order="id.asc")
+    # Début daté par la base (même horloge que les demandes de relevé)
+    run = db.insert("passages", [{"total": len(members), "declencheur": trigger}], returning=True)[0]
     servers = Servers(region)
-    log(f"{len(members)} membres suivis · région {region} · {servers.count()} serveurs chargés")
+    log(f"{len(members)} persos suivis · région {region} · {servers.count()} serveurs chargés · {trigger}")
 
-    result, issues = [], []
+    before = previous_gs(db, {m["id"] for m in members}, now.date())
+    points, issues, ok = [], [], 0
     for n, m in enumerate(members, 1):
-        key = f"{norm(m['server'])}:{norm(m['name'])}"
-        entry, found = update_member(m, old.get(key, {}), servers, manual, now, guild, aliases.get(norm(m["name"]), ()))
-        result.append(entry)
+        values, point, found = update_member(m, servers, guild, now)
+        prev = before.get(m["id"])
+        if point and point["gs"] is not None and prev and point["gs"] < prev["gs"] - GS_DROP_ALERT:
+            found.append(("gs_drop", f"GS {prev['gs']} → {point['gs']} depuis le {prev['jour']}"))
+        db.update("membres", {"id": f"eq.{m['id']}"}, values)
+        if point:
+            points.append(point)
+        ok += values["etat"] == "ok"
         for t, detail in found:
-            issues.append({"name": entry["name"], "type": t, "detail": detail})
+            issues.append({"name": m["pseudo"], "type": t, "detail": detail})
         # Journal public : ni pseudo ni valeur, seulement le résultat
-        log(f"  {n:>3}. {'ok' if entry['status'] == 'ok' else ISSUE_LABEL.get(entry['status'], entry['status'])}"
-            + (f" (+{len(found)} signalement)" if found and entry["status"] == "ok" else ""))
+        log(f"  {n:>3}. {'ok' if values['etat'] == 'ok' else ISSUE_LABEL.get(values['etat'], values['etat'])}"
+            + (f" (+{len(found)} signalement)" if found and values["etat"] == "ok" else ""))
 
-    ok = sum(1 for e in result if e["status"] == "ok")
-    removed = sorted(m["name"] for k, m in old.items() if k not in {e["key"] for e in result})
-    db = {
-        "guild": guild,
-        "region": region,
-        "updatedAt": now.isoformat(timespec="seconds"),
-        "counts": {"total": len(result), "ok": ok},
-        "run": {"at": now.isoformat(timespec="seconds"), "ok": ok, "total": len(result), "issues": issues},
-        "members": result,
-        "manual": manual_rows,
-    }
-    save(db, salt)
-    rekey_evals()
-    step_summary(db, removed)
-    log(f"Terminé : {ok}/{len(result)} à jour, {len(issues)} signalement(s)")
+    if points:
+        db.upsert("releves", points, "membre_id,jour")
+    end = datetime.now(timezone.utc)
+    db.update("passages", {"id": f"eq.{run['id']}"},
+              {"fin": end.isoformat(timespec="seconds"), "ok": ok, "total": len(members), "signalements": issues})
+    step_summary(ok, len(members), issues)
+    log(f"Terminé : {ok}/{len(members)} à jour, {len(issues)} signalement(s)")
 
     # Moins de la moitié des persos trouvés : le site officiel a sans doute changé.
-    if result and ok < len(result) * MIN_SUCCESS:
-        sys.exit(f"Seulement {ok}/{len(result)} persos mis à jour : le site officiel a peut-être changé.")
+    if members and ok < len(members) * MIN_SUCCESS:
+        sys.exit(f"Seulement {ok}/{len(members)} persos mis à jour : le site officiel a peut-être changé.")
 
 
 if __name__ == "__main__":

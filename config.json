@@ -1,6 +1,8 @@
 {
   "guild": "Ivalys",
   "region": "eu",
+  "supabase_url": "https://cvsrncwbferhkwsfajzf.supabase.co",
+  "supabase_publishable_key": "sb_publishable_4XN-7vWD291wAAWeywuLMg_ZJ55B4Qc",
   "anciens_noms": {
     "_": "Pseudo actuel → anciens noms, pour retrouver l'historique d'un perso renommé",
     "CORDE": [

@@ -1,4 +1,5 @@
-/* Fonctions et constantes partagées par le classement et l'admin. */
+/* Fonctions et constantes partagées par le classement et l'admin.
+   Nécessite supabase-js (chargé avant ce fichier). */
 (function () {
   const $ = id => document.getElementById(id);
   const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -7,7 +8,7 @@
 
   // Classes du site officiel (anglais) → noms français
   const CLASS_FR = { Gladiator: "Gladiateur", Templar: "Templier", Cleric: "Clerc", Chanter: "Aède",
-    Assassin: "Assassin", Ranger: "Ranger", Sorcerer: "Sorcier", Spiritmaster: "Spiritualiste" };
+    Assassin: "Assassin", Ranger: "Ranger", Sorcerer: "Sorcier", Spiritmaster: "Spiritualiste", Elementalist: "Spiritualiste" };
 
   // Rôles et classes qui les composent (même découpage que le tableau de suivi de la guilde)
   const ROLES = [
@@ -18,7 +19,7 @@
   ];
   const RANKS = ["Chef", "Officier", "Membre"];
 
-  // Signalements produits par scripts/update.py (data/db.json → run.issues)
+  // Signalements produits par scripts/update.py (table passages → signalements)
   const ISSUE = {
     not_found: { label: "Introuvable", bad: true },
     unknown_server: { label: "Serveur inconnu", bad: true },
@@ -70,127 +71,124 @@
     return ref === pts[pts.length - 1] ? null : ref[field];
   }
 
-  // ------------------------------------------------------------ données chiffrées
-  // data/db.enc.json est chiffré (AES-256-GCM, clé PBKDF2-SHA256) avec le mot de passe du site,
-  // par scripts/vault.py. La clé dérivée (pas le mot de passe) peut être gardée sur l'appareil.
-  const KEY_STORE = "aion2-guilde-site-key";
-  const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
-  const b64e = buf => btoa(String.fromCharCode(...new Uint8Array(buf)));
-  const getJson = async url => {
-    const r = await fetch(url + "?t=" + Date.now(), { cache: "no-store" });
-    if (!r.ok) throw Object.assign(new Error("HTTP " + r.status), { status: r.status });
-    return r.json();
-  };
+  // ------------------------------------------------------------ Supabase
+  // Adresse et clé publique du projet : faites pour être visibles. Ce que chacun
+  // peut lire ou modifier est contrôlé par la base elle-même (supabase/schema.sql).
+  const SUPABASE_URL = "https://cvsrncwbferhkwsfajzf.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_4XN-7vWD291wAAWeywuLMg_ZJ55B4Qc";
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth: { flowType: "pkce", persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+  });
+  const ROLE_LABEL = { admin: "Admin", gerant: "Gérant", lecteur: "Lecteur" };
+  let ME = null;  // { discord_id, role, nom, avatar }
 
-  async function deriveKey(password, box) {
-    const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveKey"]);
-    return crypto.subtle.deriveKey({ name: "PBKDF2", hash: "SHA-256", salt: b64(box.kdf.salt), iterations: box.kdf.iterations },
-      base, { name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]);
-  }
-  // Clé du site une fois déverrouillé : sert aussi à chiffrer les évaluations (page admin)
-  let SITE = null;  // { key, kdf }
-  async function open(box, key) {
-    const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv: b64(box.iv) }, key, b64(box.ct));
-    return JSON.parse(new TextDecoder().decode(plain));
-  }
-  function storedKey(box) {
-    try {
-      const s = JSON.parse(localStorage.getItem(KEY_STORE) || sessionStorage.getItem(KEY_STORE) || "null");
-      return s && s.salt === box.kdf.salt ? s.key : null;
-    } catch { return null; }
-  }
-  async function storeKey(box, key, remember) {
-    const raw = b64e(await crypto.subtle.exportKey("raw", key));
-    try { (remember ? localStorage : sessionStorage).setItem(KEY_STORE, JSON.stringify({ salt: box.kdf.salt, key: raw })); } catch {}
-  }
-  function lock() {
-    try { localStorage.removeItem(KEY_STORE); sessionStorage.removeItem(KEY_STORE); } catch {}
-    location.reload();
-  }
-
-  // Écran de déverrouillage : résout avec les données une fois le bon mot de passe saisi
-  function askPassword(box) {
-    document.documentElement.classList.add("locked");
-    const gate = document.createElement("div");
-    gate.className = "gate";
-    gate.innerHTML = `<form class="gate-card" autocomplete="on">
-      <p class="eyebrow">Accès réservé</p>
-      <h1>Guilde</h1>
-      <p class="muted">Ce site est réservé aux gérants de la guilde. Entre le mot de passe pour continuer.</p>
-      <input type="text" name="username" value="guilde" autocomplete="username" hidden>
-      <input type="password" id="gatePw" autocomplete="current-password" placeholder="Mot de passe" aria-label="Mot de passe" required>
-      <label class="gate-chk"><input type="checkbox" id="gateRemember" checked> Se souvenir de cet appareil</label>
-      <button class="primary" type="submit">Entrer</button>
-      <p class="gate-err" id="gateErr" role="alert"></p>
-    </form>`;
-    document.body.append(gate);
-    const pw = gate.querySelector("#gatePw"), err = gate.querySelector("#gateErr"), btn = gate.querySelector("button");
-    pw.focus();
-    return new Promise(resolve => {
-      gate.querySelector("form").addEventListener("submit", async e => {
-        e.preventDefault();
-        btn.disabled = true; err.textContent = "";
-        try {
-          const key = await deriveKey(pw.value, box);
-          const db = await open(box, key);
-          await storeKey(box, key, gate.querySelector("#gateRemember").checked);
-          SITE = { key, kdf: box.kdf };
-          gate.remove(); document.documentElement.classList.remove("locked");
-          resolve(db);
-        } catch {
-          err.textContent = "Mot de passe incorrect.";
-          pw.select();
-        } finally { btn.disabled = false; }
-      });
-    });
-  }
-
-  // Données du site : version chiffrée si elle existe, sinon version en clair (avant activation)
-  async function fetchData() {
-    let box;
-    try { box = await getJson("data/db.enc.json"); }
-    catch (e) { if (e.status === 404) return getJson("data/db.json"); throw e; }
-    const saved = storedKey(box);
-    if (saved) {
-      try {
-        const key = await crypto.subtle.importKey("raw", b64(saved), "AES-GCM", true, ["encrypt", "decrypt"]);
-        const db = await open(box, key);
-        SITE = { key, kdf: box.kdf };
-        return db;
-      } catch { /* mot de passe changé : on redemande */ }
+  // Lève l'erreur renvoyée par Supabase, sinon renvoie les données
+  const ok = ({ data, error }) => { if (error) throw error; return data; };
+  // Toutes les lignes d'une requête, par pages de 1000 (limite de Supabase)
+  async function fetchAll(query) {
+    const out = [];
+    for (let from = 0; ; from += 1000) {
+      const rows = ok(await query().range(from, from + 999));
+      out.push(...rows);
+      if (rows.length < 1000) return out;
     }
-    return askPassword(box);
   }
-  // Chiffre un objet avec la clé du site, au même format que scripts/vault.py
-  async function seal(obj) {
-    if (!SITE) throw new Error("Site non déverrouillé");
-    const iv = crypto.getRandomValues(new Uint8Array(12));
-    const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, SITE.key, new TextEncoder().encode(JSON.stringify(obj)));
-    return { v: 1, kdf: SITE.kdf, iv: b64e(iv), ct: b64e(ct) };
-  }
-  // Lit un autre fichier chiffré avec la clé du site (null s'il n'existe pas encore)
-  async function openFile(path) {
-    if (!SITE) return null;
-    try { return await open(await getJson(path), SITE.key); }
-    catch (e) { if (e.status === 404) return null; throw e; }
-  }
-  const canSeal = () => !!SITE;
-  const openBox = box => open(box, SITE.key);
-  const isProtected = () => { try { return !!(localStorage.getItem(KEY_STORE) || sessionStorage.getItem(KEY_STORE)); } catch { return false; } };
 
-  // Charge les données et ajoute à chaque membre : classe en français, progressions 7 j, signalements
+  const DISCORD_ICON = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.3 4.4A19.6 19.6 0 0 0 15.4 3l-.6 1.3a18 18 0 0 0-5.6 0L8.6 3a19.6 19.6 0 0 0-4.9 1.5C.6 9.1-.3 13.6.1 18.1a19.8 19.8 0 0 0 6 3l1.3-2.1a12.8 12.8 0 0 1-2-1l.5-.4a14 14 0 0 0 12.2 0l.5.4c-.6.4-1.3.7-2 1l1.3 2.1a19.7 19.7 0 0 0 6-3c.5-5.2-.8-9.7-3.6-13.7zM8 15.3c-1.2 0-2.2-1.1-2.2-2.4S6.8 10.5 8 10.5s2.2 1.1 2.2 2.4-1 2.4-2.2 2.4zm8 0c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4z"/></svg>';
+
+  // Écran plein page tant que la personne n'est pas connectée ou autorisée
+  function gate(html) {
+    document.documentElement.classList.add("locked");
+    const g = document.createElement("div");
+    g.className = "gate";
+    g.innerHTML = `<div class="gate-card">${html}</div>`;
+    document.body.append(g);
+    g.querySelector("[data-login]")?.addEventListener("click", async e => {
+      e.target.disabled = true;
+      const { error } = await sb.auth.signInWithOAuth({ provider: "discord", options: { redirectTo: location.origin + location.pathname } });
+      if (error) { e.target.disabled = false; g.querySelector(".gate-err").textContent = "Connexion impossible : " + error.message; }
+    });
+    g.querySelector("[data-logout]")?.addEventListener("click", logout);
+    return new Promise(() => {});  // la page attend : la connexion recharge le site
+  }
+
+  // Connexion obligatoire. Résout avec le compte une fois autorisé ; sinon affiche l'écran adapté.
+  // need : rôles acceptés pour cette page (par défaut, tous les comptes autorisés).
+  async function auth(need = ["admin", "gerant", "lecteur"]) {
+    const { data: { session } } = await sb.auth.getSession();
+    if (new URLSearchParams(location.search).has("code")) history.replaceState(null, "", location.pathname);
+    if (!session) {
+      return gate(`<p class="eyebrow">Accès réservé</p><h1>Ivalys</h1>
+        <p class="muted">Ce site est réservé à la guilde. Connecte-toi avec ton compte Discord pour continuer.</p>
+        <button class="discord" type="button" data-login>${DISCORD_ICON} Se connecter avec Discord</button>
+        <p class="gate-err" role="alert"></p>`);
+    }
+    ME = ok(await sb.rpc("mon_acces"));
+    const who = `<div class="gate-who">${ME.avatar ? `<img src="${esc(ME.avatar)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">` : ""}
+      <div><strong>${esc(ME.nom || "Compte Discord")}</strong><small>ID ${esc(ME.discord_id || "?")}</small></div></div>`;
+    if (!ME.role) {
+      return gate(`<p class="eyebrow">Accès en attente</p><h1>Ivalys</h1>${who}
+        <p class="muted">Ton compte n'a pas encore accès au site. Ta demande est enregistrée : un administrateur doit l'accepter.</p>
+        <button type="button" data-logout>Se déconnecter</button>
+        <details><summary>Tu es l'administrateur du site ?</summary>
+          Pour te donner l'accès la première fois, colle cette ligne dans Supabase → SQL Editor :
+          <code>insert into public.acces (discord_id, pseudo, role) values ('${esc(ME.discord_id)}', '${esc((ME.nom || "Admin").replace(/'/g, ""))}', 'admin');</code>
+          puis recharge cette page.</details>`);
+    }
+    if (!need.includes(ME.role)) {
+      return gate(`<p class="eyebrow">Accès limité</p><h1>Ivalys</h1>${who}
+        <p class="muted">Cette page est réservée aux gérants de la guilde.</p>
+        <a class="btn primary" href="./" style="justify-content:center">Retour au classement</a>`);
+    }
+    return ME;
+  }
+  async function logout() {
+    await sb.auth.signOut();
+    location.href = location.pathname;
+  }
+  const lock = logout;
+  const isProtected = () => true;
+
+  // Ligne de la table membres → format utilisé par les pages
+  const toMember = (r, hist = []) => ({
+    id: r.id, key: r.cle, name: r.pseudo, server: r.serveur, role: r.statut, main: r.main || "", on: r.suivi,
+    aliases: r.anciens_noms || [], className: r.classe, level: r.niveau, cp: r.cp, itemLevel: r.gs, legion: r.legion,
+    image: r.image, characterId: r.character_id, serverId: r.server_id, region: r.region, status: r.etat,
+    lastOk: r.dernier_ok, history: hist,
+  });
+
+  // Charge les données et ajoute à chaque membre : classe en français, progressions 7 j, signalements.
+  // db.members : persos suivis ; db.all : tous les persos (suivis et en attente).
   async function loadDb() {
-    const db = await fetchData();
+    const since = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10);
+    const [reglages, rows, last, releves] = await Promise.all([
+      sb.from("reglages").select("cle,valeur").then(ok),
+      fetchAll(() => sb.from("membres").select("*").order("id")),
+      sb.from("passages").select("*").not("fin", "is", null).order("debut", { ascending: false }).limit(1).then(ok),
+      fetchAll(() => sb.from("releves").select("membre_id,jour,gs,cp").gte("jour", since).order("jour").order("membre_id")),
+    ]);
+    const cfg = Object.fromEntries(reglages.map(r => [r.cle, r.valeur]));
+    const hist = {};
+    releves.forEach(p => (hist[p.membre_id] ||= []).push({ d: p.jour, cp: p.cp, il: p.gs }));
+    const run = last[0];
+    const db = {
+      guild: cfg.guilde || "", region: cfg.region || "eu",
+      updatedAt: run?.fin || null,
+      counts: run ? { ok: run.ok, total: run.total } : null,
+      run: run ? { at: run.fin, issues: run.signalements || [] } : { issues: [] },
+    };
     const issues = {};
-    (db.run?.issues || []).forEach(i => (issues[norm(i.name)] ||= []).push(i));
-    db.members = (db.members || []).map(m => {
+    db.run.issues.forEach(i => (issues[norm(i.name)] ||= []).push(i));
+    db.all = rows.map(r => {
+      const m = toMember(r, hist[r.id] || []);
       const gs0 = valueDaysAgo(m.history, 7, "il"), cp0 = valueDaysAgo(m.history, 7, "cp");
       return { ...m,
         classFr: CLASS_FR[m.className] || m.className || "",
         d7: gs0 != null && m.itemLevel != null ? m.itemLevel - gs0 : null,
         cp7: cp0 != null && m.cp != null ? m.cp - cp0 : null,
-        issues: issues[norm(m.name)] || [] };
+        issues: m.on ? issues[norm(m.name)] || [] : [] };
     });
+    db.members = db.all.filter(m => m.on);
     // Alts : rattachés à leur main s'il est suivi, sinon traités comme des persos principaux
     const byName = Object.fromEntries(db.members.map(m => [norm(m.name), m]));
     db.members.forEach(m => { m.alts = []; });
@@ -215,5 +213,6 @@
   }
 
   window.G = { $, esc, fmt, norm, CLASS_FR, ROLES, RANKS, ISSUE, SERVER_ID, REPO, profileUrl, ago, dateTime,
-    valueDaysAgo, loadDb, roleBadge, flags, toast, lock, isProtected, seal, openFile, openBox, canSeal };
+    valueDaysAgo, loadDb, roleBadge, flags, toast, lock, logout, isProtected, sb, ok, fetchAll, auth, ROLE_LABEL,
+    me: () => ME };
 })();

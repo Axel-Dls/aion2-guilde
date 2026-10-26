@@ -22,9 +22,14 @@ code{font:13px var(--mono);background:var(--surface-2);border:1px solid var(--li
 .msg{margin:10px 0 0;font-size:14px}
 .msg.err{color:var(--down)} .msg.ok{color:var(--up)}
 
-/* Connexion */
-.tokrow{display:flex;flex-wrap:wrap;gap:10px}
-.tokrow input{flex:1 1 280px;font-family:var(--mono)}
+/* Accès */
+.list.acc .item{grid-template-columns:minmax(0,1fr) minmax(0,150px) 130px auto}
+.list.acc .item.req{background:var(--gold-soft)}
+.acc-who{display:flex;gap:10px;align-items:center;min-width:0}
+.acc-who img{width:30px;height:30px;border-radius:50%;flex:none}
+.acc-h{padding:10px 16px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--surface-2);border-bottom:1px solid var(--line)}
+.you{font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;margin-left:6px;background:var(--surface-2);color:var(--muted)}
+@media (max-width:640px){.list.acc .item{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.list.acc .item .c1{grid-column:1/-1}.list.acc .item .acts{grid-column:1/-1;justify-content:flex-start}}
 label.chk{display:inline-flex;gap:8px;align-items:center;font-size:14px;color:var(--muted);margin-top:10px}
 
 /* État du suivi */
@@ -171,24 +176,6 @@ kbd{font:12px var(--mono);border:1px solid var(--line);border-bottom-width:2px;b
     <a class="back" href="./">← Retour au classement</a>
   </header>
 
-  <!-- Connexion -->
-  <section class="card" id="login">
-    <h2 style="margin-bottom:10px">Connexion GitHub</h2>
-    <p>Cette page modifie la liste des membres directement sur GitHub. Il te faut une <strong>clé d'accès personnelle</strong> (token), à créer une seule fois :</p>
-    <ol>
-      <li>Ouvre <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">GitHub → nouveau token</a> (« Fine-grained »).</li>
-      <li><strong>Repository access</strong> : « Only select repositories » → <code id="repoName"></code>.</li>
-      <li><strong>Repository permissions</strong> : <code>Contents</code> → <strong>Read and write</strong>, et <code>Actions</code> → <strong>Read and write</strong>.</li>
-      <li>« Generate token », puis colle la clé ci-dessous.</li>
-    </ol>
-    <div class="tokrow">
-      <input type="password" id="token" placeholder="github_pat_…" autocomplete="off" spellcheck="false" aria-label="Clé GitHub">
-      <button class="primary" id="connect" type="button">Se connecter</button>
-    </div>
-    <label class="chk"><input type="checkbox" id="remember" checked> Rester connecté sur cet appareil</label>
-    <p class="msg" id="loginMsg" role="status"></p>
-  </section>
-
   <div id="editor" hidden>
     <aside class="side">
     <!-- État du suivi -->
@@ -196,15 +183,15 @@ kbd{font:12px var(--mono);border:1px solid var(--line);border-bottom-width:2px;b
       <div class="health-h">
         <h2>État du suivi</h2>
         <span class="acts">
-          <button type="button" id="rerun" title="Relance la récupération des GS et CP sans rien modifier">
+          <button type="button" id="rerun" title="Demande un nouveau relevé des GS et CP (lancé dans les 30 minutes environ)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>
             Relancer la mise à jour</button>
         </span>
       </div>
       <div class="facts">
         <div class="fact"><div class="label">Dernier relevé</div><div class="v" id="hData">–</div><div class="s" id="hDataSub"></div></div>
-        <div class="fact"><div class="label">Dernier passage GitHub</div><div class="v" id="hRun">–</div><div class="s" id="hRunSub"></div></div>
-        <div class="fact"><div class="label">Connecté</div><div class="v" id="who">–</div><div class="s"><a id="repoLink" target="_blank" rel="noopener">Voir le dépôt</a> · <button type="button" class="link" id="logout" title="Oublier la clé GitHub et le mot de passe du site sur cet appareil">Se déconnecter</button></div></div>
+        <div class="fact"><div class="label">Prochain relevé</div><div class="v" id="hRun">–</div><div class="s" id="hRunSub"></div></div>
+        <div class="fact"><div class="label">Connecté</div><div class="v" id="who">–</div><div class="s"><a id="repoLink" target="_blank" rel="noopener" title="Journal des relevés automatiques sur GitHub">Journal</a> · <button type="button" class="link" id="logout" title="Se déconnecter de ce site sur cet appareil">Se déconnecter</button></div></div>
       </div>
       <div id="hIssues"></div>
       <p class="msg" id="runMsg" role="status" hidden></p>
@@ -228,6 +215,7 @@ kbd{font:12px var(--mono);border:1px solid var(--line);border-bottom-width:2px;b
         <button type="button" role="tab" id="tabOn" aria-selected="true">Suivis <span class="n" id="cntOn">0</span></button>
         <button type="button" role="tab" id="tabOff" aria-selected="false">En attente <span class="n" id="cntOff">0</span></button>
         <button type="button" role="tab" id="tabEv" aria-selected="false">Évaluations <span class="n" id="cntEv">0</span></button>
+        <button type="button" role="tab" id="tabAcc" aria-selected="false" hidden>Accès <span class="n" id="cntAcc">0</span></button>
       </div>
       <span class="r"><span class="kbd-hint"><kbd>/</kbd></span>
       <input type="search" id="q" placeholder="Rechercher un pseudo…" aria-label="Rechercher un pseudo" aria-keyshortcuts="/"></span>
@@ -260,11 +248,10 @@ kbd{font:12px var(--mono);border:1px solid var(--line);border-bottom-width:2px;b
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
 <script src="assets/common.js"></script>
 <script>
-const { $, esc, fmt, norm, RANKS, ISSUE, SERVER_ID, REPO, profileUrl, ago, dateTime, loadDb, flags, toast, lock } = G;
-const API = `https://api.github.com/repos/${REPO.owner}/${REPO.name}`;
-const KEY = "aion2-guilde-token";
+const { $, esc, fmt, norm, RANKS, ISSUE, SERVER_ID, REPO, profileUrl, ago, dateTime, loadDb, flags, toast, logout, sb, ok, auth, ROLE_LABEL } = G;
 const ICON = {
   pause: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6v12M15 6v12"/></svg>',
   play: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 5l12 7-12 7z"/></svg>',
@@ -272,8 +259,7 @@ const ICON = {
   undo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg>',
 };
 
-$("repoName").textContent = REPO.name;
-$("repoLink").href = REPO.url;
+$("repoLink").href = `${REPO.url}/actions/workflows/update.yml`;
 $("servers").innerHTML = Object.keys(SERVER_ID).sort().map(s => `<option value="${s}">`).join("");
 // Critères d'évaluation (colonnes de l'onglet « Suivi Global membres » du tableau Excel)
 const CRITERIA = [["progression", "Progression", "Progrès"], ["activite", "Activités", "Activités"], ["presence", "Présence raids", "Présence"],
@@ -281,56 +267,12 @@ const CRITERIA = [["progression", "Progression", "Progrès"], ["activite", "Acti
   ["fiabilite", "Fiabilité", "Fiabilité"]];
 const LEVELS = ["", "ok", "moyen", "ko"];
 const LEVEL_LABEL = { "": "non noté", ok: "bien", moyen: "moyen", ko: "à surveiller" };
-const EVALS_PATH = "data/evals.enc.json";
+const REFRESH_HOURS = 11;   // relevé automatique si le dernier est plus ancien (scripts/update.py)
 
-let TOKEN = "", SHA = "", HEAD = [], ROWS = [], REMOVED = [], LIVE = {}, DB = null;
-let EVALS = { by: {} }, EVALS_SHA = null, EVALS_O = "{}", ALIASES = {};
+let ME = null, ROWS = [], REMOVED = [], LIVE = {}, DB = null;
+let EVALS = { by: {} }, EVALS_O = "{}", ALIASES = {};
+let ACCESS = [], REQUESTS = [];
 let DEFAULT_SERVER = "Triniel", TAB = "on", CONFIRM = null;
-
-// ---------------------------------------------------------------- GitHub
-async function gh(path, opts = {}) {
-  const r = await fetch(path.startsWith("http") ? path : API + path, {
-    ...opts,
-    headers: { Accept: "application/vnd.github+json", Authorization: `Bearer ${TOKEN}`, "X-GitHub-Api-Version": "2022-11-28", ...(opts.headers || {}) },
-  });
-  if (!r.ok) {
-    let m = ""; try { m = (await r.json()).message || ""; } catch {}
-    throw Object.assign(new Error(m || `HTTP ${r.status}`), { status: r.status });
-  }
-  return r.status === 204 ? null : r.json();
-}
-const b64decode = s => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\n/g, "")), c => c.charCodeAt(0)));
-const b64encode = s => { let bin = ""; new TextEncoder().encode(s).forEach(x => bin += String.fromCharCode(x)); return btoa(bin); };
-
-// ---------------------------------------------------------------- members.csv
-// Format : lignes d'en-tête « # … », puis « pseudo,serveur,statut,main », un perso par ligne
-// (main vide pour un perso principal). Un perso en attente est une ligne commentée « # … ».
-function parseCsv(text) {
-  const head = [], rows = [];
-  let afterHeader = false;
-  for (const raw of text.split(/\r?\n/)) {
-    const line = raw.trim();
-    if (!line) continue;
-    if (!afterHeader) {
-      if (/^pseudo\s*,/i.test(line)) { afterHeader = true; continue; }
-      if (line.startsWith("#")) { head.push(raw); continue; }
-    }
-    const off = line.startsWith("#");
-    const parts = (off ? line.replace(/^#+\s*/, "") : line).split(",").map(x => x.trim());
-    // Une phrase de commentaire n'est pas un perso : un pseudo n'a pas plusieurs mots.
-    if (parts.length < 2 || !parts[0] || parts[0].split(" ").length > 2 || /^pseudo$/i.test(parts[0])) continue;
-    rows.push({ name: parts[0], server: parts[1] || DEFAULT_SERVER, role: RANKS.includes(parts[2]) ? parts[2] : "Membre", main: parts[3] || "", on: !off });
-  }
-  if (!head.length) head.push("# Membres suivis : une ligne par perso, au format « pseudo,serveur,statut,main ».");
-  return { head, rows };
-}
-function buildCsv() {
-  const line = r => `${r.name.trim()},${(r.server || DEFAULT_SERVER).trim()},${r.role},${r.main || ""}`;
-  const on = grouped(ROWS.filter(r => r.on)), off = ROWS.filter(r => !r.on);
-  let out = HEAD.join("\n") + "\npseudo,serveur,statut,main\n" + on.map(line).join("\n") + "\n";
-  if (off.length) out += "\n# En attente (non suivis) : retire le « # » pour réactiver\n" + off.map(r => "# " + line(r)).join("\n") + "\n";
-  return out;
-}
 
 // ---------------------------------------------------------------- modifications en cours
 const isChanged = r => r.isNew || ["name", "server", "role", "main", "on"].some(k => (r[k] || "") !== (r.o[k] || ""));
@@ -393,17 +335,26 @@ async function renderHealth() {
       }).join("")}</ul>${issues.length > 5 ? `<button type="button" class="quiet" id="hMore">${HEALTH_ALL ? "Réduire" : `Voir les ${issues.length - 5} autres signalements`}</button>` : ""}`
     : `<p class="ok-line">Aucun signalement au dernier relevé.</p>`;
 
+  // Prochain relevé : en cours, demandé (traité dans les 30 min environ) ou automatique
   try {
-    const runs = await gh("/actions/workflows/update.yml/runs?per_page=1");
-    const r = runs.workflow_runs?.[0];
-    if (!r) { $("hRun").textContent = "Aucun"; return; }
-    const state = r.status !== "completed" ? ["run", "En cours"] : r.conclusion === "success" ? ["ok", "Réussi"] : ["bad", "Échoué"];
-    const why = { schedule: "automatique", push: "après une modification", workflow_dispatch: "relancé à la main" }[r.event] || r.event;
-    $("hRun").innerHTML = `<span class="dot ${state[0]}"></span>${state[1]} · <a href="${esc(r.html_url)}" target="_blank" rel="noopener">détails</a>`;
-    $("hRunSub").textContent = `${ago(r.run_started_at || r.created_at)} · ${why}`;
+    const [[run], [ask]] = await Promise.all([
+      sb.from("passages").select("debut,fin").order("debut", { ascending: false }).limit(1).then(ok),
+      sb.from("demandes_maj").select("demande_le,par").order("demande_le", { ascending: false }).limit(1).then(ok),
+    ]);
+    const running = run && !run.fin && Date.now() - new Date(run.debut) < 20 * 6e4;
+    if (running) {
+      $("hRun").innerHTML = `<span class="dot run"></span>En cours`;
+      $("hRunSub").textContent = `commencé ${ago(run.debut)}`;
+    } else if (ask && (!run || new Date(ask.demande_le) > new Date(run.debut))) {
+      $("hRun").innerHTML = `<span class="dot run"></span>Demandé ${esc(ago(ask.demande_le))}`;
+      $("hRunSub").textContent = `par ${ask.par || "?"} · lancé dans les 30 min environ`;
+    } else {
+      const next = run ? new Date(new Date(run.debut).getTime() + REFRESH_HOURS * 36e5) : null;
+      $("hRun").innerHTML = `<span class="dot ok"></span>Automatique`;
+      $("hRunSub").textContent = next && next > Date.now() ? `vers ${dateTime(next.toISOString())}` : "dans les 30 min environ";
+    }
   } catch {
-    $("hRun").textContent = "Inconnu";
-    $("hRunSub").textContent = "La clé n'a pas la permission Actions";
+    $("hRun").textContent = "Inconnu"; $("hRunSub").textContent = "";
   }
 }
 let HEALTH_ALL = false;
@@ -450,15 +401,17 @@ function render(focusRow) {
   const on = ROWS.filter(r => r.on), off = ROWS.filter(r => !r.on);
   $("cntOn").textContent = on.length; $("cntOff").textContent = off.length;
   $("cntEv").textContent = mainsOf(ROWS).length;
-  ["on", "off", "ev"].forEach(t => $("tab" + t[0].toUpperCase() + t.slice(1)).setAttribute("aria-selected", TAB === t));
+  $("cntAcc").textContent = ACCESS.length + (REQUESTS.length ? ` +${REQUESTS.length}` : "");
+  ["on", "off", "ev", "acc"].forEach(t => $("tab" + t[0].toUpperCase() + t.slice(1)).setAttribute("aria-selected", TAB === t));
   $("evTools").hidden = TAB !== "ev";
   if (TAB === "ev") { renderEvals(q); updateBar(); return; }
+  if (TAB === "acc") { renderAccess(q); updateBar(); return; }
 
   const gs = r => LIVE[norm(r.name)]?.itemLevel || 0;
   let items;
   if (TAB === "on") {
     items = q ? on.filter(r => norm(r.name).includes(q) || norm(r.main).includes(q))
-      : grouped(on, (a, b) => (b.isNew - a.isNew) || (RANKS.indexOf(a.role) - RANKS.indexOf(b.role)) || (gs(b) - gs(a)));
+      : grouped(on, (a, b) => (!!b.isNew - !!a.isNew) || (RANKS.indexOf(a.role) - RANKS.indexOf(b.role)) || (gs(b) - gs(a)));
   } else {
     items = off.filter(r => !q || norm(r.name).includes(q)).sort((a, b) => a.name.localeCompare(b.name, "fr"));
   }
@@ -488,18 +441,20 @@ function updateBar() {
 }
 
 $("list").addEventListener("input", e => {
+  if (TAB === "acc") return;
   const it = e.target.closest(".item"), f = e.target.dataset.f; if (!it || !f) return;
   const r = ROWS[+it.dataset.i];
   if (f === "name" || f === "server") { r[f] = e.target.value; it.classList.toggle("changed", isChanged(r)); updateBar(); }
 });
 $("list").addEventListener("change", e => {
+  if (TAB === "acc") return;
   const it = e.target.closest(".item"), f = e.target.dataset.f; if (!it || !f) return;
   const r = ROWS[+it.dataset.i];
   if (f === "role") applyRole(r, e.target.value); else r[f] = e.target.value.trim();
   render();
 });
 $("list").addEventListener("click", e => {
-  const b = e.target.closest("button[data-act]"); if (!b) return;
+  const b = e.target.closest("button[data-act]"); if (!b || TAB === "acc") return;
   const r = ROWS[+b.closest(".item").dataset.i];
   switch (b.dataset.act) {
     case "toggle": r.on = !r.on; CONFIRM = null; render(); toast(r.on ? `${r.name} réactivé` : `${r.name} mis en attente`); break;
@@ -514,6 +469,7 @@ $("list").addEventListener("click", e => {
 $("tabOn").addEventListener("click", () => { TAB = "on"; CONFIRM = null; render(); });
 $("tabOff").addEventListener("click", () => { TAB = "off"; CONFIRM = null; render(); });
 $("tabEv").addEventListener("click", () => { TAB = "ev"; CONFIRM = null; render(); });
+$("tabAcc").addEventListener("click", () => { TAB = "acc"; CONFIRM = null; render(); });
 $("q").addEventListener("input", () => render());
 // « / » pour chercher, Échap pour effacer
 document.addEventListener("keydown", e => {
@@ -533,11 +489,11 @@ $("addForm").addEventListener("submit", e => {
   $("nName").value = ""; $("nName").focus();
   TAB = "on"; render(row); toast(`${name} ajouté : pense à enregistrer`);
 });
-$("discard").addEventListener("click", () => Promise.all([loadMembers(), loadEvals()]).then(() => { render(); toast("Changements annulés"); }));
+$("discard").addEventListener("click", () => reloadAll().then(() => toast("Changements annulés")));
 
-// ---------------------------------------------------------------- évaluations (chiffrées)
-// Une fiche par joueur (perso principal) : 7 critères, alerte, commentaire. Le fichier
-// data/evals.enc.json est chiffré ici, dans le navigateur, avec la clé du site.
+// ---------------------------------------------------------------- évaluations
+// Une fiche par joueur (perso principal) : 7 critères, alerte, commentaire.
+// Table evaluations : lisible et modifiable par les gérants et l'admin seulement.
 const evalOf = name => EVALS.by[norm(name)];
 function ensureEval(name) {
   return EVALS.by[norm(name)] ||= { name, crit: {}, alerte: false, comment: "" };
@@ -556,11 +512,7 @@ function renderEvals(q) {
   const only = $("onlyAlerts").checked;
   const before = JSON.parse(EVALS_O).by || {};
   $("list").className = "list evs";
-  $("hint").textContent = "Une fiche par joueur. Clique sur un critère pour le noter (bien → moyen → à surveiller → non noté). Ces évaluations sont chiffrées et ne sont visibles que par ceux qui ont le mot de passe du site.";
-  if (!G.canSeal()) {
-    $("list").innerHTML = `<div class="empty">Les évaluations sont chiffrées avec le mot de passe du site, qui n'est pas encore activé (secret <code>SITE_PASSWORD</code>).</div>`;
-    return;
-  }
+  $("hint").textContent = "Une fiche par joueur. Clique sur un critère pour le noter (bien → moyen → à surveiller → non noté). Ces évaluations ne sont visibles que par les gérants et l'admin.";
   const rows = mains
     .map(r => { const live = LIVE[norm(r.name)]; const ev = evalOf(r.name); const sig = [...autoSignals(live, avg), ...(live?.issues || [])]; return { r, live, ev, sig }; })
     .filter(x => !q || norm(x.r.name).includes(q))
@@ -654,139 +606,183 @@ $("xlsx").addEventListener("change", async e => {
 });
 
 async function loadEvals() {
-  EVALS = { by: {} }; EVALS_SHA = null;
-  if (G.canSeal()) {
-    try {
-      const f = await gh(`/contents/${EVALS_PATH}?ref=main&t=${Date.now()}`);
-      EVALS_SHA = f.sha;
-      EVALS = await G.openBox(JSON.parse(b64decode(f.content)));
-      EVALS.by ||= {};
-    } catch (e) {
-      if (e.status !== 404) toast("Évaluations illisibles : " + (e.message || "mot de passe changé ?"));
+  EVALS = { by: {} };
+  const rows = await sb.from("evaluations").select("*").then(ok);
+  rows.forEach(r => { EVALS.by[r.pseudo_norm] = { name: r.pseudo, crit: r.crit || {}, alerte: r.alerte, comment: r.commentaire || "" }; });
+  EVALS_O = JSON.stringify(EVALS);
+}
+async function saveEvals() {
+  const before = JSON.parse(EVALS_O).by || {};
+  for (const k of evalChanges()) {
+    const ev = EVALS.by[k];
+    const empty = !ev || (!Object.keys(ev.crit || {}).length && !ev.alerte && !ev.comment?.trim());
+    if (empty) {
+      delete EVALS.by[k];
+      if (before[k]) await sb.from("evaluations").delete().eq("pseudo_norm", k).then(ok);
+    } else {
+      await sb.from("evaluations").upsert({ pseudo_norm: k, pseudo: ev.name, crit: ev.crit || {}, alerte: !!ev.alerte,
+        commentaire: ev.comment || "", maj_le: new Date().toISOString(), maj_par: ME.nom || ME.discord_id }).then(ok);
     }
   }
   EVALS_O = JSON.stringify(EVALS);
 }
-async function saveEvals() {
-  // Fiches vides retirées, puis chiffrement dans le navigateur
-  for (const [k, ev] of Object.entries(EVALS.by)) {
-    if (!Object.keys(ev.crit || {}).length && !ev.alerte && !ev.comment?.trim()) delete EVALS.by[k];
-  }
-  EVALS.updatedAt = new Date().toISOString();
-  const box = await G.seal(EVALS);
-  const res = await gh(`/contents/${EVALS_PATH}`, {
-    method: "PUT",
-    body: JSON.stringify({ message: "Admin : évaluations mises à jour", content: b64encode(JSON.stringify(box) + "\n"), branch: "main", ...(EVALS_SHA ? { sha: EVALS_SHA } : {}) }),
-  });
-  EVALS_SHA = res.content.sha;
-  EVALS_O = JSON.stringify(EVALS);
+
+// ---------------------------------------------------------------- accès (admin)
+async function loadAccess() {
+  if (ME.role !== "admin") return;
+  [ACCESS, REQUESTS] = await Promise.all([
+    sb.from("acces").select("*").order("pseudo").then(ok),
+    sb.from("demandes_acces").select("*").order("demande_le", { ascending: false }).then(ok),
+  ]);
 }
+const roleOptions = (sel, attrs) => `<select ${attrs}>${["lecteur", "gerant", "admin"].map(r => `<option value="${r}"${r === sel ? " selected" : ""}>${ROLE_LABEL[r]}</option>`).join("")}</select>`;
+function renderAccess(q) {
+  $("list").className = "list acc";
+  $("hint").textContent = "Qui peut ouvrir le site. Lecteur : le classement. Gérant : le classement, la gestion des membres et les évaluations. Admin : tout, plus cette liste. Les changements ici sont enregistrés tout de suite.";
+  const match = x => !q || norm(x).includes(q);
+  const reqs = REQUESTS.filter(d => match(d.nom_discord) || match(d.discord_id));
+  const acc = ACCESS.filter(a => match(a.pseudo) || match(a.discord_id));
+  const avatar = url => url ? `<img src="${esc(url)}" alt="" referrerpolicy="no-referrer" loading="lazy" onerror="this.remove()">` : "";
+  $("list").innerHTML = (reqs.length ? `<div class="acc-h">Demandes en attente · ${reqs.length}</div>` + reqs.map(d => `
+    <div class="item req" data-req="${esc(d.discord_id)}">
+      <div class="c1 acc-who">${avatar(d.avatar)}<div><div class="nm">${esc(d.nom_discord || "Compte Discord")}</div><div class="sub">ID ${esc(d.discord_id)} · ${esc(ago(d.demande_le))}</div></div></div>
+      <input data-f="pseudo" value="${esc(d.nom_discord || "")}" placeholder="Pseudo en jeu" aria-label="Pseudo affiché">
+      ${roleOptions("lecteur", `data-f="role" aria-label="Rôle"`)}
+      <div class="acts"><button type="button" class="primary" data-act="accept">Accepter</button>
+        <button type="button" class="icon" data-act="refuse" title="Refuser la demande" aria-label="Refuser la demande">${ICON.trash}</button></div>
+    </div>`).join("") : "")
+    + `<div class="acc-h">Accès · ${acc.length}</div>` + (acc.length ? acc.map(a => {
+      const self = a.discord_id === ME.discord_id;
+      return `<div class="item" data-acc="${esc(a.discord_id)}">
+        <div class="c1"><div class="nm">${esc(a.pseudo)}${self ? '<span class="you">toi</span>' : ""}</div><div class="sub">ID ${esc(a.discord_id)} · depuis le ${esc(new Date(a.ajoute_le).toLocaleDateString("fr-FR"))}</div></div>
+        <span></span>
+        ${self ? `<span class="sub">${ROLE_LABEL[a.role]}</span>` : roleOptions(a.role, `data-f="role" aria-label="Rôle de ${esc(a.pseudo)}"`)}
+        <div class="acts">${self ? "" : `<button type="button" class="icon" data-act="revoke" title="Retirer l'accès" aria-label="Retirer l'accès de ${esc(a.pseudo)}">${ICON.trash}</button>`}</div>
+      </div>`;
+    }).join("") : `<div class="empty">Personne.</div>`);
+}
+$("list").addEventListener("click", async e => {
+  const b = e.target.closest("button[data-act]"); if (!b || TAB !== "acc") return;
+  const it = b.closest(".item");
+  b.disabled = true;
+  try {
+    if (b.dataset.act === "accept") {
+      const id = it.dataset.req, pseudo = it.querySelector('[data-f="pseudo"]').value.trim();
+      if (!pseudo) { toast("Indique un pseudo"); return; }
+      await sb.from("acces").insert({ discord_id: id, pseudo, role: it.querySelector('[data-f="role"]').value }).then(ok);
+      await sb.from("demandes_acces").delete().eq("discord_id", id).then(ok);
+      toast(`${pseudo} a maintenant accès au site`);
+    } else if (b.dataset.act === "refuse") {
+      await sb.from("demandes_acces").delete().eq("discord_id", it.dataset.req).then(ok);
+      toast("Demande refusée");
+    } else if (b.dataset.act === "revoke") {
+      const a = ACCESS.find(x => x.discord_id === it.dataset.acc);
+      if (!confirmRevoke(a)) return;
+      await sb.from("acces").delete().eq("discord_id", a.discord_id).then(ok);
+      toast(`Accès retiré à ${a.pseudo}`);
+    }
+    await loadAccess(); render();
+  } catch (err) { toast("Échec : " + err.message); }
+  finally { b.disabled = false; }
+});
+let REVOKE = null;
+function confirmRevoke(a) {  // deux clics pour retirer un accès
+  if (REVOKE === a.discord_id) { REVOKE = null; return true; }
+  REVOKE = a.discord_id; toast(`Clique encore pour retirer l'accès de ${a.pseudo}`);
+  setTimeout(() => { if (REVOKE === a.discord_id) REVOKE = null; }, 4000);
+  return false;
+}
+$("list").addEventListener("change", async e => {
+  if (TAB !== "acc") return;
+  const it = e.target.closest(".item[data-acc]"); if (!it || e.target.dataset.f !== "role") return;
+  try {
+    await sb.from("acces").update({ role: e.target.value }).eq("discord_id", it.dataset.acc).then(ok);
+    await loadAccess(); render(); toast("Rôle modifié");
+  } catch (err) { toast("Échec : " + err.message); }
+});
 
 // ---------------------------------------------------------------- chargement / enregistrement
-async function loadLive() {
-  try {
-    DB = await loadDb();
-    LIVE = Object.fromEntries(DB.members.map(m => [norm(m.name), m]));
-    const cfg = await fetch("config.json?t=" + Date.now()).then(r => r.json()).catch(() => ({}));
-    ALIASES = Object.fromEntries(Object.entries(cfg.anciens_noms || {}).filter(([, v]) => Array.isArray(v)).map(([k, v]) => [norm(k), v]));
-    if (DB.guild) { $("eyebrow").textContent = `${DB.guild} · Administration`; document.title = `Admin · ${DB.guild}`; }
-  } catch { DB = null; LIVE = {}; }
-}
-async function loadMembers() {
-  const f = await gh(`/contents/members.csv?ref=main&t=${Date.now()}`);
-  SHA = f.sha;
-  const p = parseCsv(b64decode(f.content));
-  HEAD = p.head; REMOVED = []; CONFIRM = null;
-  DEFAULT_SERVER = p.rows.find(r => r.on)?.server || DEFAULT_SERVER;
+async function reloadAll() {
+  DB = await loadDb();
+  LIVE = Object.fromEntries(DB.members.map(m => [norm(m.name), m]));
+  ALIASES = Object.fromEntries(DB.all.filter(m => m.aliases.length).map(m => [norm(m.name), m.aliases]));
+  if (DB.guild) { $("eyebrow").textContent = `${DB.guild} · Administration`; document.title = `Admin · ${DB.guild}`; }
+  REMOVED = []; CONFIRM = null;
+  ROWS = DB.all.map(m => { const r = { id: m.id, name: m.name, server: m.server, role: RANKS.includes(m.role) ? m.role : "Membre", main: m.main, on: m.on, aliases: m.aliases }; return { ...r, o: { ...r } }; });
+  const count = {};
+  ROWS.filter(r => r.on).forEach(r => { count[r.server] = (count[r.server] || 0) + 1; });
+  DEFAULT_SERVER = Object.keys(count).sort((a, b) => count[b] - count[a])[0] || DEFAULT_SERVER;
   $("nServer").value = DEFAULT_SERVER;
-  ROWS = p.rows.map(r => ({ ...r, o: { ...r } }));
+  await Promise.all([loadEvals(), loadAccess()]);
   refreshAddRole();
   render();
+  renderHealth();
 }
 function refreshAddRole() {
   const keep = $("nRole").value || "Membre";
   $("nRole").outerHTML = roleSelect({ role: "Membre", main: "" }, `id="nRole" aria-label="Statut ou alt de"`);
   if ([...$("nRole").options].some(o => o.value === keep)) $("nRole").value = keep;
 }
+const dbRow = r => ({ pseudo: r.name.trim(), serveur: (r.server || DEFAULT_SERVER).trim(), statut: r.role, main: (r.main || "").trim(), suivi: r.on });
 $("save").addEventListener("click", async () => {
   ROWS = ROWS.filter(r => r.name.trim());
   const keys = ROWS.map(r => norm(r.name) + "|" + norm(r.server));
   const dup = keys.find((k, i) => keys.indexOf(k) !== i);
   if (dup) { $("barText").innerHTML = `<span style="color:var(--down)">${esc(dup.split("|")[0])} apparaît deux fois dans la liste.</span>`; return; }
+  // Un main renommé : ses alts suivent
+  ROWS.filter(r => !r.isNew && norm(r.name) !== norm(r.o.name)).forEach(r =>
+    ROWS.filter(x => x.main && norm(x.main) === norm(r.o.name)).forEach(x => { x.main = r.name.trim(); }));
   const ch = changeList(), evCh = evalChanges();
   $("save").disabled = true; $("barText").textContent = "Enregistrement…";
   try {
-    if (ch.length) {
-      await gh("/contents/members.csv", {
-        method: "PUT",
-        body: JSON.stringify({ message: `Admin : ${ch.slice(0, 5).join(", ")}${ch.length > 5 ? "…" : ""}`, content: b64encode(buildCsv()), sha: SHA, branch: "main" }),
-      });
+    for (const r of REMOVED) await sb.from("membres").delete().eq("id", r.id).then(ok);
+    for (const r of ROWS.filter(r => !r.isNew && isChanged(r))) {
+      const row = dbRow(r);
+      // Pseudo changé : l'ancien est gardé pour retrouver l'historique (import Excel…)
+      if (norm(r.name) !== norm(r.o.name) && !r.aliases.some(a => norm(a) === norm(r.o.name))) row.anciens_noms = [...r.aliases, r.o.name];
+      await sb.from("membres").update(row).eq("id", r.id).then(ok);
     }
+    const added = ROWS.filter(r => r.isNew).map(dbRow);
+    if (added.length) await sb.from("membres").insert(added).then(ok);
     if (evCh.length) await saveEvals();
-    if (ch.length) {
-      await loadMembers();
-      showRunMsg(true, "Enregistré. Les GS et CP se mettent à jour tout seuls : le classement sera à jour dans 1 à 2 minutes.");
-      setTimeout(renderHealth, 4000);
-    } else render();
+    await reloadAll();
+    if (ch.length) showRunMsg(true, "Enregistré. Un nouveau relevé des GS et CP est demandé : le classement sera à jour dans les 30 minutes environ.");
     toast("Enregistré");
   } catch (e) {
-    const why = e.status === 409 ? "Les données ont été modifiées ailleurs entre-temps. Clique sur « Tout annuler » pour recharger, puis refais tes changements."
-      : e.status === 403 || e.status === 404 ? "GitHub refuse l'écriture : la clé doit avoir « Contents : Read and write » sur ce dépôt (github.com → Settings → Personal access tokens → Edit)."
+    const why = e.code === "23505" ? "Un de ces persos est déjà dans la liste (même pseudo et même serveur). Clique sur « Tout annuler » pour recharger."
+      : e.code === "42501" ? "Ton compte n'a pas le droit de modifier la liste."
       : "Échec de l'enregistrement : " + e.message;
     $("barText").innerHTML = `<span style="color:var(--down)">${esc(why)}</span>`;
   } finally { $("save").disabled = false; }
 });
-function showRunMsg(ok, text) {
-  $("runMsg").hidden = false; $("runMsg").className = "msg " + (ok ? "ok" : "err");
-  $("runMsg").innerHTML = esc(text) + (ok ? ` <a href="${REPO.url}/actions" target="_blank" rel="noopener">Suivre</a>` : "");
+function showRunMsg(good, text) {
+  $("runMsg").hidden = false; $("runMsg").className = "msg " + (good ? "ok" : "err");
+  $("runMsg").textContent = text;
 }
 $("rerun").addEventListener("click", async () => {
   $("rerun").disabled = true;
   try {
-    await gh("/actions/workflows/update.yml/dispatches", { method: "POST", body: JSON.stringify({ ref: "main" }) });
-    showRunMsg(true, "Mise à jour lancée : le classement sera à jour dans 1 à 2 minutes.");
-    setTimeout(renderHealth, 4000);
+    await sb.from("demandes_maj").insert({ par: ME.nom || ME.discord_id, motif: "relancé depuis l'admin" }).then(ok);
+    showRunMsg(true, "Relevé demandé : il sera lancé dans les 30 minutes environ (GitHub prend parfois un peu plus).");
+    renderHealth();
   } catch (e) {
-    showRunMsg(false, e.status === 403 || e.status === 404 ? "Ta clé n'a pas la permission « Actions : Read and write ». Ajoute-la dans les réglages du token." : "Échec : " + e.message);
+    showRunMsg(false, "Échec : " + e.message);
   } finally { setTimeout(() => $("rerun").disabled = false, 3000); }
 });
 
 // ---------------------------------------------------------------- connexion
-async function connect(tok, remember) {
-  TOKEN = tok.trim();
-  $("loginMsg").className = "msg"; $("loginMsg").textContent = "Connexion…";
-  try {
-    const repo = await gh("");
-    if (!repo.permissions?.push) throw Object.assign(new Error("no-push"), { status: 403 });
-    const me = await gh("https://api.github.com/user").catch(() => null);
-    $("who").textContent = me ? me.login : "GitHub";
-    try { remember ? localStorage.setItem(KEY, TOKEN) : localStorage.removeItem(KEY); } catch {}
-    await loadEvals();
-    await loadMembers();
-    $("login").hidden = true; $("editor").hidden = false; $("loginMsg").textContent = "";
-    renderHealth();
-  } catch (e) {
-    TOKEN = "";
-    $("loginMsg").className = "msg err";
-    $("loginMsg").textContent = e.status === 401 ? "Clé refusée par GitHub : vérifie-la, ou crée-en une nouvelle (elle a peut-être expiré)."
-      : e.status === 403 || e.status === 404 ? `Cette clé n'a pas accès au dépôt ${REPO.name}. Vérifie « Repository access » dans les réglages du token.`
-      : "Connexion impossible : " + e.message;
-    try { localStorage.removeItem(KEY); } catch {}
-  }
-}
-$("connect").addEventListener("click", () => $("token").value.trim() && connect($("token").value, $("remember").checked));
-$("token").addEventListener("keydown", e => { if (e.key === "Enter") $("connect").click(); });
-$("logout").addEventListener("click", () => {
-  try { localStorage.removeItem(KEY); } catch {}
-  TOKEN = ""; $("token").value = ""; $("editor").hidden = true; $("bar").hidden = true; $("login").hidden = false;
-  lock();
-});
-window.addEventListener("beforeunload", e => { if (TOKEN && (changeList().length || evalChanges().length)) { e.preventDefault(); e.returnValue = ""; } });
+$("logout").addEventListener("click", logout);
+window.addEventListener("beforeunload", e => { if (ME && (changeList().length || evalChanges().length)) { e.preventDefault(); e.returnValue = ""; } });
 
-// D'abord le mot de passe du site (données chiffrées), puis la connexion GitHub
-loadLive().then(() => {
-  let saved = null; try { saved = localStorage.getItem(KEY); } catch {}
-  if (saved) connect(saved, true);
+auth(["admin", "gerant"]).then(async me => {
+  ME = me;
+  $("who").textContent = `${me.nom || "?"} · ${ROLE_LABEL[me.role]}`;
+  $("tabAcc").hidden = me.role !== "admin";
+  $("editor").hidden = false;
+  await reloadAll();
+}).catch(e => {
+  $("editor").hidden = false;
+  showRunMsg(false, "Chargement impossible : " + (e.message || e));
 });
 </script>
 </body>
